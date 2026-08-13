@@ -1,0 +1,32 @@
+# === Java / Maven ===
+target/
+.flattened-pom.xml
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+
+# === Node / pnpm ===
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+playwright-report/
+test-results/
+
+# === sekrety (D14) — w repo wyłącznie .env.example ===
+.env
+.env.*
+!.env.example
+
+# === IDE ===
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+.factorypath
+
+# === różne ===
+*.log
+HELP.md
+.DS_Store
