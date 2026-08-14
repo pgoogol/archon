@@ -56,6 +56,16 @@ void resolveBpm_whenAllSourcesEmpty_leavesBpmForAi() {
 - Nigdy nie testuj metod prywatnych wprost — testuj zachowanie przez API publiczne.
 - Nigdy nie używaj `Thread.sleep()` — od asercji asynchronicznych jest `Awaitility`.
 
+## W której fazie idzie który test
+
+Każdy test startujący kontener niesie `@Tag("integration")`. Surefire ten tag
+wyklucza, Failsafe puszcza wyłącznie jego — dzięki temu `./mvnw test` nie
+potrzebuje Dockera, a `./mvnw verify` tak.
+
+Podział idzie po tagu, nigdy po nazwie klasy: `LibraryDistributionsRepositoryTest`
+kończy się na `RepositoryTest`, a jest czystą logiką bez bazy. Taguj to, czego
+test faktycznie potrzebuje, nie to, jak się nazywa.
+
 ## Testy integracyjne
 
 - `@Testcontainers` + realny obraz bazy (`postgres:16-alpine` — ta sama wersja co

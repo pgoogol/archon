@@ -3,6 +3,7 @@ package com.pgoogol.music.playlist;
 import com.pgoogol.music.TestcontainersConfiguration;
 import com.pgoogol.music.catalog.TrackCatalog;
 import com.pgoogol.music.catalog.TrackCatalogFixtures;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
@@ -18,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(TestcontainersConfiguration.class)
+@Tag("integration")
 class PlaylistTrackRepositoryTest {
 
     @Autowired

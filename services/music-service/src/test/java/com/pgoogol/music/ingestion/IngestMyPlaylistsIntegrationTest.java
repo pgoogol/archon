@@ -15,6 +15,7 @@ import com.pgoogol.music.playlist.PlaylistRepository;
 import com.pgoogol.music.playlist.PlaylistTrackRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -42,6 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(properties = "ingestion.playlist-refresh.enabled=false")
 @AutoConfigureMockMvc
 @Import(TestcontainersConfiguration.class)
+@Tag("integration")
 class IngestMyPlaylistsIntegrationTest {
 
     private static final String OWNER_ID = "dj-pgoogol";

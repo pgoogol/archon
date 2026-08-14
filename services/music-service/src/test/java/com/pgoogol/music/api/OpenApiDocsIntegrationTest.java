@@ -1,6 +1,7 @@
 package com.pgoogol.music.api;
 
 import com.pgoogol.music.TestcontainersConfiguration;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -19,6 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Import(TestcontainersConfiguration.class)
+@Tag("integration")
 class OpenApiDocsIntegrationTest {
 
     @Autowired

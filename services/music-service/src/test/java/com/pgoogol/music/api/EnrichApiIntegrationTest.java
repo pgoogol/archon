@@ -7,6 +7,7 @@ import com.pgoogol.music.enrichment.EnrichmentScope;
 import com.pgoogol.music.enrichment.EnrichmentService;
 import com.pgoogol.music.enrichment.FieldGroup;
 import com.pgoogol.music.enrichment.MissingFieldsCount;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -35,6 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Import(TestcontainersConfiguration.class)
+@Tag("integration")
 class EnrichApiIntegrationTest {
 
     @Autowired

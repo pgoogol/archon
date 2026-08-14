@@ -9,6 +9,7 @@ import com.pgoogol.music.catalog.TrackCatalog;
 import com.pgoogol.music.catalog.TrackCatalogRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -41,6 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Import(TestcontainersConfiguration.class)
+@Tag("integration")
 class IngestMetricsIntegrationTest {
 
     private static final String LAMPARA = "2c7nzxJYmPtkimDdrhcfJx";

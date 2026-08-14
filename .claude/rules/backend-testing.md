@@ -56,6 +56,16 @@ void resolveBpm_whenAllSourcesEmpty_leavesBpmForAi() {
 - Never test private methods directly — test behaviour through the public API.
 - Never use `Thread.sleep()` — `Awaitility` is there for async assertions.
 
+## Which phase a test runs in
+
+Every test that starts a container carries `@Tag("integration")`. Surefire
+excludes that tag, Failsafe runs only it — so `./mvnw test` needs no Docker and
+`./mvnw verify` does.
+
+The split is by tag, never by class name: `LibraryDistributionsRepositoryTest`
+ends in `RepositoryTest` and is pure logic with no database. Tag what the test
+actually needs, not what it happens to be called.
+
 ## Integration tests
 
 - `@Testcontainers` + a real database image (`postgres:16-alpine` — the same

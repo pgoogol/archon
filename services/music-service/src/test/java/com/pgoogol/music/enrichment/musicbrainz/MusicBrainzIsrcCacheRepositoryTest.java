@@ -1,6 +1,7 @@
 package com.pgoogol.music.enrichment.musicbrainz;
 
 import com.pgoogol.music.TestcontainersConfiguration;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
@@ -14,6 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(TestcontainersConfiguration.class)
+@Tag("integration")
 class MusicBrainzIsrcCacheRepositoryTest {
 
     @Autowired

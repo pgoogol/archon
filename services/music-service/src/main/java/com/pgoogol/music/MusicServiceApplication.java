@@ -6,9 +6,9 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 @SpringBootApplication
 @ConfigurationPropertiesScan
-public class MusicViewApplication {
+public class MusicServiceApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(MusicViewApplication.class, args);
+        SpringApplication.run(MusicServiceApplication.class, args);
     }
 }

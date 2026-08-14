@@ -5,6 +5,7 @@ import com.pgoogol.music.catalog.TrackCatalogRepository;
 import com.pgoogol.music.library.LibraryEntryRepository;
 import com.pgoogol.music.library.LibrarySource;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -30,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Import(TestcontainersConfiguration.class)
+@Tag("integration")
 class IngestFileIntegrationTest {
 
     @Autowired
