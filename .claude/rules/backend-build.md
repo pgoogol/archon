@@ -26,9 +26,10 @@ paths:
 ## Packages and boundaries
 
 - Every package starts with `com.pgoogol`. No exceptions.
-- A service in `services/<name>-service` has base package `com.pgoogol.<name>`.
-  Never create a package directly under `com.pgoogol` — it would collide with
-  the next service.
+- A service in `services/<name>-service` has base package `com.pgoogol.<name>`;
+  a library in `libs/java/<lib>` owns one namespace of its own under
+  `com.pgoogol`. Never put a service's domain packages directly under
+  `com.pgoogol` — they would collide with the next service.
 - **Split packages by feature, never by layer.** Do not create `controller/`,
   `service/`, `repository/` at the top of a service:
 

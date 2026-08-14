@@ -25,9 +25,10 @@ paths:
 ## Pakiety i granice
 
 - Każdy pakiet zaczyna się od `com.pgoogol`. Bez wyjątków.
-- Serwis w `services/<nazwa>-service` ma pakiet bazowy `com.pgoogol.<nazwa>`.
-  Nigdy nie twórz pakietu bezpośrednio pod `com.pgoogol` — kolidowałby z kolejnym
-  serwisem.
+- Serwis w `services/<nazwa>-service` ma pakiet bazowy `com.pgoogol.<nazwa>`;
+  biblioteka w `libs/java/<lib>` ma własną, jedną przestrzeń nazw pod
+  `com.pgoogol`. Nigdy nie umieszczaj pakietów domenowych serwisu bezpośrednio
+  pod `com.pgoogol` — kolidowałyby z kolejnym serwisem.
 - **Dziel pakiety po funkcji, nigdy po warstwie.** Nie twórz `controller/`,
   `service/`, `repository/` na szczycie serwisu:
 

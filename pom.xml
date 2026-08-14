@@ -22,7 +22,8 @@
   <description>Monorepo archon — reaktor Mavena</description>
 
   <modules>
-    <!-- moduły dochodzą w fazie 3 (import kodu) -->
+    <module>libs/java/logging-starter</module>
+    <module>services/music-service</module>
   </modules>
 
   <properties>
