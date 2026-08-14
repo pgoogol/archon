@@ -1,318 +1,124 @@
-// Typowany klient API music-view — kontrakty 1:1 z DTO backendu (M1.7).
+// Klient API domeny muzycznej. Typy DTO NIE są tu pisane — pochodzą z kontraktu
+// (contracts/openapi/music.yaml) przez @archon/api-client. Ten plik trzyma już
+// tylko wywołania endpointów i kształty wejściowe samego frontu.
 
-export interface TrackResponse {
-  spotifyId: string
-  title: string | null
-  artist: string | null
-  album: string | null
-  year: number | null
-  durationMs: number | null
-  popularity: number | null
-  explicit: boolean | null
-  albumImageUrl: string | null
-  isrc: string | null
-  genreFamily: string | null
-  style: string | null
-  bpm: number | null
-  bpmSource: string | null
-  danceability: number | null
-  musicalKey: string | null
-  /** Pozycja koła Camelot liczona z `musicalKey` przez backend (D25) — nie kolumna. */
-  camelot: string | null
-  tempoClass: string | null
-  energy: string | null
-  lyricsTheme: string | null
-  descriptionPl: string | null
-  confidence: string | null
-  enrichedAt: string | null
-  modelUsed: string | null
-  enrichVersion: number | null
-}
+import type {
+  CatalogRowResponse,
+  CatalogSort,
+  EnrichFailureResponse,
+  EnrichJobResponse,
+  EnrichmentEstimateResponse,
+  IngestFileResponse,
+  IngestMetricsResponse,
+  IngestMyPlaylistsResponse,
+  IngestPlaylistResponse,
+  LibraryEntryResponse,
+  LibraryOverviewResponse,
+  MetricsCoverageResponse,
+  MissingFieldsCount as MissingCountResponse,
+  MissingGroup,
+  PageResponse,
+  PlaylistExportResponse,
+  PlaylistRefreshStatusResponse,
+  PlaylistResponse,
+  PlaylistSummaryResponse,
+  SetCurve,
+  SetFillRequest,
+  SetFillResponse,
+  SetProposalRequest,
+  SetProposalResponse,
+  SetSuggestionRequest,
+  SetSuggestionResponse,
+  SortDirection,
+  SpotifyAccountResponse,
+  TrackMetricsResponse,
+  UpdateLibraryEntryRequest,
+} from '@archon/api-client'
+
+export type {
+  AddLibraryTrackRequest,
+  AddPlaylistTrackRequest,
+  BucketResponse,
+  CatalogRowResponse,
+  CatalogSort,
+  EnrichFailureResponse,
+  EnrichJobResponse,
+  EnrichRequest,
+  EnrichmentEstimateResponse,
+  EnrichmentScope,
+  ErrorResponse,
+  FieldGroup,
+  IngestFileResponse,
+  IngestMetricsResponse,
+  IngestMyPlaylistsResponse,
+  IngestPlaylistRequest,
+  IngestPlaylistResponse,
+  LibraryEntryResponse,
+  LibraryOverviewResponse,
+  MatrixCellResponse,
+  MetricResponse,
+  MetricsCoverageResponse,
+  MissingGroup,
+  PageResponse,
+  PlaylistExportResponse,
+  PlaylistRefreshStatusResponse,
+  PlaylistResponse,
+  PlaylistSummaryResponse,
+  PlaylistTrackResponse,
+  ProposedTrackResponse,
+  RecentTrackResponse,
+  ReorderPlaylistRequest,
+  RowErrorResponse,
+  SavePlaylistRequest,
+  SetCurve,
+  SetFillRequest,
+  SetFillResponse,
+  SetProposalRequest,
+  SetProposalResponse,
+  SetSuggestionRequest,
+  SetSuggestionResponse,
+  SkippedItemResponse,
+  SortDirection,
+  SpotifyAccountResponse,
+  SuggestedTrackResponse,
+  TrackLibraryResponse,
+  TrackMetricsResponse,
+  TrackResponse,
+  UpdateLibraryEntryRequest,
+} from '@archon/api-client'
+
+// nazwy, pod którymi front znał te DTO wcześniej
+export type {
+  MissingFieldsCount as MissingCountResponse,
+  FileReportResponse as MetricsFileReportResponse,
+  ScaleResponse as OverviewScaleResponse,
+  QualityResponse as OverviewQualityResponse,
+  SoundResponse as OverviewSoundResponse,
+  TimelineResponse as OverviewTimelineResponse,
+  TasteResponse as OverviewTasteResponse,
+} from '@archon/api-client'
 
 /** Dane prywatne DJ-a pokazywane w wierszu biblioteki (M5.6) — reszta w szufladzie. */
-export interface TrackLibraryResponse {
-  rating: number | null
-  customTags: string[] | null
-  addedAt: string
-  source: string
-}
-
 /**
  * Wiersz wyszukiwarki (M5.6): katalog i dane DJ-a jako dwa obiekty, bo rozdział
  * z D3 obowiązuje też w kontrakcie. `library === null` znaczy „utwór jest
  * w katalogu, ale nie w bibliotece" — co innego niż „w bibliotece bez oceny".
  */
-export interface CatalogRowResponse {
-  track: TrackResponse
-  library: TrackLibraryResponse | null
-}
-
-export interface PageResponse<T> {
-  content: T[]
-  page: number
-  size: number
-  totalElements: number
-  totalPages: number
-}
-
-export interface LibraryEntryResponse {
-  id: number
-  spotifyId: string
-  source: string
-  addedAt: string
-  djNotes: string | null
-  customTags: string[] | null
-  rating: number | null
-  djSlotOverride: string | null
-  /** Wersja do blokady optymistycznej (D29) — odsyłamy ją przy PATCH-u. */
-  version: number
-  track: TrackResponse
-}
-
-export interface IngestFileResponse {
-  imported: number
-  alreadyExisted: number
-  failed: { line: number; reason: string }[]
-}
-
 /** Metryki wgrane ręcznie z CSV (D24) — surowe wartości z pliku, skala 0..1. */
-export interface TrackMetricsResponse {
-  spotifyId: string
-  bpm: number | null
-  musicalKey: string | null
-  camelot: string | null
-  danceability: number | null
-  energy: number | null
-  valence: number | null
-  acousticness: number | null
-  instrumentalness: number | null
-  speechiness: number | null
-  liveness: number | null
-  loudnessDb: number | null
-  timeSignature: number | null
-  source: string | null
-  importedAt: string | null
-}
-
-export interface RowErrorResponse {
-  line: number
-  reason: string
-}
-
 /** Raport jednego pliku partii; `error` niepuste = plik odpadł w całości. */
-export interface MetricsFileReportResponse {
-  file: string
-  applied: number
-  matchedByIsrc: number
-  skipped: RowErrorResponse[]
-  failed: RowErrorResponse[]
-  errorCode: string | null
-  error: string | null
-}
-
 /** Liczby na wierzchu są sumą partii; numery wierszy mają sens tylko przy pliku. */
-export interface IngestMetricsResponse {
-  applied: number
-  matchedByIsrc: number
-  skippedRows: number
-  failedRows: number
-  files: MetricsFileReportResponse[]
-}
-
-export interface IngestPlaylistResponse {
-  playlistId: number
-  spotifyPlaylistId: string
-  name: string
-  tracks: number
-  imported: number
-  alreadyExisted: number
-  skipped: { position: number; reason: string }[]
-}
-
 /** Tryb C: playlista, która padła, nie przerywa importu — wraca w `failed`. */
-export interface IngestMyPlaylistsResponse {
-  imported: IngestPlaylistResponse[]
-  failed: { spotifyPlaylistId: string; name: string; errorCode: string; reason: string }[]
-}
-
-export interface EnrichJobResponse {
-  executionId: number
-  jobInstanceId: number
-  status: string
-  scope: string
-  fields: string
-  readCount: number
-  writeCount: number
-  /** Utwory pominięte przez job (D37); powody pod `jobFailures`. */
-  failedCount: number
-  startTime: string | null
-  endTime: string | null
-  exitDescription: string | null
-}
-
 /** Utwór pominięty przez job wzbogacania razem z powodem (D37). */
-export interface EnrichFailureResponse {
-  spotifyId: string
-  reason: string
-  failedAt: string
-}
-
 /** Stan automatycznego odświeżania playlist w tle (M4.7/D35). */
-export interface PlaylistRefreshStatusResponse {
-  outcome: 'NEVER_RUN' | 'DISABLED' | 'SKIPPED_NOT_CONNECTED' | 'REFRESHED' | 'FAILED'
-  lastRunAt: string | null
-  refreshedPlaylists: number
-  failedPlaylists: number
-  message: string | null
-  /** Odstęp liczony od zakończenia poprzedniego przebiegu. */
-  intervalSeconds: number
-}
-
-export interface PlaylistSummaryResponse {
-  id: number
-  name: string
-  spotifyPlaylistId: string | null
-  createdAt: string
-  trackCount: number
-  version: number
-}
-
-export interface PlaylistTrackResponse {
-  position: number
-  djSlot: string | null
-  djSlotOverride: string | null
-  /**
-   * Komplet metryk z pliku (D24); `null`, gdy utworu nie było w żadnym wgranym
-   * pliku. Planer liczy z nich ostrzeżenia i falowe tryby układania (D34).
-   */
-  metrics: TrackMetricsResponse | null
-  track: TrackResponse
-}
-
-export interface PlaylistResponse {
-  id: number
-  name: string
-  spotifyPlaylistId: string | null
-  createdAt: string
-  /** Wersja agregatu (D29) — odsyłamy ją przy zmianie kolejności i nazwy. */
-  version: number
-  tracks: PlaylistTrackResponse[]
-}
-
-export interface PlaylistExportResponse {
-  playlistId: number
-  spotifyPlaylistId: string
-  name: string
-  exportedTracks: number
-  created: boolean
-  spotifyUrl: string
-}
-
-export interface SpotifyAccountResponse {
-  connected: boolean
-  spotifyUserId: string | null
-  displayName: string | null
-  scopes: string | null
-  expiresAt: string | null
-  connectedAt: string | null
-}
-
 /** Jeden słupek rozkładu w przeglądzie biblioteki (M4.3). */
-export interface BucketResponse {
-  label: string
-  count: number
-}
-
 /** Komórka macierzy tempo × energia — dwa wymiary naraz (M5.4). */
-export interface MatrixCellResponse {
-  tempoClass: string
-  energy: string
-  count: number
-}
-
 /** Średnia cecha audio z metryk ręcznych (D24), skala 0..1. */
-export interface MetricResponse {
-  label: string
-  value: number
-}
-
-export interface RecentTrackResponse {
-  spotifyId: string
-  title: string | null
-  artist: string | null
-  albumImageUrl: string | null
-  addedAt: string
-}
-
 /**
  * Skala zbioru — same utwory (D36); playlisty i sety mają własne zakładki.
  * Średnie = null dla pustego katalogu, nie zero.
  */
-export interface OverviewScaleResponse {
-  catalogTracks: number
-  libraryTracks: number
-  tracksWithMetrics: number
-  libraryDurationMs: number
-  distinctArtists: number
-  distinctAlbums: number
-  averageBpm: number | null
-  averageDurationMs: number | null
-  averagePopularity: number | null
-  /** Taneczność z katalogu (AcousticBrainz/LLM) — szersza próbka niż metryki z pliku. */
-  averageDanceability: number | null
-  tracksWithDanceability: number
-}
-
-export interface OverviewQualityResponse {
-  metadataMissing: number
-  audioMissing: number
-  aiMissing: number
-  /** Ile biblioteki stoi na faktach, a ile na estymacie LLM (kryterium D19). */
-  bpmSources: BucketResponse[]
-  confidences: BucketResponse[]
-}
-
-export interface OverviewSoundResponse {
-  genres: BucketResponse[]
-  styles: BucketResponse[]
-  tempoClasses: BucketResponse[]
-  energies: BucketResponse[]
-  bpmHistogram: BucketResponse[]
-  /** Pozycje koła Camelot policzone z tonacji (D25), w kolejności koła. */
-  camelotKeys: BucketResponse[]
-  durations: BucketResponse[]
-  popularity: BucketResponse[]
-  explicitness: BucketResponse[]
-  /** Metrum z metryk ręcznych (D24) — obejmuje tylko utwory z pliku. */
-  timeSignatures: BucketResponse[]
-  tempoEnergy: MatrixCellResponse[]
-  audioProfile: MetricResponse[]
-}
-
-export interface OverviewTimelineResponse {
-  monthlyGrowth: BucketResponse[]
-  decades: BucketResponse[]
-}
-
-export interface OverviewTasteResponse {
-  topArtists: BucketResponse[]
-  topAlbums: BucketResponse[]
-  topTags: BucketResponse[]
-  ratings: BucketResponse[]
-}
-
 /** Pięć grup = pięć stref czytania ekranu przeglądu (M5.4/D36). */
-export interface LibraryOverviewResponse {
-  scale: OverviewScaleResponse
-  quality: OverviewQualityResponse
-  sound: OverviewSoundResponse
-  timeline: OverviewTimelineResponse
-  taste: OverviewTasteResponse
-  recentlyAdded: RecentTrackResponse[]
-}
-
 /** Profil kształtu wieczoru dla generatora (M4.5/D33) — udziały faz D9. */
-export type SetCurve = 'STANDARD' | 'WEDDING' | 'CLUB' | 'EVEN'
 
 export const SET_CURVES: readonly SetCurve[] = ['STANDARD', 'WEDDING', 'CLUB', 'EVEN']
 
@@ -339,92 +145,10 @@ export interface SetPoolFilters {
 }
 
 /** Propozycja setu (M4.2/D26) — generator niczego nie zapisuje. */
-export interface SetProposalRequest extends SetPoolFilters {
-  targetMinutes: number
-  /** Kształt wieczoru (M4.5); brak = `STANDARD`. */
-  curve?: SetCurve
-  seed?: number
-}
-
-export interface ProposedTrackResponse {
-  position: number
-  djSlot: string | null
-  track: TrackResponse
-}
-
-export interface SetProposalResponse {
-  trackCount: number
-  totalDurationMs: number
-  targetDurationMs: number
-  /** Ziarno użyte przy losowaniu — podaj je z powrotem, żeby dostać ten sam set. */
-  seed: number
-  notes: string[]
-  tracks: ProposedTrackResponse[]
-}
-
 /** Uzupełnienie gotowego setu (M4.4/D32) — `targetMinutes` liczy CAŁY wieczór. */
-export interface SetFillRequest extends SetPoolFilters {
-  targetMinutes: number
-  /** Kształt wieczoru (M4.5); brak = `STANDARD`. */
-  curve?: SetCurve
-  seed?: number
-}
-
-export interface SetFillResponse {
-  currentTrackCount: number
-  currentDurationMs: number
-  addedTrackCount: number
-  /** Długość setu po dopisaniu propozycji. */
-  totalDurationMs: number
-  targetDurationMs: number
-  seed: number
-  notes: string[]
-  tracks: ProposedTrackResponse[]
-}
-
 /** Dobranie utworu na jedno miejsce w secie (M4.4/D32); brak `position` = na koniec. */
-export interface SetSuggestionRequest extends SetPoolFilters {
-  position?: number
-  limit?: number
-}
-
-export interface SuggestedTrackResponse {
-  djSlot: string | null
-  /** Różnica tempa wobec sąsiada; `null`, gdy któremuś brakuje BPM. */
-  bpmDelta: number | null
-  /** Zgodność tonacji na kole Camelot; `null` przy nieznanej tonacji (D25). */
-  harmonic: boolean | null
-  track: TrackResponse
-}
-
-export interface SetSuggestionResponse {
-  position: number
-  suggestions: SuggestedTrackResponse[]
-}
-
 /** Pokrycie katalogu metrykami z pliku — kontekst filtrów metryk (M4.1). */
-export interface MetricsCoverageResponse {
-  withMetrics: number
-  total: number
-}
-
 /** Szacunek zlecenia wzbogacania (M5.1/D28) — nic nie uruchamia. */
-export interface EnrichmentEstimateResponse {
-  trackCount: number
-  /** Utwory, za które realnie zapłacimy — tylko grupa AI. */
-  aiTracks: number
-  /** null = brak stawek w konfiguracji, nie zero. */
-  estimatedCost: number | null
-  limit: number
-  withinLimit: boolean
-}
-
-export interface MissingCountResponse {
-  metadata: number
-  audio: number
-  ai: number
-}
-
 /** Biała lista sortowania po stronie API (M3.1, dane DJ-a w M5.6; enum CatalogSort). */
 export const CATALOG_SORTS = [
   'RELEVANCE',
@@ -441,14 +165,11 @@ export const CATALOG_SORTS = [
   'ADDED_AT',
 ] as const
 
-export type CatalogSort = (typeof CATALOG_SORTS)[number]
 
-export type SortDirection = 'ASC' | 'DESC'
 
 /** Grupy braków (D11) w wersji filtra biblioteki — ANY = „do wzbogacenia" (M5.6). */
 export const MISSING_GROUPS = ['ANY', 'METADATA', 'AUDIO', 'AI'] as const
 
-export type MissingGroup = (typeof MISSING_GROUPS)[number]
 
 /** Źródła BPM z kaskady D6/D24 — kryterium D19: pomiar czy estymata. */
 export const BPM_SOURCES = ['MANUAL', 'ACOUSTICBRAINZ', 'DEEZER', 'LLM'] as const
@@ -487,15 +208,6 @@ export interface SearchParams {
   direction?: SortDirection
   page?: number
   size?: number
-}
-
-export interface UpdateLibraryEntryRequest {
-  djNotes?: string | null
-  customTags?: string[] | null
-  rating?: number | null
-  djSlotOverride?: string | null
-  /** Wymagana (D29) — bez niej backend odrzuca PATCH. */
-  version: number
 }
 
 import { jsonInit, request } from '@/shared/http/client'

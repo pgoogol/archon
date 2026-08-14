@@ -1,0 +1,1385 @@
+openapi: 3.1.0
+
+# Kontrakt API music-service. Pisany ręcznie i to on jest źródłem prawdy:
+# zmiana idzie tutaj PRZED implementacją, a test kontraktowy w serwisie
+# porównuje specyfikację wygenerowaną z kodu z tym plikiem i wywala build
+# przy rozjeździe (.claude/rules/backend-api.md).
+#
+# Typy DTO frontu są generowane z tego pliku i nigdy nie są pisane ręcznie.
+
+info:
+  title: music-view API
+  version: 1.0.0
+  description: |
+    Narzędzie DJ-a do zarządzania biblioteką muzyczną. Rozdział danych (D3):
+    `track_catalog` trzyma fakty o utworze, `library_entry` prywatne dane DJ-a.
+
+servers:
+  - url: /
+    description: aplikacja za proxy /api
+
+tags:
+  - name: catalog
+    description: Katalog utworów i wyszukiwarka
+  - name: library
+    description: Biblioteka DJ-a i przegląd
+  - name: playlists
+    description: Playlisty i sety
+  - name: sets
+    description: Generowanie i uzupełnianie setów
+  - name: enrich
+    description: Zlecenia wzbogacania
+  - name: ingest
+    description: Import z pliku i ze Spotify
+  - name: auth
+    description: Połączenie konta Spotify
+
+paths:
+
+  /api/catalog/tracks:
+    get:
+      tags: [catalog]
+      operationId: searchTracks
+      summary: Wyszukiwarka katalogu z filtrami, sortowaniem i stronicowaniem
+      parameters:
+        - { name: search, in: query, schema: { type: string } }
+        - { name: genreFamily, in: query, schema: { $ref: '#/components/schemas/GenreFamily' } }
+        - { name: yearMin, in: query, schema: { type: integer, format: int32 } }
+        - { name: yearMax, in: query, schema: { type: integer, format: int32 } }
+        - { name: durationMinSec, in: query, schema: { type: integer, format: int32 } }
+        - { name: durationMaxSec, in: query, schema: { type: integer, format: int32 } }
+        - { name: popularityMin, in: query, schema: { type: integer, format: int32 } }
+        - { name: explicit, in: query, schema: { type: boolean } }
+        - { name: bpmMin, in: query, schema: { type: integer, format: int32 } }
+        - { name: bpmMax, in: query, schema: { type: integer, format: int32 } }
+        - { name: tempoClass, in: query, schema: { $ref: '#/components/schemas/TempoClass' } }
+        - { name: energy, in: query, schema: { type: string } }
+        - name: camelot
+          in: query
+          description: Pozycja koła Camelot, np. `8A` (D25)
+          schema: { type: string }
+        - name: camelotCompatible
+          in: query
+          description: Rozszerza filtr o tonacje zgodne (±1 i równoległa)
+          schema: { type: boolean, default: true }
+        - { name: inLibrary, in: query, schema: { type: boolean } }
+        - { name: ratingMin, in: query, schema: { type: integer, format: int32 } }
+        - { name: tag, in: query, schema: { type: string } }
+        - { name: valenceMin, in: query, schema: { type: number } }
+        - { name: valenceMax, in: query, schema: { type: number } }
+        - { name: instrumentalMin, in: query, schema: { type: number } }
+        - { name: livenessMax, in: query, schema: { type: number } }
+        - { name: bpmSource, in: query, schema: { $ref: '#/components/schemas/BpmSource' } }
+        - { name: missing, in: query, schema: { $ref: '#/components/schemas/MissingGroup' } }
+        - { name: sort, in: query, schema: { $ref: '#/components/schemas/CatalogSort' } }
+        - { name: direction, in: query, schema: { $ref: '#/components/schemas/SortDirection' } }
+        - { name: page, in: query, schema: { type: integer, format: int32, default: 0 } }
+        - { name: size, in: query, schema: { type: integer, format: int32, default: 20 } }
+      responses:
+        '200':
+          description: Strona wyniku
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PageCatalogRowResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /api/catalog/tracks/{spotifyId}:
+    get:
+      tags: [catalog]
+      operationId: getTrack
+      summary: Pojedynczy utwór z katalogu
+      parameters: [{ $ref: '#/components/parameters/SpotifyId' }]
+      responses:
+        '200':
+          description: Utwór
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TrackResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/catalog/tracks/{spotifyId}/metrics:
+    get:
+      tags: [catalog]
+      operationId: getTrackMetrics
+      summary: Metryki wgrane z pliku (D24)
+      parameters: [{ $ref: '#/components/parameters/SpotifyId' }]
+      responses:
+        '200':
+          description: Metryki utworu
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TrackMetricsResponse' }
+        '404':
+          description: Utwór nie dostał metryk
+
+  /api/catalog/metrics-coverage:
+    get:
+      tags: [catalog]
+      operationId: getMetricsCoverage
+      summary: Ile utworów katalogu ma metryki z pliku
+      responses:
+        '200':
+          description: Pokrycie metrykami
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MetricsCoverageResponse' }
+
+  /api/library/tracks:
+    get:
+      tags: [library]
+      operationId: listLibraryTracks
+      summary: Strona wpisów bibliotecznych
+      parameters:
+        - { name: page, in: query, schema: { type: integer, format: int32, default: 0 } }
+        - { name: size, in: query, schema: { type: integer, format: int32, default: 20 } }
+      responses:
+        '200':
+          description: Strona wpisów
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PageLibraryEntryResponse' }
+    post:
+      tags: [library]
+      operationId: addLibraryTrack
+      summary: Ręczne dodanie utworu do biblioteki
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AddLibraryTrackRequest' }
+      responses:
+        '201':
+          description: Wpis utworzony
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LibraryEntryResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /api/library/tracks/{spotifyId}:
+    get:
+      tags: [library]
+      operationId: getLibraryTrack
+      parameters: [{ $ref: '#/components/parameters/SpotifyId' }]
+      responses:
+        '200':
+          description: Wpis biblioteczny
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LibraryEntryResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [library]
+      operationId: updateLibraryTrack
+      summary: Zmiana danych prywatnych DJ-a
+      description: |
+        Pole pominięte zostaje bez zmian; pusta wartość czyści pole.
+        `version` jest wymagana (D29) — nieświeża kończy się 409.
+      parameters: [{ $ref: '#/components/parameters/SpotifyId' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateLibraryEntryRequest' }
+      responses:
+        '200':
+          description: Wpis po zmianie
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LibraryEntryResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+    delete:
+      tags: [library]
+      operationId: deleteLibraryTrack
+      summary: Usunięcie wpisu; katalog zostaje bez zmian
+      parameters: [{ $ref: '#/components/parameters/SpotifyId' }]
+      responses:
+        '204': { description: Usunięto }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/library/overview:
+    get:
+      tags: [library]
+      operationId: getLibraryOverview
+      summary: Przegląd biblioteki — rozkłady liczone w bazie (D27)
+      responses:
+        '200':
+          description: Przegląd
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LibraryOverviewResponse' }
+
+  /api/library/tags:
+    get:
+      tags: [library]
+      operationId: listLibraryTags
+      summary: Tagi użyte w bibliotece
+      responses:
+        '200':
+          description: Lista tagów
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: string }
+
+  /api/playlists:
+    get:
+      tags: [playlists]
+      operationId: listPlaylists
+      responses:
+        '200':
+          description: Lista playlist
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/PlaylistSummaryResponse' }
+    post:
+      tags: [playlists]
+      operationId: createPlaylist
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SavePlaylistRequest' }
+      responses:
+        '201':
+          description: Playlista utworzona
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlaylistSummaryResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /api/playlists/{id}:
+    get:
+      tags: [playlists]
+      operationId: getPlaylist
+      parameters: [{ $ref: '#/components/parameters/PlaylistId' }]
+      responses:
+        '200':
+          description: Playlista ze składem
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlaylistResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [playlists]
+      operationId: renamePlaylist
+      parameters: [{ $ref: '#/components/parameters/PlaylistId' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SavePlaylistRequest' }
+      responses:
+        '200':
+          description: Playlista po zmianie
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlaylistSummaryResponse' }
+        '409': { $ref: '#/components/responses/Conflict' }
+    delete:
+      tags: [playlists]
+      operationId: deletePlaylist
+      parameters: [{ $ref: '#/components/parameters/PlaylistId' }]
+      responses:
+        '204': { description: Usunięto }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/playlists/{id}/tracks:
+    post:
+      tags: [playlists]
+      operationId: addPlaylistTrack
+      summary: Dokłada utwór na koniec setu
+      parameters: [{ $ref: '#/components/parameters/PlaylistId' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AddPlaylistTrackRequest' }
+      responses:
+        '200':
+          description: Playlista po zmianie
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlaylistResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+    put:
+      tags: [playlists]
+      operationId: reorderPlaylist
+      summary: Nowa kolejność — musi być permutacją obecnego składu
+      parameters: [{ $ref: '#/components/parameters/PlaylistId' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReorderPlaylistRequest' }
+      responses:
+        '200':
+          description: Playlista po zmianie kolejności
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlaylistResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /api/playlists/{id}/tracks/{spotifyId}:
+    delete:
+      tags: [playlists]
+      operationId: removePlaylistTrack
+      summary: Usuwa utwór i zwiera pozycje pozostałych
+      parameters:
+        - { $ref: '#/components/parameters/PlaylistId' }
+        - { $ref: '#/components/parameters/SpotifyId' }
+      responses:
+        '200':
+          description: Playlista po zmianie
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlaylistResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/playlists/{id}/export-to-spotify:
+    post:
+      tags: [playlists]
+      operationId: exportPlaylistToSpotify
+      summary: Pierwszy eksport zakłada playlistę, kolejny nadpisuje tę samą
+      parameters: [{ $ref: '#/components/parameters/PlaylistId' }]
+      responses:
+        '200':
+          description: Wynik eksportu
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlaylistExportResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/sets/propose:
+    post:
+      tags: [sets]
+      operationId: proposeSet
+      summary: Propozycja setu z puli kandydatów; nic nie zapisuje
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SetProposalRequest' }
+      responses:
+        '200':
+          description: Propozycja
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SetProposalResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /api/sets/{playlistId}/fill:
+    post:
+      tags: [sets]
+      operationId: fillSet
+      summary: Uzupełnia gotowy set do zadanego czasu
+      parameters: [{ $ref: '#/components/parameters/PlaylistIdPath' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SetFillRequest' }
+      responses:
+        '200':
+          description: Dalszy ciąg setu
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SetFillResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/sets/{playlistId}/suggest:
+    post:
+      tags: [sets]
+      operationId: suggestForSet
+      summary: Dobiera kandydatów na wskazane miejsce w secie
+      parameters: [{ $ref: '#/components/parameters/PlaylistIdPath' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SetSuggestionRequest' }
+      responses:
+        '200':
+          description: Propozycje
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SetSuggestionResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /api/enrich:
+    post:
+      tags: [enrich]
+      operationId: startEnrichment
+      summary: Startuje job wzbogacania (asynchronicznie)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EnrichRequest' }
+      responses:
+        '202':
+          description: Job wystartował
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExecutionIdResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /api/enrich/estimate:
+    post:
+      tags: [enrich]
+      operationId: estimateEnrichment
+      summary: Ile utworów obejmie zlecenie i ile to będzie kosztowało
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EnrichRequest' }
+      responses:
+        '200':
+          description: Szacunek
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EnrichmentEstimateResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /api/enrich/jobs:
+    get:
+      tags: [enrich]
+      operationId: listEnrichJobs
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, format: int32, default: 20 } }
+      responses:
+        '200':
+          description: Historia wykonań
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/EnrichJobResponse' }
+
+  /api/enrich/jobs/{executionId}:
+    get:
+      tags: [enrich]
+      operationId: getEnrichJob
+      parameters: [{ $ref: '#/components/parameters/ExecutionId' }]
+      responses:
+        '200':
+          description: Status wykonania
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EnrichJobResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/enrich/jobs/{executionId}/failures:
+    get:
+      tags: [enrich]
+      operationId: getEnrichJobFailures
+      summary: Utwory pominięte w przebiegu wraz z powodem (D37)
+      parameters:
+        - { $ref: '#/components/parameters/ExecutionId' }
+        - { name: limit, in: query, schema: { type: integer, format: int32, default: 200 } }
+      responses:
+        '200':
+          description: Lista pominięć
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/EnrichFailureResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/enrich/jobs/{executionId}/restart:
+    post:
+      tags: [enrich]
+      operationId: restartEnrichJob
+      summary: Restart nieudanego wykonania — dokańcza od checkpointu
+      parameters: [{ $ref: '#/components/parameters/ExecutionId' }]
+      responses:
+        '202':
+          description: Nowe wykonanie wystartowało
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExecutionIdResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/enrich/missing-count:
+    get:
+      tags: [enrich]
+      operationId: getMissingCount
+      summary: Braki per grupa pól
+      responses:
+        '200':
+          description: Liczniki braków
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MissingFieldsCount' }
+
+  /api/ingest/file:
+    post:
+      tags: [ingest]
+      operationId: ingestFile
+      summary: Import utworów z pliku CSV
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        '200':
+          description: Raport importu
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/IngestFileResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /api/ingest/metrics:
+    post:
+      tags: [ingest]
+      operationId: ingestMetrics
+      summary: Import metryk z jednego lub wielu plików (D24)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: array
+                  items: { type: string, format: binary }
+      responses:
+        '200':
+          description: Raport per plik
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/IngestMetricsResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /api/ingest/playlist:
+    post:
+      tags: [ingest]
+      operationId: ingestPlaylist
+      summary: Import playlisty ze Spotify spod linku
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/IngestPlaylistRequest' }
+      responses:
+        '200':
+          description: Raport importu
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/IngestPlaylistResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '502': { $ref: '#/components/responses/ExternalServiceError' }
+
+  /api/ingest/my-playlists:
+    post:
+      tags: [ingest]
+      operationId: ingestMyPlaylists
+      summary: Import wszystkich playlist połączonego konta
+      description: Awaria pojedynczej playlisty nie przerywa przebiegu.
+      responses:
+        '200':
+          description: Raport zbiorczy
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/IngestMyPlaylistsResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /api/ingest/my-playlists/refresh-status:
+    get:
+      tags: [ingest]
+      operationId: getPlaylistRefreshStatus
+      summary: Wynik ostatniego cyklicznego odświeżenia playlist
+      responses:
+        '200':
+          description: Status odświeżania
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlaylistRefreshStatusResponse' }
+
+  /api/auth/spotify/login:
+    get:
+      tags: [auth]
+      operationId: spotifyLogin
+      summary: Przekierowanie do zgody OAuth Spotify
+      responses:
+        '302':
+          description: Przekierowanie na stronę zgody
+          headers:
+            Location:
+              schema: { type: string }
+
+  /api/auth/spotify/callback:
+    get:
+      tags: [auth]
+      operationId: spotifyCallback
+      summary: Odbiór kodu autoryzacyjnego
+      parameters:
+        - { name: code, in: query, schema: { type: string } }
+        - { name: state, in: query, schema: { type: string } }
+        - { name: error, in: query, schema: { type: string } }
+      responses:
+        '200':
+          description: Konto połączone
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SpotifyAccountResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /api/auth/spotify/status:
+    get:
+      tags: [auth]
+      operationId: spotifyStatus
+      summary: Czy konto Spotify jest połączone
+      responses:
+        '200':
+          description: Stan połączenia
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SpotifyAccountResponse' }
+
+components:
+
+  parameters:
+    SpotifyId:
+      name: spotifyId
+      in: path
+      required: true
+      schema: { type: string }
+    PlaylistId:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    PlaylistIdPath:
+      name: playlistId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    ExecutionId:
+      name: executionId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+
+  responses:
+    BadRequest:
+      description: Błąd walidacji
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    NotFound:
+      description: Zasób nie istnieje
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Conflict:
+      description: Konflikt — zasób zmieniony w innym miejscu albo już istnieje
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    ExternalServiceError:
+      description: Zewnętrzne API odmówiło odpowiedzi
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  schemas:
+
+    GenreFamily:
+      type: string
+      enum: [LATIN, ROCK, POP, DISCO, DISCO_POLO, ELECTRONIC, HIP_HOP, OTHER]
+
+    TempoClass:
+      type: string
+      enum: [SLOW, MEDIUM, FAST, VERY_FAST]
+
+    BpmSource:
+      type: string
+      enum: [MANUAL, ACOUSTICBRAINZ, DEEZER, LLM]
+
+    MissingGroup:
+      type: string
+      enum: [METADATA, AUDIO, AI, ANY]
+
+    CatalogSort:
+      type: string
+      enum: [RELEVANCE, TITLE, ARTIST, ALBUM, YEAR, BPM, POPULARITY, DURATION,
+             DANCEABILITY, ENERGY, RATING, ADDED_AT]
+
+    SortDirection:
+      type: string
+      enum: [ASC, DESC]
+
+    EnrichmentScope:
+      type: string
+      enum: [SINGLE, SELECTED, MISSING, OUTDATED]
+
+    FieldGroup:
+      type: string
+      enum: [METADATA, AUDIO, AI]
+
+    SetCurve:
+      type: string
+      enum: [STANDARD, WEDDING, CLUB, EVEN]
+
+    DjSlot:
+      type: string
+      enum: [WARMUP, MIDDLE, PEAK, CLOSING, BREAK]
+
+    LibrarySource:
+      type: string
+      enum: [FILE, PLAYLIST, FOREIGN_PLAYLIST]
+
+    RefreshOutcome:
+      type: string
+      description: |
+        Wynik ostatniego cyklicznego odświeżenia playlist. SKIPPED_NOT_CONNECTED
+        to normalny stan świeżej instalacji, nie awaria.
+      enum: [NEVER_RUN, DISABLED, SKIPPED_NOT_CONNECTED, REFRESHED, FAILED]
+
+    ErrorResponse:
+      type: object
+      required: [errorCode, message, timestamp, traceId]
+      properties:
+        errorCode: { type: string, examples: [TRACK_NOT_FOUND] }
+        message: { type: string }
+        timestamp: { type: string, format: date-time }
+        traceId: { type: [string, 'null'] }
+
+    TrackResponse:
+      type: object
+      required: [spotifyId, title, artist, album, year, durationMs, popularity, explicit, albumImageUrl,
+                 isrc, genreFamily, style, bpm, bpmSource, danceability, musicalKey,
+                 camelot, tempoClass, energy, lyricsTheme, descriptionPl, confidence,
+                 enrichedAt, modelUsed, enrichVersion]
+      properties:
+        spotifyId: { type: string }
+        title: { type: [string, 'null'] }
+        artist: { type: [string, 'null'] }
+        album: { type: [string, 'null'] }
+        year: { type: [integer, 'null'], format: int32 }
+        durationMs: { type: [integer, 'null'], format: int32 }
+        popularity: { type: [integer, 'null'], format: int32 }
+        explicit: { type: [boolean, 'null'] }
+        albumImageUrl: { type: [string, 'null'] }
+        isrc: { type: [string, 'null'] }
+        genreFamily: { type: [string, 'null'] }
+        style: { type: [string, 'null'] }
+        bpm: { type: [integer, 'null'], format: int32 }
+        bpmSource: { type: [string, 'null'] }
+        danceability: { type: [number, 'null'] }
+        musicalKey: { type: [string, 'null'] }
+        camelot:
+          type: [string, 'null']
+          description: Liczona z `musicalKey` przez backend (D25) — nie kolumna w bazie
+        tempoClass: { type: [string, 'null'] }
+        energy: { type: [string, 'null'] }
+        lyricsTheme: { type: [string, 'null'] }
+        descriptionPl: { type: [string, 'null'] }
+        confidence: { type: [string, 'null'] }
+        enrichedAt: { type: [string, 'null'], format: date-time }
+        modelUsed: { type: [string, 'null'] }
+        enrichVersion: { type: [integer, 'null'], format: int32 }
+
+    TrackLibraryResponse:
+      type: object
+      required: [rating, customTags, addedAt, source]
+      properties:
+        rating: { type: [integer, 'null'], format: int32 }
+        customTags: { type: [array, 'null'], items: { type: string } }
+        addedAt: { type: string, format: date-time }
+        source: { type: string }
+
+    CatalogRowResponse:
+      type: object
+      required: [track, library]
+      properties:
+        track: { $ref: '#/components/schemas/TrackResponse' }
+        library:
+          oneOf:
+            - { $ref: '#/components/schemas/TrackLibraryResponse' }
+            - { type: 'null' }
+
+    PageCatalogRowResponse:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/CatalogRowResponse' }
+        page: { type: integer, format: int32 }
+        size: { type: integer, format: int32 }
+        totalElements: { type: integer, format: int64 }
+        totalPages: { type: integer, format: int32 }
+
+    PageLibraryEntryResponse:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/LibraryEntryResponse' }
+        page: { type: integer, format: int32 }
+        size: { type: integer, format: int32 }
+        totalElements: { type: integer, format: int64 }
+        totalPages: { type: integer, format: int32 }
+
+    TrackMetricsResponse:
+      type: object
+      required: [spotifyId, bpm, musicalKey, camelot, danceability, energy, valence, acousticness,
+                 instrumentalness, speechiness, liveness, loudnessDb, timeSignature,
+                 source, importedAt]
+      properties:
+        spotifyId: { type: string }
+        bpm: { type: [number, 'null'] }
+        musicalKey: { type: [string, 'null'] }
+        camelot: { type: [string, 'null'] }
+        danceability: { type: [number, 'null'] }
+        energy: { type: [number, 'null'] }
+        valence: { type: [number, 'null'] }
+        acousticness: { type: [number, 'null'] }
+        instrumentalness: { type: [number, 'null'] }
+        speechiness: { type: [number, 'null'] }
+        liveness: { type: [number, 'null'] }
+        loudnessDb: { type: [number, 'null'] }
+        timeSignature: { type: [integer, 'null'], format: int32 }
+        source: { type: [string, 'null'] }
+        importedAt: { type: string, format: date-time }
+
+    MetricsCoverageResponse:
+      type: object
+      required: [withMetrics, total]
+      properties:
+        withMetrics: { type: integer, format: int64 }
+        total: { type: integer, format: int64 }
+
+    LibraryEntryResponse:
+      type: object
+      required: [id, spotifyId, source, addedAt, djNotes, customTags, rating, djSlotOverride, version,
+                 track]
+      properties:
+        id: { type: integer, format: int64 }
+        spotifyId: { type: string }
+        source: { type: string }
+        addedAt: { type: string, format: date-time }
+        djNotes: { type: [string, 'null'] }
+        customTags: { type: [array, 'null'], items: { type: string } }
+        rating: { type: [integer, 'null'], format: int32 }
+        djSlotOverride: { type: [string, 'null'] }
+        version: { type: integer, format: int32 }
+        track: { $ref: '#/components/schemas/TrackResponse' }
+
+    AddLibraryTrackRequest:
+      type: object
+      required: [spotifyId, title, artist]
+      properties:
+        spotifyId: { type: string, pattern: '[A-Za-z0-9_-]{1,64}' }
+        title: { type: string, minLength: 1 }
+        artist: { type: string, minLength: 1 }
+        album: { type: [string, 'null'] }
+
+    UpdateLibraryEntryRequest:
+      type: object
+      required: [version]
+      description: Pole pominięte zostaje bez zmian; pusta wartość czyści pole.
+      properties:
+        djNotes: { type: [string, 'null'] }
+        customTags: { type: [array, 'null'], items: { type: string } }
+        rating:
+          type: [integer, 'null']
+          format: int32
+          description: 0 czyści ocenę; poza tym dozwolone 1–5
+        djSlotOverride: { type: [string, 'null'] }
+        version: { type: integer, format: int32 }
+
+    BucketResponse:
+      type: object
+      required: [label, count]
+      properties:
+        label: { type: string }
+        count: { type: integer, format: int64 }
+
+    MatrixCellResponse:
+      type: object
+      required: [tempoClass, energy, count]
+      properties:
+        tempoClass: { type: string }
+        energy: { type: string }
+        count: { type: integer, format: int64 }
+
+    MetricResponse:
+      type: object
+      required: [label, value]
+      properties:
+        label: { type: string }
+        value: { type: number }
+
+    RecentTrackResponse:
+      type: object
+      required: [spotifyId, title, artist, albumImageUrl, addedAt]
+      properties:
+        spotifyId: { type: string }
+        title: { type: [string, 'null'] }
+        artist: { type: [string, 'null'] }
+        albumImageUrl: { type: [string, 'null'] }
+        addedAt: { type: string, format: date-time }
+
+    ScaleResponse:
+      type: object
+      required: [catalogTracks, libraryTracks, tracksWithMetrics, libraryDurationMs, distinctArtists,
+                 distinctAlbums, averageBpm, averageDurationMs, averagePopularity,
+                 averageDanceability, tracksWithDanceability]
+      properties:
+        catalogTracks: { type: integer, format: int64 }
+        libraryTracks: { type: integer, format: int64 }
+        tracksWithMetrics: { type: integer, format: int64 }
+        libraryDurationMs: { type: integer, format: int64 }
+        distinctArtists: { type: integer, format: int64 }
+        distinctAlbums: { type: integer, format: int64 }
+        averageBpm: { type: [number, 'null'] }
+        averageDurationMs: { type: [number, 'null'] }
+        averagePopularity: { type: [number, 'null'] }
+        averageDanceability: { type: [number, 'null'] }
+        tracksWithDanceability: { type: integer, format: int64 }
+
+    QualityResponse:
+      type: object
+      required: [metadataMissing, audioMissing, aiMissing, bpmSources, confidences]
+      properties:
+        metadataMissing: { type: integer, format: int64 }
+        audioMissing: { type: integer, format: int64 }
+        aiMissing: { type: integer, format: int64 }
+        bpmSources: { type: array, items: { $ref: '#/components/schemas/BucketResponse' } }
+        confidences: { type: array, items: { $ref: '#/components/schemas/BucketResponse' } }
+
+    SoundResponse:
+      type: object
+      required: [genres, styles, tempoClasses, energies, bpmHistogram, camelotKeys, durations,
+                 popularity, explicitness, timeSignatures, tempoEnergy, audioProfile]
+      properties:
+        genres: { type: array, items: { $ref: '#/components/schemas/BucketResponse' } }
+        styles: { type: array, items: { $ref: '#/components/schemas/BucketResponse' } }
+        tempoClasses: { type: array, items: { $ref: '#/components/schemas/BucketResponse' } }
+        energies: { type: array, items: { $ref: '#/components/schemas/BucketResponse' } }
+        bpmHistogram: { type: array, items: { $ref: '#/components/schemas/BucketResponse' } }
+        camelotKeys: { type: array, items: { $ref: '#/components/schemas/BucketResponse' } }
+        durations: { type: array, items: { $ref: '#/components/schemas/BucketResponse' } }
+        popularity: { type: array, items: { $ref: '#/components/schemas/BucketResponse' } }
+        explicitness: { type: array, items: { $ref: '#/components/schemas/BucketResponse' } }
+        timeSignatures: { type: array, items: { $ref: '#/components/schemas/BucketResponse' } }
+        tempoEnergy: { type: array, items: { $ref: '#/components/schemas/MatrixCellResponse' } }
+        audioProfile: { type: array, items: { $ref: '#/components/schemas/MetricResponse' } }
+
+    TimelineResponse:
+      type: object
+      required: [monthlyGrowth, decades]
+      properties:
+        monthlyGrowth: { type: array, items: { $ref: '#/components/schemas/BucketResponse' } }
+        decades: { type: array, items: { $ref: '#/components/schemas/BucketResponse' } }
+
+    TasteResponse:
+      type: object
+      required: [topArtists, topAlbums, topTags, ratings]
+      properties:
+        topArtists: { type: array, items: { $ref: '#/components/schemas/BucketResponse' } }
+        topAlbums: { type: array, items: { $ref: '#/components/schemas/BucketResponse' } }
+        topTags: { type: array, items: { $ref: '#/components/schemas/BucketResponse' } }
+        ratings: { type: array, items: { $ref: '#/components/schemas/BucketResponse' } }
+
+    LibraryOverviewResponse:
+      type: object
+      required: [scale, quality, sound, timeline, taste, recentlyAdded]
+      properties:
+        scale: { $ref: '#/components/schemas/ScaleResponse' }
+        quality: { $ref: '#/components/schemas/QualityResponse' }
+        sound: { $ref: '#/components/schemas/SoundResponse' }
+        timeline: { $ref: '#/components/schemas/TimelineResponse' }
+        taste: { $ref: '#/components/schemas/TasteResponse' }
+        recentlyAdded:
+          type: array
+          items: { $ref: '#/components/schemas/RecentTrackResponse' }
+
+    PlaylistSummaryResponse:
+      type: object
+      required: [id, name, spotifyPlaylistId, createdAt, trackCount, version]
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        spotifyPlaylistId: { type: [string, 'null'] }
+        createdAt: { type: string, format: date-time }
+        trackCount: { type: integer, format: int64 }
+        version: { type: integer, format: int32 }
+
+    PlaylistTrackResponse:
+      type: object
+      required: [position, djSlot, djSlotOverride, metrics, track]
+      properties:
+        position: { type: integer, format: int32 }
+        djSlot: { type: [string, 'null'] }
+        djSlotOverride: { type: [string, 'null'] }
+        metrics:
+          oneOf:
+            - { $ref: '#/components/schemas/TrackMetricsResponse' }
+            - { type: 'null' }
+        track: { $ref: '#/components/schemas/TrackResponse' }
+
+    PlaylistResponse:
+      type: object
+      required: [id, name, spotifyPlaylistId, createdAt, version, tracks]
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        spotifyPlaylistId: { type: [string, 'null'] }
+        createdAt: { type: string, format: date-time }
+        version: { type: integer, format: int32 }
+        tracks:
+          type: array
+          items: { $ref: '#/components/schemas/PlaylistTrackResponse' }
+
+    SavePlaylistRequest:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 255 }
+        version:
+          type: [integer, 'null']
+          format: int32
+          description: Wymagana przy zmianie nazwy (D29); pomijana przy tworzeniu
+
+    AddPlaylistTrackRequest:
+      type: object
+      required: [spotifyId]
+      properties:
+        spotifyId: { type: string, minLength: 1, maxLength: 64 }
+
+    ReorderPlaylistRequest:
+      type: object
+      required: [spotifyIds, version]
+      properties:
+        spotifyIds:
+          type: array
+          minItems: 1
+          items: { type: string, minLength: 1 }
+        version: { type: integer, format: int32 }
+
+    PlaylistExportResponse:
+      type: object
+      required: [playlistId, spotifyPlaylistId, name, exportedTracks, created, spotifyUrl]
+      properties:
+        playlistId: { type: integer, format: int64 }
+        spotifyPlaylistId: { type: string }
+        name: { type: string }
+        exportedTracks: { type: integer, format: int32 }
+        created:
+          type: boolean
+          description: true — playlista założona, false — nadpisana
+        spotifyUrl: { type: string }
+
+    SetFilters:
+      type: object
+      description: Filtry puli kandydatów, wspólne dla propozycji, uzupełniania i dobierania.
+      properties:
+        search: { type: [string, 'null'] }
+        genreFamily: { type: [string, 'null'] }
+        bpmMin: { type: [integer, 'null'], format: int32 }
+        bpmMax: { type: [integer, 'null'], format: int32 }
+        tempoClass: { type: [string, 'null'] }
+        energy: { type: [string, 'null'] }
+        inLibrary: { type: [boolean, 'null'] }
+        ratingMin: { type: [integer, 'null'], format: int32, minimum: 1, maximum: 5 }
+        tag: { type: [string, 'null'] }
+        camelot: { type: [string, 'null'] }
+        camelotCompatible: { type: [boolean, 'null'] }
+        valenceMin: { type: [number, 'null'] }
+        valenceMax: { type: [number, 'null'] }
+        instrumentalMin: { type: [number, 'null'] }
+        livenessMax: { type: [number, 'null'] }
+
+    SetProposalRequest:
+      allOf:
+        - $ref: '#/components/schemas/SetFilters'
+        - type: object
+          required: [targetMinutes]
+          properties:
+            targetMinutes: { type: integer, format: int32, minimum: 15, maximum: 720 }
+            curve: { type: [string, 'null'] }
+            seed: { type: [integer, 'null'], format: int64 }
+
+    SetFillRequest:
+      allOf:
+        - $ref: '#/components/schemas/SetFilters'
+        - type: object
+          required: [targetMinutes]
+          properties:
+            targetMinutes: { type: integer, format: int32, minimum: 15, maximum: 720 }
+            curve: { type: [string, 'null'] }
+            seed: { type: [integer, 'null'], format: int64 }
+
+    SetSuggestionRequest:
+      allOf:
+        - $ref: '#/components/schemas/SetFilters'
+        - type: object
+          properties:
+            position:
+              type: [integer, 'null']
+              format: int32
+              minimum: 0
+              description: Brak wartości znaczy „na koniec setu"
+            limit: { type: [integer, 'null'], format: int32, minimum: 1, maximum: 20 }
+
+    ProposedTrackResponse:
+      type: object
+      required: [position, djSlot, track]
+      properties:
+        position: { type: integer, format: int32 }
+        djSlot: { type: [string, 'null'] }
+        track: { $ref: '#/components/schemas/TrackResponse' }
+
+    SetProposalResponse:
+      type: object
+      required: [trackCount, totalDurationMs, targetDurationMs, seed, notes, tracks]
+      properties:
+        trackCount: { type: integer, format: int32 }
+        totalDurationMs: { type: integer, format: int64 }
+        targetDurationMs: { type: integer, format: int64 }
+        seed: { type: integer, format: int64 }
+        notes: { type: array, items: { type: string } }
+        tracks:
+          type: array
+          items: { $ref: '#/components/schemas/ProposedTrackResponse' }
+
+    SetFillResponse:
+      type: object
+      required: [currentTrackCount, currentDurationMs, addedTrackCount, totalDurationMs,
+                 targetDurationMs, seed, notes, tracks]
+      properties:
+        currentTrackCount: { type: integer, format: int32 }
+        currentDurationMs: { type: integer, format: int64 }
+        addedTrackCount: { type: integer, format: int32 }
+        totalDurationMs: { type: integer, format: int64 }
+        targetDurationMs: { type: integer, format: int64 }
+        seed: { type: integer, format: int64 }
+        notes: { type: array, items: { type: string } }
+        tracks:
+          type: array
+          items: { $ref: '#/components/schemas/ProposedTrackResponse' }
+
+    SuggestedTrackResponse:
+      type: object
+      required: [djSlot, bpmDelta, harmonic, track]
+      properties:
+        djSlot: { type: [string, 'null'] }
+        bpmDelta: { type: [integer, 'null'], format: int32 }
+        harmonic: { type: [boolean, 'null'] }
+        track: { $ref: '#/components/schemas/TrackResponse' }
+
+    SetSuggestionResponse:
+      type: object
+      required: [position, suggestions]
+      properties:
+        position: { type: integer, format: int32 }
+        suggestions:
+          type: array
+          items: { $ref: '#/components/schemas/SuggestedTrackResponse' }
+
+    EnrichRequest:
+      type: object
+      required: [scope, fields]
+      properties:
+        scope: { $ref: '#/components/schemas/EnrichmentScope' }
+        fields:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items: { $ref: '#/components/schemas/FieldGroup' }
+        spotifyIds:
+          type: [array, 'null']
+          items: { type: string }
+          description: Wymagane dla SINGLE i SELECTED, zabronione dla MISSING i OUTDATED
+
+    ExecutionIdResponse:
+      type: object
+      required: [executionId]
+      properties:
+        executionId: { type: integer, format: int64 }
+
+    EnrichmentEstimateResponse:
+      type: object
+      required: [trackCount, aiTracks, estimatedCost, limit, withinLimit]
+      properties:
+        trackCount: { type: integer, format: int64 }
+        aiTracks:
+          type: integer
+          format: int64
+          description: Utwory idące do LLM-a — sufit liczy się po nich, nie po przebiegu
+        estimatedCost:
+          type: [number, 'null']
+          description: Pusty, gdy w konfiguracji nie ma stawek providera
+        limit: { type: integer, format: int32 }
+        withinLimit: { type: boolean }
+
+    EnrichJobResponse:
+      type: object
+      required: [executionId, jobInstanceId, status, scope, fields, readCount, writeCount, failedCount,
+                 startTime, endTime, exitDescription]
+      properties:
+        executionId: { type: integer, format: int64 }
+        jobInstanceId: { type: integer, format: int64 }
+        status: { type: string }
+        scope: { type: [string, 'null'] }
+        fields: { type: [string, 'null'] }
+        readCount: { type: integer, format: int64 }
+        writeCount: { type: integer, format: int64 }
+        failedCount: { type: integer, format: int64 }
+        startTime: { type: [string, 'null'], format: date-time }
+        endTime: { type: [string, 'null'], format: date-time }
+        exitDescription: { type: [string, 'null'] }
+
+    EnrichFailureResponse:
+      type: object
+      required: [spotifyId, reason, failedAt]
+      properties:
+        spotifyId: { type: string }
+        reason: { type: string }
+        failedAt: { type: string, format: date-time }
+
+    MissingFieldsCount:
+      type: object
+      required: [metadata, audio, ai]
+      properties:
+        metadata: { type: integer, format: int64 }
+        audio: { type: integer, format: int64 }
+        ai: { type: integer, format: int64 }
+
+    RowErrorResponse:
+      type: object
+      required: [line, reason]
+      properties:
+        line: { type: integer, format: int64 }
+        reason: { type: string }
+
+    IngestFileResponse:
+      type: object
+      required: [imported, alreadyExisted, failed]
+      properties:
+        imported: { type: integer, format: int32 }
+        alreadyExisted: { type: integer, format: int32 }
+        failed:
+          type: array
+          items: { $ref: '#/components/schemas/RowErrorResponse' }
+
+    FileReportResponse:
+      type: object
+      required: [file, applied, matchedByIsrc, skipped, failed, errorCode, error]
+      properties:
+        file: { type: string }
+        applied: { type: integer, format: int32 }
+        matchedByIsrc: { type: integer, format: int32 }
+        skipped: { type: array, items: { $ref: '#/components/schemas/RowErrorResponse' } }
+        failed: { type: array, items: { $ref: '#/components/schemas/RowErrorResponse' } }
+        errorCode: { type: [string, 'null'] }
+        error: { type: [string, 'null'] }
+
+    IngestMetricsResponse:
+      type: object
+      required: [applied, matchedByIsrc, skippedRows, failedRows, files]
+      properties:
+        applied: { type: integer, format: int32 }
+        matchedByIsrc: { type: integer, format: int32 }
+        skippedRows: { type: integer, format: int32 }
+        failedRows: { type: integer, format: int32 }
+        files:
+          type: array
+          items: { $ref: '#/components/schemas/FileReportResponse' }
+
+    IngestPlaylistRequest:
+      type: object
+      required: [url]
+      properties:
+        url:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: Link, URI `spotify:playlist:…` albo samo id playlisty
+
+    SkippedItemResponse:
+      type: object
+      required: [position, reason]
+      properties:
+        position: { type: integer, format: int32 }
+        reason: { type: string }
+
+    IngestPlaylistResponse:
+      type: object
+      required: [playlistId, spotifyPlaylistId, name, tracks, imported, alreadyExisted, skipped]
+      properties:
+        playlistId: { type: [integer, 'null'], format: int64 }
+        spotifyPlaylistId: { type: string }
+        name: { type: string }
+        tracks: { type: integer, format: int32 }
+        imported: { type: integer, format: int32 }
+        alreadyExisted: { type: integer, format: int32 }
+        skipped:
+          type: array
+          items: { $ref: '#/components/schemas/SkippedItemResponse' }
+
+    FailedPlaylistResponse:
+      type: object
+      required: [spotifyPlaylistId, name, errorCode, reason]
+      properties:
+        spotifyPlaylistId: { type: string }
+        name: { type: [string, 'null'] }
+        errorCode: { type: string }
+        reason: { type: string }
+
+    IngestMyPlaylistsResponse:
+      type: object
+      required: [imported, failed]
+      properties:
+        imported:
+          type: array
+          items: { $ref: '#/components/schemas/IngestPlaylistResponse' }
+        failed:
+          type: array
+          items: { $ref: '#/components/schemas/FailedPlaylistResponse' }
+
+    PlaylistRefreshStatusResponse:
+      type: object
+      required: [outcome, lastRunAt, refreshedPlaylists, failedPlaylists, message, intervalSeconds]
+      properties:
+        outcome: { $ref: '#/components/schemas/RefreshOutcome' }
+        lastRunAt: { type: [string, 'null'], format: date-time }
+        refreshedPlaylists: { type: integer, format: int32 }
+        failedPlaylists: { type: integer, format: int32 }
+        message: { type: [string, 'null'] }
+        intervalSeconds: { type: integer, format: int64 }
+
+    SpotifyAccountResponse:
+      type: object
+      required: [connected, spotifyUserId, displayName, scopes, expiresAt, connectedAt]
+      properties:
+        connected: { type: boolean }
+        spotifyUserId: { type: [string, 'null'] }
+        displayName: { type: [string, 'null'] }
+        scopes: { type: [string, 'null'] }
+        expiresAt: { type: [string, 'null'], format: date-time }
+        connectedAt: { type: [string, 'null'], format: date-time }
