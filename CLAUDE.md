@@ -51,6 +51,9 @@ frontend w `apps/web`, kod dzielony w `libs/`.
 
 ## Reguły szczegółowe
 
-Ładują się automatycznie przy pracy nad odpowiednim katalogiem:
+Ładują się automatycznie przy pracy nad odpowiednim katalogiem — indeksy:
 [`.claude/rules/backend.md`](.claude/rules/backend.md) (`services/**`, `libs/java/**`),
 [`.claude/rules/frontend.md`](.claude/rules/frontend.md) (`apps/web/**`, `libs/ts/**`).
+
+Reguły pisane po angielsku. Wierna kopia po polsku: [`docs/rules-pl/`](docs/rules-pl/)
+— zmiana reguły idzie do obu miejsc naraz.
