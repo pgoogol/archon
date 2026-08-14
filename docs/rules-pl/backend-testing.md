@@ -68,6 +68,10 @@ test faktycznie potrzebuje, nie to, jak się nazywa.
 
 ## Testy integracyjne
 
+- Kontener jest domyślny. Gdy środowisko ma już Postgresa — albo nie może
+  pobrać obrazu — ustaw `TEST_POSTGRES_CONTAINER=false` i podaj
+  `SPRING_DATASOURCE_URL/USERNAME/PASSWORD`. To wciąż realny Postgres, więc
+  zakaz H2 zostaje w mocy; to furtka, nie drugi wspierany układ.
 - `@Testcontainers` + realny obraz bazy (`postgres:16-alpine` — ta sama wersja co
   w `deploy/compose`).
 - Współdziel jeden kontener w całej suicie: `@ServiceConnection` we wspólnej

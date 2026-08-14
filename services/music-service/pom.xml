@@ -48,6 +48,21 @@
       <groupId>org.springdoc</groupId>
       <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
     </dependency>
+    <!--
+      Boot 4 wydzielił autokonfigurację Flyway do osobnego modułu. Bez niej
+      flyway-core leży na classpathzie, ale migracje NIE startują — aplikacja
+      wstaje na pustej bazie i wywala się dopiero na walidacji schematu.
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-flyway</artifactId>
+    </dependency>
+    <!-- ta sama historia: bez tego modułu nie ma beana RestClient.Builder,
+         a na nim stoją wszyscy klienci zewnętrznych API -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-restclient</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.flywaydb</groupId>
       <artifactId>flyway-core</artifactId>

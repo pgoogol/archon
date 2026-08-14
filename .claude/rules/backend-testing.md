@@ -68,6 +68,10 @@ actually needs, not what it happens to be called.
 
 ## Integration tests
 
+- The container is the default. When the environment already has a Postgres —
+  or cannot pull the image — set `TEST_POSTGRES_CONTAINER=false` and supply
+  `SPRING_DATASOURCE_URL/USERNAME/PASSWORD`. That is still a real Postgres, so
+  the never-H2 rule holds; it is an escape hatch, not a second supported setup.
 - `@Testcontainers` + a real database image (`postgres:16-alpine` — the same
   version as in `deploy/compose`).
 - Share one container across the suite: `@ServiceConnection` in a shared

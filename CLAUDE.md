@@ -21,6 +21,8 @@ frontend w `apps/web`, kod dzielony w `libs/`.
 |---|---|
 | Pełny build Javy | `./mvnw -T 1C verify` |
 | Jeden moduł + zależności | `./mvnw -pl services/music-service -am verify` |
+| Build bez testów integracyjnych | `./mvnw -T 1C verify -DskipITs` |
+| Testy integracyjne na gotowej bazie | `TEST_POSTGRES_CONTAINER=false SPRING_DATASOURCE_URL=… ./mvnw verify` |
 | Serwis lokalnie | `./mvnw -pl services/music-service spring-boot:run -Dspring-boot.run.profiles=local` |
 | Front — build / testy / lint | `pnpm build` · `pnpm test` · `pnpm lint` |
 | Front — tryb dev | `pnpm --filter web dev` |

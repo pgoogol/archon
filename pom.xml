@@ -249,6 +249,12 @@
             <include>**/*Test.java</include>
             <include>**/*Tests.java</include>
           </includes>
+          <!--
+            Bez tego Failsafe bierze artefakt modułu, a ten jest już przepakowany
+            przez spring-boot-maven-plugin (klasy pod BOOT-INF/classes) — testy
+            integracyjne wywalają się wtedy na NoClassDefFoundError klas z main.
+          -->
+          <classesDirectory>${project.build.outputDirectory}</classesDirectory>
           <argLine>@{failsafeArgLine} -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8</argLine>
         </configuration>
         <executions>
