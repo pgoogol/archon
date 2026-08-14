@@ -60,7 +60,7 @@ test.describe('przepływ DJ-a', () => {
     expect((await imported.json()).imported).toBe(5)
 
     // --- przegląd: front dochodzi do API po względnym /api, liczby liczy baza
-    await page.goto('/#/overview')
+    await page.goto('/#/music/overview')
     await expect(page.getByTestId('overview')).toBeVisible()
     await expect(page.getByTestId('overview-headline')).toContainText('5')
     await expect(page.getByTestId('bpm-sources')).toBeVisible()

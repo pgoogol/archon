@@ -1,3 +1,5 @@
+import { fileURLToPath, URL } from 'node:url'
+
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 
@@ -11,6 +13,9 @@ const apiProxy = {
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
+  },
   server: { port: 5173, proxy: apiProxy },
   preview: { port: 5173, proxy: apiProxy },
   // testy komponentów i logiki frontu w jsdom (M3.1) — `npm test`
