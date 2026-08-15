@@ -5,77 +5,37 @@ import com.pgoogol.music.catalog.ManualMetrics;
 import com.pgoogol.music.catalog.TrackCatalog;
 import com.pgoogol.music.library.LibraryEntry;
 import com.pgoogol.music.library.LibraryRow;
-import org.springframework.stereotype.Component;
+import org.mapstruct.InjectionStrategy;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
-import java.util.Objects;
+/**
+ * Encja → DTO kontraktu. Implementację generuje MapStruct przy kompilacji.
+ *
+ * <p>Niezmapowane pole docelowe zatrzymuje build (polityka {@code ERROR} ustawiona
+ * w root POM), więc kolumna dołożona do kontraktu nie przejdzie niezauważona
+ * jako {@code null} — a to była jedyna realna wada ręcznego mapowania po
+ * pozycjach argumentów.</p>
+ */
+@Mapper(componentModel = "spring", injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+public interface CatalogApiMapper {
 
-@Component
-public class CatalogApiMapper {
-
-    public TrackMetricsResponse toResponse(ManualMetrics metrics) {
-
-        return new TrackMetricsResponse(
-            metrics.getSpotifyId(),
-            metrics.getBpm(),
-            metrics.getMusicalKey(),
-            metrics.getCamelot(),
-            metrics.getDanceability(),
-            metrics.getEnergy(),
-            metrics.getValence(),
-            metrics.getAcousticness(),
-            metrics.getInstrumentalness(),
-            metrics.getSpeechiness(),
-            metrics.getLiveness(),
-            metrics.getLoudnessDb(),
-            metrics.getTimeSignature(),
-            metrics.getSource(),
-            metrics.getImportedAt());
-    }
+    TrackMetricsResponse toResponse(ManualMetrics metrics);
 
     /** Wiersz ekranu Biblioteka — katalog plus dane DJ-a, o ile utwór jest u niego. */
-    public CatalogRowResponse toResponse(LibraryRow row) {
+    @Mapping(target = "library", source = "entry")
+    CatalogRowResponse toResponse(LibraryRow row);
 
-        return new CatalogRowResponse(
-            toResponse(row.track()),
-            row.libraryEntry().map(this::toLibraryResponse).orElse(null));
-    }
+    CatalogRowResponse.TrackLibraryResponse toLibraryResponse(LibraryEntry entry);
 
-    private CatalogRowResponse.TrackLibraryResponse toLibraryResponse(LibraryEntry entry) {
+    /** {@code camelot} nie jest kolumną — liczy się z tonacji przy mapowaniu. */
+    @Mapping(target = "camelot", source = "musicalKey", qualifiedByName = "camelotLabel")
+    TrackResponse toResponse(TrackCatalog track);
 
-        return new CatalogRowResponse.TrackLibraryResponse(
-            entry.getRating(),
-            entry.getCustomTags(),
-            entry.getAddedAt(),
-            Objects.toString(entry.getSource(), null));
-    }
+    @Named("camelotLabel")
+    static String camelotLabel(String musicalKey) {
 
-    public TrackResponse toResponse(TrackCatalog track) {
-
-        return new TrackResponse(
-            track.getSpotifyId(),
-            track.getTitle(),
-            track.getArtist(),
-            track.getAlbum(),
-            track.getYear(),
-            track.getDurationMs(),
-            track.getPopularity(),
-            track.getExplicit(),
-            track.getAlbumImageUrl(),
-            track.getIsrc(),
-            Objects.toString(track.getGenreFamily(), null),
-            track.getStyle(),
-            track.getBpm(),
-            Objects.toString(track.getBpmSource(), null),
-            track.getDanceability(),
-            track.getMusicalKey(),
-            CamelotKey.ofMusicalKey(track.getMusicalKey()).map(CamelotKey::label).orElse(null),
-            Objects.toString(track.getTempoClass(), null),
-            track.getEnergy(),
-            track.getLyricsTheme(),
-            track.getDescriptionPl(),
-            track.getConfidence(),
-            track.getEnrichedAt(),
-            track.getModelUsed(),
-            track.getEnrichVersion());
+        return CamelotKey.ofMusicalKey(musicalKey).map(CamelotKey::label).orElse(null);
     }
 }

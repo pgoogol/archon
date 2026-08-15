@@ -5,137 +5,53 @@ import com.pgoogol.music.library.LibraryEntry;
 import com.pgoogol.music.library.LibraryEntryUpdate;
 import com.pgoogol.music.library.LibraryOverview;
 import com.pgoogol.music.playlist.DjSlot;
-import org.springframework.stereotype.Component;
+import org.mapstruct.InjectionStrategy;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-@Component
-public class LibraryApiMapper {
+@Mapper(componentModel = "spring", injectionStrategy = InjectionStrategy.CONSTRUCTOR,
+    uses = CatalogApiMapper.class)
+public interface LibraryApiMapper {
 
-    public LibraryOverviewResponse toResponse(LibraryOverview overview) {
+    LibraryOverviewResponse toResponse(LibraryOverview overview);
 
-        return new LibraryOverviewResponse(
-            scale(overview.scale()),
-            quality(overview.quality()),
-            sound(overview.sound()),
-            timeline(overview.timeline()),
-            taste(overview.taste()),
-            overview.recentlyAdded().stream()
-                .map(track -> new LibraryOverviewResponse.RecentTrackResponse(
-                    track.spotifyId(), track.title(), track.artist(),
-                    track.albumImageUrl(), track.addedAt()))
-                .toList());
-    }
+    LibraryOverviewResponse.ScaleResponse toResponse(LibraryOverview.Scale scale);
 
-    private LibraryOverviewResponse.ScaleResponse scale(LibraryOverview.Scale scale) {
+    LibraryOverviewResponse.QualityResponse toResponse(LibraryOverview.Quality quality);
 
-        return new LibraryOverviewResponse.ScaleResponse(
-            scale.catalogTracks(),
-            scale.libraryTracks(),
-            scale.tracksWithMetrics(),
-            scale.libraryDurationMs(),
-            scale.distinctArtists(),
-            scale.distinctAlbums(),
-            scale.averageBpm(),
-            scale.averageDurationMs(),
-            scale.averagePopularity(),
-            scale.averageDanceability(),
-            scale.tracksWithDanceability());
-    }
+    LibraryOverviewResponse.SoundResponse toResponse(LibraryOverview.Sound sound);
 
-    private LibraryOverviewResponse.QualityResponse quality(LibraryOverview.Quality quality) {
+    LibraryOverviewResponse.TimelineResponse toResponse(LibraryOverview.Timeline timeline);
 
-        return new LibraryOverviewResponse.QualityResponse(
-            quality.metadataMissing(),
-            quality.audioMissing(),
-            quality.aiMissing(),
-            buckets(quality.bpmSources()),
-            buckets(quality.confidences()));
-    }
+    LibraryOverviewResponse.TasteResponse toResponse(LibraryOverview.Taste taste);
 
-    private LibraryOverviewResponse.SoundResponse sound(LibraryOverview.Sound sound) {
+    LibraryOverviewResponse.BucketResponse toResponse(LibraryOverview.Bucket bucket);
 
-        return new LibraryOverviewResponse.SoundResponse(
-            buckets(sound.genres()),
-            buckets(sound.styles()),
-            buckets(sound.tempoClasses()),
-            buckets(sound.energies()),
-            buckets(sound.bpmHistogram()),
-            buckets(sound.camelotKeys()),
-            buckets(sound.durations()),
-            buckets(sound.popularity()),
-            buckets(sound.explicitness()),
-            buckets(sound.timeSignatures()),
-            sound.tempoEnergy().stream()
-                .map(cell -> new LibraryOverviewResponse.MatrixCellResponse(
-                    cell.tempoClass(), cell.energy(), cell.count()))
-                .toList(),
-            sound.audioProfile().stream()
-                .map(metric -> new LibraryOverviewResponse.MetricResponse(
-                    metric.label(), metric.value()))
-                .toList());
-    }
+    LibraryOverviewResponse.MatrixCellResponse toResponse(LibraryOverview.MatrixCell cell);
 
-    private LibraryOverviewResponse.TimelineResponse timeline(LibraryOverview.Timeline timeline) {
+    LibraryOverviewResponse.MetricResponse toResponse(LibraryOverview.Metric metric);
 
-        return new LibraryOverviewResponse.TimelineResponse(
-            buckets(timeline.monthlyGrowth()),
-            buckets(timeline.decades()));
-    }
+    LibraryOverviewResponse.RecentTrackResponse toResponse(LibraryOverview.RecentTrack track);
 
-    private LibraryOverviewResponse.TasteResponse taste(LibraryOverview.Taste taste) {
+    @Mapping(target = "spotifyId", source = "track.spotifyId")
+    @Mapping(target = "track", source = "track")
+    LibraryEntryResponse toResponse(LibraryEntry entry);
 
-        return new LibraryOverviewResponse.TasteResponse(
-            buckets(taste.topArtists()),
-            buckets(taste.topAlbums()),
-            buckets(taste.topTags()),
-            buckets(taste.ratings()));
-    }
-
-    private List<LibraryOverviewResponse.BucketResponse> buckets(List<LibraryOverview.Bucket> source) {
-
-        return source.stream()
-            .map(bucket -> new LibraryOverviewResponse.BucketResponse(
-                bucket.label(), bucket.count()))
-            .toList();
-    }
-
-    private final CatalogApiMapper catalogApiMapper;
-
-    public LibraryApiMapper(CatalogApiMapper catalogApiMapper) {
-        this.catalogApiMapper = catalogApiMapper;
-    }
-
-    public LibraryEntryResponse toResponse(LibraryEntry entry) {
-
-        return new LibraryEntryResponse(
-            entry.getId(),
-            entry.getTrack().getSpotifyId(),
-            Objects.toString(entry.getSource(), null),
-            entry.getAddedAt(),
-            entry.getDjNotes(),
-            entry.getCustomTags(),
-            entry.getRating(),
-            entry.getDjSlotOverride(),
-            entry.getVersion(),
-            catalogApiMapper.toResponse(entry.getTrack()));
-    }
-
-    public LibraryEntryUpdate toUpdate(UpdateLibraryEntryRequest request) {
-
-        return new LibraryEntryUpdate(
-            request.djNotes(),
-            request.customTags(),
-            request.rating(),
-            canonicalSlotOverride(request.djSlotOverride()),
-            request.version());
-    }
+    @Mapping(target = "djSlotOverride", source = "djSlotOverride",
+        qualifiedByName = "canonicalSlotOverride")
+    // `version` z żądania to wersja OCZEKIWANA przez klienta — nazwy się różnią,
+    // więc mapowanie po pozycji argumentu wiązało je milcząco
+    @Mapping(target = "expectedVersion", source = "version")
+    LibraryEntryUpdate toUpdate(UpdateLibraryEntryRequest request);
 
     /** Override slotu musi być jedną z wartości {@link DjSlot}; pusty = wyczyszczenie. */
-    private String canonicalSlotOverride(String djSlotOverride) {
+    @Named("canonicalSlotOverride")
+    static String canonicalSlotOverride(String djSlotOverride) {
 
         if (Objects.isNull(djSlotOverride) || djSlotOverride.isBlank()) {
             return djSlotOverride;

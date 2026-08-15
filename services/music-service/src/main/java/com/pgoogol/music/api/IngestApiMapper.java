@@ -1,27 +1,46 @@
 package com.pgoogol.music.api;
 
+import com.pgoogol.music.ingestion.FailedPlaylist;
 import com.pgoogol.music.ingestion.IngestReport;
 import com.pgoogol.music.ingestion.MetricsFileReport;
 import com.pgoogol.music.ingestion.MyPlaylistsIngestReport;
 import com.pgoogol.music.ingestion.PlaylistIngestReport;
 import com.pgoogol.music.ingestion.RowError;
-import org.springframework.stereotype.Component;
+import com.pgoogol.music.ingestion.SkippedItem;
+import org.mapstruct.InjectionStrategy;
+import org.mapstruct.Mapper;
 
 import java.util.List;
 import java.util.function.ToIntFunction;
 
-@Component
-public class IngestApiMapper {
+/**
+ * Raporty importu → DTO kontraktu.
+ *
+ * <p>Mapowania jeden do jednego generuje MapStruct. Zbiorczy raport metryk
+ * zostaje metodą {@code default}: sumy po plikach trzeba policzyć, a kształt
+ * wiersza zależy od wariantu typu zapieczętowanego — deklaratywnym mapowaniem
+ * nie da się tego wyrazić i udawanie, że się da, kosztowałoby czytelność.</p>
+ */
+@Mapper(componentModel = "spring", injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+public interface IngestApiMapper {
 
-    public IngestFileResponse toResponse(IngestReport report) {
+    IngestFileResponse toResponse(IngestReport report);
 
-        List<IngestFileResponse.FailedRowResponse> failed = report.failed().stream()
-            .map(error -> new IngestFileResponse.FailedRowResponse(error.line(), error.reason()))
-            .toList();
-        return new IngestFileResponse(report.imported(), report.alreadyExisted(), failed);
-    }
+    IngestFileResponse.FailedRowResponse toFailedRow(RowError error);
 
-    public IngestMetricsResponse toResponse(List<MetricsFileReport> fileReports) {
+    IngestPlaylistResponse toResponse(PlaylistIngestReport report);
+
+    IngestPlaylistResponse.SkippedItemResponse toSkippedItem(SkippedItem item);
+
+    IngestMyPlaylistsResponse toResponse(MyPlaylistsIngestReport report);
+
+    IngestMyPlaylistsResponse.FailedPlaylistResponse toFailedPlaylist(FailedPlaylist playlist);
+
+    IngestMetricsResponse.RowErrorResponse toRowError(RowError error);
+
+    List<IngestMetricsResponse.RowErrorResponse> toRowErrors(List<RowError> errors);
+
+    default IngestMetricsResponse toResponse(List<MetricsFileReport> fileReports) {
 
         List<IngestMetricsResponse.FileReportResponse> files = fileReports.stream()
             .map(this::toFileResponse)
@@ -34,7 +53,7 @@ public class IngestApiMapper {
             files);
     }
 
-    private IngestMetricsResponse.FileReportResponse toFileResponse(MetricsFileReport fileReport) {
+    default IngestMetricsResponse.FileReportResponse toFileResponse(MetricsFileReport fileReport) {
 
         return switch (fileReport) {
             case MetricsFileReport.Imported imported -> new IngestMetricsResponse.FileReportResponse(
@@ -50,35 +69,5 @@ public class IngestApiMapper {
                     ToIntFunction<IngestMetricsResponse.FileReportResponse> field) {
 
         return files.stream().mapToInt(field).sum();
-    }
-
-    private List<IngestMetricsResponse.RowErrorResponse> toRowErrors(List<RowError> errors) {
-
-        return errors.stream()
-            .map(error -> new IngestMetricsResponse.RowErrorResponse(error.line(), error.reason()))
-            .toList();
-    }
-
-    public IngestPlaylistResponse toResponse(PlaylistIngestReport report) {
-
-        List<IngestPlaylistResponse.SkippedItemResponse> skipped = report.skipped().stream()
-            .map(item -> new IngestPlaylistResponse.SkippedItemResponse(
-                item.position(), item.reason()))
-            .toList();
-        return new IngestPlaylistResponse(report.playlistId(), report.spotifyPlaylistId(),
-            report.name(), report.tracks(), report.imported(), report.alreadyExisted(), skipped);
-    }
-
-    public IngestMyPlaylistsResponse toResponse(MyPlaylistsIngestReport report) {
-
-        List<IngestPlaylistResponse> imported = report.imported().stream()
-            .map(this::toResponse)
-            .toList();
-        List<IngestMyPlaylistsResponse.FailedPlaylistResponse> failed = report.failed().stream()
-            .map(playlist -> new IngestMyPlaylistsResponse.FailedPlaylistResponse(
-                playlist.spotifyPlaylistId(), playlist.name(),
-                playlist.errorCode(), playlist.reason()))
-            .toList();
-        return new IngestMyPlaylistsResponse(imported, failed);
     }
 }

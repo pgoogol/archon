@@ -39,6 +39,7 @@
     <commons-csv.version>1.14.1</commons-csv.version>
     <wiremock.version>3.13.2</wiremock.version>
     <archunit.version>1.4.1</archunit.version>
+    <mapstruct.version>1.6.3</mapstruct.version>
 
     <!-- ==== wersje wtyczek ==== -->
     <!-- także wtyczki cyklu domyślnego: bez tego wchodzą wersje wbudowane
@@ -116,6 +117,11 @@
         <version>${archunit.version}</version>
         <scope>test</scope>
       </dependency>
+      <dependency>
+        <groupId>org.mapstruct</groupId>
+        <artifactId>mapstruct</artifactId>
+        <version>${mapstruct.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -130,7 +136,17 @@
             <release>${maven.compiler.release}</release>
             <compilerArgs>
               <arg>-parameters</arg>
+              <!-- niezmapowane pole docelowe to błąd kompilacji, nie ostrzeżenie:
+                   cichy null w odpowiedzi API jest gorszy niż czerwony build -->
+              <arg>-Amapstruct.unmappedTargetPolicy=ERROR</arg>
             </compilerArgs>
+            <annotationProcessorPaths>
+              <path>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct-processor</artifactId>
+                <version>${mapstruct.version}</version>
+              </path>
+            </annotationProcessorPaths>
           </configuration>
         </plugin>
         <plugin>

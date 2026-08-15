@@ -1,14 +1,11 @@
 package com.pgoogol.music.api;
 
 import com.pgoogol.music.enrichment.spotify.SpotifyAccountStatus;
-import org.springframework.stereotype.Component;
+import org.mapstruct.InjectionStrategy;
+import org.mapstruct.Mapper;
 
-@Component
-public class SpotifyAccountApiMapper {
+@Mapper(componentModel = "spring", injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+public interface SpotifyAccountApiMapper {
 
-    public SpotifyAccountResponse toResponse(SpotifyAccountStatus status) {
-
-        return new SpotifyAccountResponse(status.connected(), status.spotifyUserId(),
-            status.displayName(), status.scopes(), status.expiresAt(), status.connectedAt());
-    }
+    SpotifyAccountResponse toResponse(SpotifyAccountStatus status);
 }

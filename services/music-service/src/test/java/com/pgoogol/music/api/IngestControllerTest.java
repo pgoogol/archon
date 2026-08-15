@@ -46,7 +46,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * i kształt raportu z importu własnych playlist (tryb C).
  */
 @WebMvcTest(IngestController.class)
-@Import(IngestApiMapper.class)
+// beanem jest implementacja generowana przez MapStruct — sam interfejs
+// zaimportowany do wycinka nie dostarcza niczego do wstrzyknięcia
+@Import(IngestApiMapperImpl.class)
 class IngestControllerTest {
 
     @Autowired
