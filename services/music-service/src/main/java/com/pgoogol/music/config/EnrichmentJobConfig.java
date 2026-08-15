@@ -1,5 +1,9 @@
-package com.pgoogol.music.enrichment;
+package com.pgoogol.music.config;
 
+import com.pgoogol.music.enrichment.EnrichmentScope;
+import com.pgoogol.music.enrichment.EnrichmentSkipRecorder;
+import com.pgoogol.music.enrichment.FieldGroup;
+import com.pgoogol.music.enrichment.TrackEnricher;
 import com.pgoogol.music.catalog.TrackCatalog;
 import com.pgoogol.music.catalog.TrackCatalogRepository;
 import com.pgoogol.music.common.ValidationException;
@@ -46,7 +50,7 @@ public class EnrichmentJobConfig {
     public static final String JOB_NAME = "enrichmentJob";
     public static final int CHUNK_SIZE = 5;
 
-    static final Pattern SAFE_SPOTIFY_ID = Pattern.compile("[A-Za-z0-9_-]{1,64}");
+    public static final Pattern SAFE_SPOTIFY_ID = Pattern.compile("[A-Za-z0-9_-]{1,64}");
 
     /** Nazwa modelu trafia do klauzuli WHERE, więc przechodzi tę samą kontrolę co id. */
     static final Pattern SAFE_MODEL = Pattern.compile("[A-Za-z0-9._:/-]{1,128}");

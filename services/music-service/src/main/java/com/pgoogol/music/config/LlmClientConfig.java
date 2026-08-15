@@ -1,5 +1,9 @@
-package com.pgoogol.music.enrichment.llm;
+package com.pgoogol.music.config;
 
+import com.pgoogol.music.enrichment.llm.AnthropicLlmClient;
+import com.pgoogol.music.enrichment.llm.OpenAiCompatibleLlmClient;
+import com.pgoogol.music.enrichment.llm.LlmClient;
+import com.pgoogol.music.enrichment.llm.LlmProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;

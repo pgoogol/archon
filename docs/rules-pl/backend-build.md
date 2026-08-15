@@ -40,14 +40,19 @@ paths:
       dto/
       domain/
     api/                 ← kontrolery REST, DTO żądań i odpowiedzi, mappery
-    config/              ← konfiguracja Springa przecinająca domeny (np. OpenAPI)
+    config/              ← wszystkie klasy @Configuration serwisu
     common/              ← dzielone wewnątrz tego serwisu (np. rate limiting)
     shared/exception/    ← hierarchia wyjątków serwisu
   ```
 
-  `config/` nie jest pakietem warstwowym w przebraniu: trzyma wyłącznie
-  konfigurację, która nie należy do żadnej domeny. Konfiguracja należąca do
-  domeny zostaje przy niej — `EnrichmentJobConfig` mieszka w `enrichment/`.
+  `config/` zbiera wszystkie klasy `@Configuration`, niezależnie od tego, którą
+  domenę spinają — łącznie z `EnrichmentJobConfig` i `SchedulingConfig`. To jedyny
+  świadomy wyjątek od podziału po funkcjach: wiązanie beanów nie jest logiką
+  domeny, a trzymanie go w jednym miejscu bije szukanie po pakietach.
+
+  Rekordy `@ConfigurationProperties` zostają przy swojej domenie
+  (`SpotifyProperties` w `enrichment/spotify/`): opisują, czego domena potrzebuje,
+  a nie jak spiąć beany.
 
 - Trzymaj kod domenowy w module, do którego należy. Nie rozsypuj go po `common/`.
 - **Serwis nigdy nie zależy od innego serwisu.** Jedyne zależności dozwolone

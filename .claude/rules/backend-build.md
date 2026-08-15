@@ -41,14 +41,19 @@ paths:
       dto/
       domain/
     api/                 ← REST controllers, request/response DTOs, mappers
-    config/              ← cross-cutting Spring configuration (e.g. OpenAPI)
+    config/              ← every @Configuration class of the service
     common/              ← shared within this service (e.g. rate limiting)
     shared/exception/    ← the service's exception hierarchy
   ```
 
-  `config/` is not a layer package in disguise: it holds only configuration that
-  belongs to no single domain. Configuration owned by a domain stays with it —
-  `EnrichmentJobConfig` lives in `enrichment/`, not here.
+  `config/` gathers every `@Configuration` class, whatever domain it wires —
+  `EnrichmentJobConfig` and `SchedulingConfig` included. It is the one deliberate
+  exception to splitting by feature: bean wiring is not domain logic, and having
+  it in one place beats hunting for it across packages.
+
+  `@ConfigurationProperties` records stay with their domain (`SpotifyProperties`
+  in `enrichment/spotify/`): they describe what the domain needs, not how beans
+  are wired.
 
 - Keep domain code in the module it belongs to. Do not scatter it into `common/`.
 - **A service never depends on another service.** The only dependencies allowed

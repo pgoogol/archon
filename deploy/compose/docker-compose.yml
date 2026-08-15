@@ -28,11 +28,14 @@ services:
       # Bez POSTGRES_DB obraz zakłada bazę o nazwie użytkownika, czyli `postgres` —
       # służy wyłącznie do połączenia administracyjnego, dane serwisów tam nie trafiają.
       POSTGRES_USER: postgres
-      # hasło jawne świadomie: to środowisko deweloperskie, baza słucha tylko
-      # na loopbacku hosta i nie trzyma niczego, czego nie da się odtworzyć
+      # hasło jawne świadomie: to środowisko deweloperskie i nie trzyma niczego,
+      # czego nie da się odtworzyć
       POSTGRES_PASSWORD: qwerty
     ports:
-      - "127.0.0.1:5432:5432"
+      # port wystawiony na wszystkie interfejsy, nie tylko na loopback — baza
+      # jest osiągalna z całej sieci lokalnej, więc nie podnoś tego zestawu
+      # w sieci, której nie ufasz
+      - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
       # baza per serwis — skrypt wykonuje się przy inicjalizacji pustego wolumenu

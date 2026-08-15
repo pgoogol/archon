@@ -1,4 +1,4 @@
-package com.pgoogol.music.common;
+package com.pgoogol.music.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;

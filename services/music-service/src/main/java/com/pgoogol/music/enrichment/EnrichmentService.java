@@ -1,5 +1,6 @@
 package com.pgoogol.music.enrichment;
 
+import com.pgoogol.music.config.EnrichmentJobConfig;
 import com.pgoogol.music.catalog.TrackCatalogRepository;
 import com.pgoogol.music.common.NotFoundException;
 import com.pgoogol.music.common.ValidationException;

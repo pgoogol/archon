@@ -1,5 +1,6 @@
 package com.pgoogol.music.enrichment.llm;
 
+import com.pgoogol.music.config.LlmClientConfig;
 import tools.jackson.databind.ObjectMapper;
 import com.pgoogol.music.catalog.TrackCatalog;
 import com.pgoogol.music.enrichment.bpm.HalfTimeCorrector;
