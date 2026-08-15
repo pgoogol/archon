@@ -72,6 +72,10 @@ test faktycznie potrzebuje, nie to, jak się nazywa.
   pobrać obrazu — ustaw `TEST_POSTGRES_CONTAINER=false` i podaj
   `SPRING_DATASOURCE_URL/USERNAME/PASSWORD`. To wciąż realny Postgres, więc
   zakaz H2 zostaje w mocy; to furtka, nie drugi wspierany układ.
+  Ta baza musi być **dedykowana i pusta**: testy repozytoriów asertują na własnych
+  fixtures, więc wiersze zostawione przez cokolwiek innego — przebieg E2E, ręczna
+  sesja — wywalają je. Testcontainers daje świeżą bazę na każdy przebieg i tego
+  problemu nie ma; baza dzielona ma.
 - `@Testcontainers` + realny obraz bazy (`postgres:16-alpine` — ta sama wersja co
   w `deploy/compose`).
 - Współdziel jeden kontener w całej suicie: `@ServiceConnection` we wspólnej

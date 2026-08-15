@@ -9,14 +9,14 @@ import { defineConfig, devices } from '@playwright/test'
  * Zakres to jeden przepływ, nie siatka przypadków: od E2E chcemy sygnału
  * „całość się rozpięła", a szczegóły pokrywają testy jednostkowe i integracyjne.
  *
- * Wymaga zbudowanego frontu (`cd frontend && npm run build`) i spakowanego
- * backendu (`./mvnw -DskipTests package`).
+ * Wymaga zbudowanego frontu (`pnpm --filter web build`) i spakowanego backendu
+ * (`./mvnw -pl services/music-service -am -DskipTests package`).
  */
 const WEB_PORT = Number(process.env.E2E_WEB_PORT ?? 5173)
 const PORT = Number(process.env.E2E_APP_PORT ?? 8080)
 const STUB_PORT = Number(process.env.E2E_STUB_PORT ?? 8089)
 const DATASOURCE_URL =
-  process.env.E2E_DATASOURCE_URL ?? 'jdbc:postgresql://localhost:5432/musicview'
+  process.env.E2E_DATASOURCE_URL ?? 'jdbc:postgresql://localhost:5432/music'
 
 export default defineConfig({
   testDir: './tests',
@@ -60,8 +60,8 @@ export default defineConfig({
       env: {
         SERVER_PORT: String(PORT),
         SPRING_DATASOURCE_URL: DATASOURCE_URL,
-        SPRING_DATASOURCE_USERNAME: process.env.E2E_DB_USER ?? 'musicview',
-        SPRING_DATASOURCE_PASSWORD: process.env.E2E_DB_PASSWORD ?? 'musicview',
+        SPRING_DATASOURCE_USERNAME: process.env.E2E_DB_USER ?? 'music',
+        SPRING_DATASOURCE_PASSWORD: process.env.E2E_DB_PASSWORD ?? 'music',
         // wszystkie źródła zewnętrzne na stub — bez sieci i bez kluczy
         LLM_PROVIDER: 'openai',
         LLM_BASE_URL: `http://127.0.0.1:${STUB_PORT}`,
@@ -73,7 +73,7 @@ export default defineConfig({
         CLIENTS_MUSICBRAINZ_BASEURL: `http://127.0.0.1:${STUB_PORT}`,
         CLIENTS_SPOTIFY_BASEURL: `http://127.0.0.1:${STUB_PORT}`,
         CLIENTS_SPOTIFY_AUTHURL: `http://127.0.0.1:${STUB_PORT}`,
-        MB_USER_AGENT: 'music-view-e2e (test@example.com)',
+        MB_USER_AGENT: 'archon-music-e2e (test@example.com)',
         MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: 'health,info',
       },
     },
@@ -86,7 +86,7 @@ export default defineConfig({
       // której pilnuje Playwright, zostaje wtedy pusta i health check leci
       // w timeout. Wiążemy się jawnie z adresem, pod który potem pukamy.
       command:
-        'npm run preview -- --host 127.0.0.1 --port ' + WEB_PORT + ' --strictPort',
+        'pnpm exec vite preview --host 127.0.0.1 --port ' + WEB_PORT + ' --strictPort',
       cwd: '../apps/web',
       url: `http://127.0.0.1:${WEB_PORT}/`,
       timeout: 60_000,

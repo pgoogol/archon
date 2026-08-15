@@ -72,6 +72,10 @@ actually needs, not what it happens to be called.
   or cannot pull the image — set `TEST_POSTGRES_CONTAINER=false` and supply
   `SPRING_DATASOURCE_URL/USERNAME/PASSWORD`. That is still a real Postgres, so
   the never-H2 rule holds; it is an escape hatch, not a second supported setup.
+  That database must be **dedicated and empty**: repository tests assert on their
+  own fixtures, so rows left by anything else — an E2E run, a manual session —
+  fail them. Testcontainers gives a fresh database per run and never has this
+  problem; a shared one does.
 - `@Testcontainers` + a real database image (`postgres:16-alpine` — the same
   version as in `deploy/compose`).
 - Share one container across the suite: `@ServiceConnection` in a shared
