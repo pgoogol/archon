@@ -4,9 +4,9 @@ info:
   title: music-view API
   version: 1.0.0
   description: |
-    API narzędzia DJ-a do zarządzania biblioteką muzyczną: katalog utworów
-    i wyszukiwarka, prywatne dane DJ-a, import z plików i ze Spotify,
-    wzbogacanie metadanych oraz układanie setów.
+    API do zarządzania biblioteką muzyczną: katalog utworów i wyszukiwarka,
+    prywatne oceny i notatki, import z plików i ze Spotify, wzbogacanie
+    metadanych oraz układanie setów.
 
 servers:
   - url: /
@@ -18,7 +18,7 @@ tags:
   - name: catalog
     description: Katalog utworów i wyszukiwarka
   - name: library
-    description: Biblioteka DJ-a i przegląd
+    description: Biblioteka i przegląd
   - name: playlists
     description: Playlisty i sety
   - name: sets
@@ -167,7 +167,7 @@ paths:
     patch:
       tags: [library]
       operationId: updateLibraryTrack
-      summary: Zmiana danych prywatnych DJ-a
+      summary: Zmiana danych prywatnych
       description: |
         Pole pominięte zostaje bez zmian; pusta wartość czyści pole.
         `version` jest wymagana — nieświeża kończy się 409.

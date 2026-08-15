@@ -105,7 +105,7 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Zmiana danych prywatnych DJ-a
+         * Zmiana danych prywatnych
          * @description Pole pominięte zostaje bez zmian; pusta wartość czyści pole.
          *     `version` jest wymagana — nieświeża kończy się 409.
          */

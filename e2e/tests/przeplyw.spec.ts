@@ -92,24 +92,26 @@ test.describe('przepływ DJ-a', () => {
     // opis od LLM-a wylądował w katalogu
     await openTab(page, 'Biblioteka')
     await page.getByTestId('search-input').fill('vivir')
+    // Adres jest zapytaniem, więc dopiero jego zmiana dowodzi, że debounce
+    // zadziałał. Bez tej asercji fraza bywa wyprzedzona przez wyczyszczenie
+    // niżej — wtedy stan zapytania nie zmienia się ani razu i do backendu NIC
+    // nie leci, a czekanie na odpowiedź dla pustej frazy wisi do timeoutu.
+    await expect(page).toHaveURL(/q=vivir/)
+    await expect(page.getByTestId('result-summary')).toContainText('1 utworów')
     await page.getByText('Vivir Mi Vida').first().click()
     await expect(page.getByTestId('track-details')).toContainText('salsa dura')
     await closeDrawer(page)
 
     // --- set: nowy set i utwory z zaznaczenia
     //
-    // Fraza jest debounce'owana, a `result-summary` pokazuje liczbę z OSTATNIEJ
-    // zakończonej odpowiedzi. „5 utworów" jest więc prawdą także wtedy, gdy
-    // wyszukiwanie „vivir" jeszcze nie wróciło — asercja na samym podsumowaniu
-    // przechodzi na nieaktualnym stanie, a `zaznacz stronę` łapie potem jeden
-    // wiersz zamiast pięciu. Czekamy na odpowiedź dla PUSTEJ frazy; tylko ona
-    // dowodzi, że lista się ustabilizowała.
-    const cleared = page.waitForResponse(
-      (response) =>
-        response.url().includes('/api/catalog/tracks') && !response.url().includes('search='),
-    )
+    // `result-summary` pokazuje liczbę z OSTATNIEJ zakończonej odpowiedzi, więc
+    // samo „5 utworów" jest prawdą także wtedy, gdy wyszukiwanie „vivir" jeszcze
+    // nie wróciło — asercja przechodzi wtedy na nieaktualnym stanie, a `zaznacz
+    // stronę` łapie jeden wiersz zamiast pięciu. Idziemy przez adres i pełne
+    // podsumowanie: brak `q` dowodzi, że debounce zadziałał, a „1–5 na ekranie",
+    // że doszła odpowiedź dla pustej frazy.
     await page.getByTestId('search-input').fill('')
-    await cleared
+    await expect(page).not.toHaveURL(/q=vivir/)
     await expect(page.getByTestId('result-summary')).toContainText('5 utworów · 1–5 na ekranie')
     await page.getByLabel('zaznacz stronę').check()
     await openTab(page, 'Sety')
