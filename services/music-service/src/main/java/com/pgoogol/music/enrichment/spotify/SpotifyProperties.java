@@ -4,7 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * {@code redirectUri} i {@code scopes} dotyczą wyłącznie połączenia konta
- * właściciela (OAuth PKCE — D4); {@code redirectUri} musi być identyczny
+ * właściciela (OAuth PKCE); {@code redirectUri} musi być identyczny
  * z adresem wpisanym w dashboardzie aplikacji Spotify.
  */
 @ConfigurationProperties(prefix = "clients.spotify")

@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 /**
  * Rozpoznawanie kolumn CSV po nazwie, wspólne dla importu biblioteki (M1.2)
- * i metryk (D24). Nagłówki bywają w różnym zapisie i z BOM-em na początku pliku,
+ * i metryk. Nagłówki bywają w różnym zapisie i z BOM-em na początku pliku,
  * więc porównujemy je po sprowadzeniu do małych liter bez białych znaków.
  */
 @Component

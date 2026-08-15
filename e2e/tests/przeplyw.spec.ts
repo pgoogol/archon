@@ -50,7 +50,7 @@ test.describe('przepływ DJ-a', () => {
 
   test('import → przegląd → utwór → wzbogacenie → set → generator', async ({ page, request }) => {
 
-    // --- import: plik CSV wchodzi do katalogu i biblioteki (tryb A, D6)
+    // --- import: plik CSV wchodzi do katalogu i biblioteki (tryb A)
     const imported = await request.post('/api/ingest/file', {
       multipart: {
         file: { name: 'biblioteka.csv', mimeType: 'text/csv', buffer: Buffer.from(CSV) },
@@ -65,13 +65,13 @@ test.describe('przepływ DJ-a', () => {
     await expect(page.getByTestId('overview-headline')).toContainText('5')
     await expect(page.getByTestId('bpm-sources')).toBeVisible()
 
-    // --- biblioteka: wyszukiwarka i stan widoku w hashu (D22)
+    // --- biblioteka: wyszukiwarka i stan widoku w hashu
     await openTab(page, 'Biblioteka')
     await page.getByTestId('search-input').fill('vivir')
     await expect(page.getByTestId('result-summary')).toContainText('1 utworów')
     await expect(page).toHaveURL(/q=vivir/)
 
-    // --- utwór: dane prywatne DJ-a zapisują się z wersją (D29)
+    // --- utwór: dane prywatne DJ-a zapisują się z wersją
     await page.getByText('Vivir Mi Vida').first().click()
     await expect(page.getByTestId('track-details')).toBeVisible()
     await page.getByTestId('dj-notes').fill('pewniak na parkiet')
@@ -119,11 +119,11 @@ test.describe('przepływ DJ-a', () => {
     await expect(page.getByTestId('set-stats')).toBeVisible()
     await expect(page.getByTestId('set-list').getByRole('listitem')).toHaveCount(5)
 
-    // kolejność wg faz wieczoru (D9) przechodzi przez PUT z wersją agregatu (D29)
+    // kolejność wg faz wieczoru przechodzi przez PUT z wersją agregatu
     await page.getByTestId('playlist-arrange').click()
-    await expect(page.getByText('Ułożono set wg faz wieczoru (D9)')).toBeVisible()
+    await expect(page.getByText('Ułożono set wg faz wieczoru')).toBeVisible()
 
-    // --- generator: propozycja, która niczego nie zapisuje (D26)
+    // --- generator: propozycja, która niczego nie zapisuje
     const playlistsBefore = (await (await request.get('/api/playlists')).json()).length
     await page.getByTestId('propose-set').click()
     await expect(page.getByTestId('set-proposal')).toBeVisible()

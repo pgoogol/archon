@@ -43,7 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Kontrakt HTTP importów bez bazy: wiązanie wielu plików w polu {@code file}
- * (D24) i kształt raportu z importu własnych playlist (tryb C).
+ * i kształt raportu z importu własnych playlist (tryb C).
  */
 @WebMvcTest(IngestController.class)
 @Import(IngestApiMapper.class)
@@ -69,7 +69,7 @@ class IngestControllerTest {
 
     /**
      * Wycinek {@code @WebMvcTest} nie skanuje {@code @ConfigurationProperties},
-     * a kontroler potrzebuje interwału do odpowiedzi o stanie odświeżania (D35).
+     * a kontroler potrzebuje interwału do odpowiedzi o stanie odświeżania.
      */
     @TestConfiguration
     static class RefreshPropertiesConfig {
@@ -216,7 +216,7 @@ class IngestControllerTest {
     @Test
     void refreshStatus_whenAccountNotConnected_isNotAnError() throws Exception {
 
-        // given — świeża instalacja bez OAuth to normalny stan (D20/D35)
+        // given — świeża instalacja bez OAuth to normalny stan
         given(playlistRefreshScheduler.status())
             .willReturn(PlaylistRefreshStatus.skipped(Instant.parse("2026-08-11T20:15:00Z")));
 

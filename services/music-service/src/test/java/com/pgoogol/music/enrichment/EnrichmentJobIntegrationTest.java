@@ -84,7 +84,7 @@ class EnrichmentJobIntegrationTest {
 
     private final List<List<String>> analyzedBatches = new CopyOnWriteArrayList<>();
     private final AtomicBoolean failOnSecondChunk = new AtomicBoolean(false);
-    /** Utwór, który pada przy każdej próbie — do sprawdzenia pomijania (D37). */
+    /** Utwór, który pada przy każdej próbie — do sprawdzenia pomijania. */
     private final AtomicReference<String> alwaysFailingTrack = new AtomicReference<>();
 
     @BeforeEach
@@ -161,7 +161,7 @@ class EnrichmentJobIntegrationTest {
     }
 
     @Test
-    @DisplayName("trwała awaria jednego utworu nie przerywa przebiegu — reszta wchodzi (D37)")
+    @DisplayName("trwała awaria jednego utworu nie przerywa przebiegu — reszta wchodzi")
     void start_whenOneTrackKeepsFailing_skipsItAndFinishesTheRest() {
 
         // given — trk-005 pada przy każdej próbie, także po powtórce chunka
@@ -218,9 +218,9 @@ class EnrichmentJobIntegrationTest {
     @Test
     void start_whenTrackHasMetricsFromFile_keepsThemInsteadOfLlmEstimate() {
 
-        // given — plik mówi rock i energię 0.15, LLM w stubie twierdzi latin i „high" (D34).
+        // given — plik mówi rock i energię 0.15, LLM w stubie twierdzi latin i „high".
         // Metryki zapisujemy w jednej transakcji z odczytem utworu, tak jak robi to
-        // import (D24): klucz jest dzielony przez @MapsId, więc utwór musi być
+        // import: klucz jest dzielony przez @MapsId, więc utwór musi być
         // w tym momencie zarządzany, inaczej Hibernate próbuje wstawić go drugi raz.
         seedSkeletons(1);
         transactionTemplate.executeWithoutResult(status -> {

@@ -74,7 +74,7 @@ public class IngestController {
     }
 
     @PostMapping(value = "/metrics", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "Import metryk utworów z CSV (D24)",
+    @Operation(summary = "Import metryk utworów z CSV",
         description = "Uzupełnia BPM, tonację, Camelot i cechy audio dla utworów, "
             + "które są już w katalogu — dopasowanie po Spotify Track Id, "
             + "a gdy go brak, po ISRC. Utwory spoza katalogu trafiają do raportu "
@@ -115,7 +115,7 @@ public class IngestController {
     }
 
     @GetMapping("/my-playlists/refresh-status")
-    @Operation(summary = "Stan automatycznego odświeżania playlist (D35)",
+    @Operation(summary = "Stan automatycznego odświeżania playlist",
         description = "Kiedy poszedł ostatni przebieg w tle i czym się skończył. "
             + "SKIPPED_NOT_CONNECTED to normalny stan świeżej instalacji, nie awaria — "
             + "bez połączonego konta Spotify nie ma czego odświeżać.")

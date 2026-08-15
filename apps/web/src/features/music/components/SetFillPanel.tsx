@@ -1,4 +1,4 @@
-// Uzupełnianie gotowego setu (M4.4/D32): dalszy ciąg wieczoru do obejrzenia,
+// Uzupełnianie gotowego setu (M4.4): dalszy ciąg wieczoru do obejrzenia,
 // nie zapis. Utwory dopisuje dopiero „Dopisz do setu" — istniejącą drogą przez
 // POST /api/playlists/{id}/tracks, więc domykanie zostaje bezstanowe.
 
@@ -173,7 +173,7 @@ export default function SetFillPanel({ playlistId, disabled, onAppend }: Props) 
           <ol className="proposal-tracks">
             {fill.tracks.map((entry) => (
               <li key={entry.track.spotifyId}>
-                {/* kolor niesie kropka, etykieta zostaje w kolorze tekstu (D22) */}
+                {/* kolor niesie kropka, etykieta zostaje w kolorze tekstu */}
                 <span className="slot">
                   <span
                     className={`slot-dot slot-bg-${entry.djSlot ?? 'UNKNOWN'}`}

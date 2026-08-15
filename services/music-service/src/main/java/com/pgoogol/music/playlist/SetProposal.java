@@ -6,7 +6,7 @@ import org.springframework.lang.Nullable;
 import java.util.List;
 
 /**
- * Propozycja setu (M4.2) — <b>nic nie zapisuje</b> (D26). Playlistę zakłada DJ
+ * Propozycja setu (M4.2) — <b>nic nie zapisuje</b>. Playlistę zakłada DJ
  * istniejącą drogą, a to jest materiał do obejrzenia i poprawienia.
  *
  * <p>{@code seed} wraca w odpowiedzi także wtedy, gdy nie podano go w żądaniu:

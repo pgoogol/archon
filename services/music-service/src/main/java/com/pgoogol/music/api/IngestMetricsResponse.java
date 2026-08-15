@@ -5,7 +5,7 @@ import org.springframework.lang.Nullable;
 import java.util.List;
 
 /**
- * Raport z importu CSV z metrykami — kontrakt {@code POST /api/ingest/metrics} (D24).
+ * Raport z importu CSV z metrykami — kontrakt {@code POST /api/ingest/metrics}.
  * Liczby na wierzchu są sumą całej partii, szczegóły (i numery wierszy, które bez
  * nazwy pliku nic nie znaczą) siedzą w {@code files}.
  */

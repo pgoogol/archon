@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Projekcja metryk z pliku (D24) na pola katalogu: BPM z korektą half-time,
+ * Projekcja metryk z pliku na pola katalogu: BPM z korektą half-time,
  * tonacja, danceability i progowana energia.
  */
 class ManualMetricsApplierTest {
@@ -54,7 +54,7 @@ class ManualMetricsApplierTest {
         // when
         applier.apply(track, metrics);
 
-        // then — plik wygrywa (D34), a korekta half-time liczy się już wg gatunku z pliku
+        // then — plik wygrywa, a korekta half-time liczy się już wg gatunku z pliku
         assertThat(track.getGenreFamily()).isEqualTo(GenreFamily.LATIN);
         assertThat(track.getBpm()).isEqualTo(192);
     }

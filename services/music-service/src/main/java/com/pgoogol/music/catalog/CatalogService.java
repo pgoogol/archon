@@ -28,7 +28,7 @@ public class CatalogService {
         this.manualMetricsRepository = manualMetricsRepository;
     }
 
-    /** Metryki wgrane ręcznie (D24) — pusto, gdy utworu nie ma albo nie dostał metryk. */
+    /** Metryki wgrane ręcznie — pusto, gdy utworu nie ma albo nie dostał metryk. */
     @Transactional(readOnly = true)
     public Optional<ManualMetrics> findMetrics(String spotifyId) {
 
@@ -45,7 +45,7 @@ public class CatalogService {
                 "Brak utworu o spotify_id '%s' w katalogu".formatted(spotifyId)));
     }
 
-    /** Pokrycie katalogu metrykami z pliku (D24) — kontekst dla filtrów z M4.1. */
+    /** Pokrycie katalogu metrykami z pliku — kontekst dla filtrów z M4.1. */
     @Transactional(readOnly = true)
     public MetricsCoverage metricsCoverage() {
 
@@ -122,7 +122,7 @@ public class CatalogService {
     }
 
     /**
-     * Filtr harmoniczny (D25) rozwiązywany <b>przed</b> zapytaniem: zbiór zgodnych
+     * Filtr harmoniczny rozwiązywany <b>przed</b> zapytaniem: zbiór zgodnych
      * pozycji koła (najwyżej cztery) rozwijamy do wszystkich zapisów tonacji
      * i sklejamy w jeden parametr. Dzięki temu wyszukiwarka zostaje przy dwóch
      * złączeniach, a plan zapytania się nie zmienia.

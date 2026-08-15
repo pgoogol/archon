@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * Parser CSV z metrykami (D24) na próbce w formacie eksportu z analizatora
+ * Parser CSV z metrykami na próbce w formacie eksportu z analizatora
  * playlist: komplet metryk, dopasowanie po ISRC, wiersze do odrzucenia.
  */
 class MetricsCsvParserTest {
@@ -71,7 +71,7 @@ class MetricsCsvParserTest {
         // when
         MetricsParseResult result = parser.parse(csv);
 
-        // then — „timba, salsa" to rodzina LATIN (D8), potrzebna do korekty half-time
+        // then — „timba, salsa" to rodzina LATIN, potrzebna do korekty half-time
         assertThat(result.rows()).first()
             .satisfies(row -> assertThat(row.genreFamily()).isEqualTo(GenreFamily.LATIN));
     }

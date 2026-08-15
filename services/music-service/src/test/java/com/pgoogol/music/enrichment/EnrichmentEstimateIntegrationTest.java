@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * Szacunek zlecenia i zakres OUTDATED (M5.1/D28) na realnej bazie — liczby
+ * Szacunek zlecenia i zakres OUTDATED (M5.1) na realnej bazie — liczby
  * biorą się z zapytań, więc test bez Postgresa nic by nie dowiódł.
  */
 @SpringBootTest

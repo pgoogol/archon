@@ -84,7 +84,7 @@ class SetApiIntegrationTest {
     }
 
     @Test
-    @DisplayName("układa set na zadany czas i nie zapisuje żadnej playlisty (D26)")
+    @DisplayName("układa set na zadany czas i nie zapisuje żadnej playlisty")
     void propose_returnsSetWithoutPersistingAnything() throws Exception {
 
         mockMvc.perform(propose(Map.of("targetMinutes", 60, "seed", 1)))
@@ -205,7 +205,7 @@ class SetApiIntegrationTest {
     }
 
     @Test
-    @DisplayName("uzupełnia gotowy set i nie dopisuje niczego do playlisty (D32)")
+    @DisplayName("uzupełnia gotowy set i nie dopisuje niczego do playlisty")
     void fill_extendsSetWithoutPersistingAnything() throws Exception {
 
         long playlistId = createSet("Wesele", "sp-00", "sp-01");

@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * Restartowalny job wzbogacania (M1.6, D10): reader utworów wg {@code scope}
+ * Restartowalny job wzbogacania (M1.6): reader utworów wg {@code scope}
  * (keyset po {@code spotify_id} — utwory „naprawione" w trakcie nie psują
  * stronicowania) → writer per chunk=5: {@link TrackEnricher} w kolejności
  * METADATA → AUDIO → AI + zapis inkrementalny do {@code track_catalog}.
@@ -69,7 +69,7 @@ public class EnrichmentJobConfig {
     }
 
     /**
-     * Krok odporny na porażki pojedynczych utworów (D37): to, co padło, zostaje
+     * Krok odporny na porażki pojedynczych utworów: to, co padło, zostaje
      * pominięte i opisane, a przebieg idzie dalej. Wcześniej jedna felerna
      * odpowiedź zewnętrznego API wywracała cały job — przy 2500 utworach
      * kasowało to efekt kwadransów pracy.

@@ -14,16 +14,16 @@ import java.util.regex.Pattern;
 
 /**
  * Pozycja na kole Camelot — 1A–12A (moll) i 1B–12B (dur). Wartość jest
- * <b>wyliczana z {@code track_catalog.musical_key}, nigdy nie zapisywana</b>
- * (D25), tak samo jak slot wieczoru (D9): mapowanie tonacja ↔ Camelot jest
+ * <b>wyliczana z {@code track_catalog.musical_key}, nigdy nie zapisywana</b>,
+ * tak samo jak slot wieczoru: mapowanie tonacja ↔ Camelot jest
  * bijekcją na 24 wartościach, więc kolumna nie niosłaby żadnej informacji
  * ponad tę, którą już mamy.
  *
  * <p>Liczenie z {@code musical_key}, a nie z {@code manual_metrics.camelot},
  * daje pokrycie wszędzie tam, gdzie w ogóle znamy tonację — także dla utworów
- * z dumpa AcousticBrainz (D7), których nie ma w pliku z metrykami (D24).</p>
+ * z dumpa AcousticBrainz, których nie ma w pliku z metrykami.</p>
  *
- * <p>Zgodność harmoniczna (D25) to klasyczny zestaw czterech pozycji: ta sama
+ * <p>Zgodność harmoniczna to klasyczny zestaw czterech pozycji: ta sama
  * tonacja, sąsiedzi na kole (±1) i tonacja równoległa (ta sama liczba, druga
  * litera). Skok energetyczny „+2" świadomie pomijamy — to chwyt na konkretny
  * moment wieczoru, nie reguła do wpisania w filtr.</p>
@@ -58,7 +58,7 @@ public record CamelotKey(int number, boolean minor) {
         Map.entry(3, 5), Map.entry(10, 6), Map.entry(5, 7), Map.entry(0, 8),
         Map.entry(7, 9), Map.entry(2, 10), Map.entry(9, 11), Map.entry(4, 12));
 
-    /** Zapisy enharmoniczne czytamy wszystkie — plik od DJ-a bywa niesforny (D25). */
+    /** Zapisy enharmoniczne czytamy wszystkie — plik od DJ-a bywa niesforny. */
     private static final Map<String, Integer> PITCH_BY_ROOT = Map.ofEntries(
         Map.entry("C", 0), Map.entry("B#", 0),
         Map.entry("C#", 1), Map.entry("DB", 1),
@@ -82,7 +82,7 @@ public record CamelotKey(int number, boolean minor) {
 
     /**
      * Tonacja w zapisie katalogu („G minor", „C major") → pozycja na kole.
-     * Brak trybu czytamy jako dur — tak samo jak przy normalizacji importu (D24).
+     * Brak trybu czytamy jako dur — tak samo jak przy normalizacji importu.
      */
     public static Optional<CamelotKey> ofMusicalKey(@Nullable String musicalKey) {
 
@@ -102,7 +102,7 @@ public record CamelotKey(int number, boolean minor) {
             .map(number -> new CamelotKey(number, minor));
     }
 
-    /** Etykieta koła („8A") — wejście filtra i wartość z pliku z metrykami (D24). */
+    /** Etykieta koła („8A") — wejście filtra i wartość z pliku z metrykami. */
     public static Optional<CamelotKey> ofLabel(@Nullable String label) {
 
         if (Objects.isNull(label) || label.isBlank()) {
@@ -123,7 +123,7 @@ public record CamelotKey(int number, boolean minor) {
         return number + (minor ? "A" : "B");
     }
 
-    /** Ta sama tonacja, sąsiedzi na kole (±1) i tonacja równoległa (D25). */
+    /** Ta sama tonacja, sąsiedzi na kole (±1) i tonacja równoległa. */
     public Set<CamelotKey> compatible() {
 
         return new LinkedHashSet<>(List.of(

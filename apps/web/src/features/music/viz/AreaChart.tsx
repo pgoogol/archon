@@ -1,6 +1,6 @@
 // Wykres wstęgowy (M5.4) — ta sama kreska co w krzywej tempa z M3.1, tylko
 // z wypełnieniem pod spodem i rysowana od lewej przy wejściu na ekran.
-// Inline SVG, bez biblioteki wykresów i bez zasobów z sieci (D23).
+// Inline SVG, bez biblioteki wykresów i bez zasobów z sieci.
 //
 // Używany tam, gdzie oś X jest uporządkowana i niesie znaczenie: histogram BPM
 // (gęstość biblioteki w tempie) i narastający przyrost biblioteki w czasie.

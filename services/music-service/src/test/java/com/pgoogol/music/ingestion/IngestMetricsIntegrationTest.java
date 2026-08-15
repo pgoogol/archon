@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Pełny stos HTTP dla POST /api/ingest/metrics na realnym Postgresie (D24):
+ * Pełny stos HTTP dla POST /api/ingest/metrics na realnym Postgresie:
  * dopasowanie po spotify_id i po ISRC, utwór spoza katalogu, wiersze odrzucone
  * oraz projekcja metryk na katalog (BPM z korektą half-time).
  *
@@ -133,7 +133,7 @@ class IngestMetricsIntegrationTest {
         mockMvc.perform(multipart("/api/ingest/metrics").file(sampleCsv()))
             .andExpect(status().isOk());
 
-        // then — bez gatunku nie ma slotu wieczoru ani korekty half-time (D8/D9)
+        // then — bez gatunku nie ma slotu wieczoru ani korekty half-time
         assertThat(trackCatalogRepository.findById(CARNAVAL))
             .hasValueSatisfying(track -> assertThat(track.getGenreFamily()).isEqualTo(GenreFamily.LATIN));
     }
@@ -141,7 +141,7 @@ class IngestMetricsIntegrationTest {
     @Test
     void ingestMetrics_whenTrackAlreadyHasGenre_overwritesItWithValueFromFile() throws Exception {
 
-        // given — gatunek z estymaty LLM-a, plik mówi co innego; plik wygrywa (D34)
+        // given — gatunek z estymaty LLM-a, plik mówi co innego; plik wygrywa
         TrackCatalog rockTrack = new TrackCatalog("5aaaaaaaaaaaaaaaaaaaaa", "Cover", "Zespół");
         rockTrack.setGenreFamily(GenreFamily.ROCK);
         trackCatalogRepository.save(rockTrack);
@@ -169,7 +169,7 @@ class IngestMetricsIntegrationTest {
         mockMvc.perform(multipart("/api/ingest/metrics").file(sampleCsv()))
             .andExpect(status().isOk());
 
-        // then — bez zapisu obok metryk nie dałoby się odróżnić pliku od estymaty (D34)
+        // then — bez zapisu obok metryk nie dałoby się odróżnić pliku od estymaty
         assertThat(manualMetricsRepository.findById(CARNAVAL))
             .hasValueSatisfying(metrics ->
                 assertThat(metrics.getGenreFamily()).isEqualTo(GenreFamily.LATIN));

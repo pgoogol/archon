@@ -85,7 +85,7 @@ class EnrichApiIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("COMPLETED"))
             .andExpect(jsonPath("$.writeCount").value(9))
-            // job zakończony sukcesem mimo pominięć — licznik musi być widoczny (D37)
+            // job zakończony sukcesem mimo pominięć — licznik musi być widoczny
             .andExpect(jsonPath("$.failedCount").value(3))
             .andExpect(jsonPath("$.fields").value("METADATA,AUDIO,AI"));
     }

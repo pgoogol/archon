@@ -1,7 +1,7 @@
 // Jeden pasek podzielony na udziały (M5.4) — dla rozkładów, w których liczy się
 // proporcja całości, a nie porównanie kategorii między sobą: skąd znamy tempo,
 // skąd wpisy trafiły do biblioteki. Kolor odróżnia segmenty, ale znaczenie
-// niesie legenda pod paskiem (D23) — kolor sam nigdy nie wystarcza.
+// niesie legenda pod paskiem — kolor sam nigdy nie wystarcza.
 
 import type { BucketResponse } from '@/features/music/api'
 import { share } from '@/features/music/overviewInsights'

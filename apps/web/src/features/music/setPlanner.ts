@@ -1,5 +1,5 @@
 // Logika planowania setu (M3.1) — czyste funkcje liczone po stronie frontu na
-// danych zwróconych przez /api/playlists/{id}. Sloty liczy backend (D9/D21);
+// danych zwróconych przez /api/playlists/{id}. Sloty liczy backend;
 // tutaj tylko podsumowania i ostrzeżenia dla DJ-a układającego kolejność.
 
 import type { PlaylistTrackResponse } from '@/features/music/api'
@@ -8,10 +8,10 @@ import { SLOT_ORDER, type SlotKey } from '@/features/music/format'
 /** Próg, powyżej którego skok tempa między sąsiadami trudno przemiksować. */
 export const BPM_JUMP_THRESHOLD = 15
 
-/** Skok głośności, powyżej którego przejście słychać jako „skok" (D25). */
+/** Skok głośności, powyżej którego przejście słychać jako „skok". */
 export const LOUDNESS_JUMP_THRESHOLD_DB = 3
 
-/** Metrum, którego parkiet się spodziewa; reszta to pułapka na przejściu (D25). */
+/** Metrum, którego parkiet się spodziewa; reszta to pułapka na przejściu. */
 const EXPECTED_TIME_SIGNATURE = 4
 
 interface Wheel {
@@ -20,9 +20,9 @@ interface Wheel {
 }
 
 /**
- * Etykieta koła Camelot („8A") → pozycja. Samo koło liczy backend z tonacji
- * (D25); tutaj zostaje wyłącznie porównanie dwóch etykiet, bo ostrzeżenia
- * o secie liczy front (D22).
+ * Etykieta koła Camelot („8A") → pozycja. Samo koło liczy backend z tonacji;
+ * tutaj zostaje wyłącznie porównanie dwóch etykiet, bo ostrzeżenia
+ * o secie liczy front.
  */
 function parseWheel(camelot: string | null): Wheel | null {
   const match = /^(\d{1,2})([AB])$/.exec(camelot ?? '')
@@ -213,7 +213,7 @@ export function findSetWarnings(tracks: readonly PlaylistTrackResponse[]): SetWa
 }
 
 /**
- * Tryby układania gotowego setu (M4.5, D33). Fazy wieczoru to domyślny sposób
+ * Tryby układania gotowego setu (M4.5). Fazy wieczoru to domyślny sposób
  * i został z M3.1; reszta odpowiada na pytania, których fazy nie obsługują —
  * „chcę płynne przejścia", „chcę czyste miksy", „chcę narastającą energię".
  */
@@ -242,7 +242,7 @@ const TRACKS_PER_WAVE = 5
 const MIN_WAVES = 2
 const MAX_WAVES = 4
 
-/** Zgrubna energia katalogu (D11) jako ostatnia deska ratunku — środek przedziału. */
+/** Zgrubna energia katalogu jako ostatnia deska ratunku — środek przedziału. */
 const ENERGY_FALLBACK: Record<string, number> = { low: 0.2, medium: 0.5, high: 0.8 }
 
 /** Zakres BPM, na którym rozpinamy skalę intensywności, gdy nie ma zmierzonej energii. */
@@ -251,7 +251,7 @@ const BPM_CEILING = 200
 
 /**
  * Intensywność utworu w skali 0..1 — czym „faluje" set. Kolejność źródeł to
- * kolejność wiarygodności (D34): najpierw **zmierzona energia z pliku**, bo
+ * kolejność wiarygodności: najpierw **zmierzona energia z pliku**, bo
  * jest liczbą, potem tempo, a na końcu zgrubne `low/medium/high` z katalogu,
  * które ma tylko trzy wartości i samo w sobie nie ułoży fali.
  */
@@ -355,8 +355,8 @@ function arrangeByHarmony(tracks: readonly PlaylistTrackResponse[]): string[] {
 
 /**
  * Propozycja kolejności setu w wybranym trybie. Zwraca listę `spotifyId`
- * gotową do `PUT /api/playlists/{id}/tracks` — układanie liczy front (D22),
- * backend dostaje gotową permutację składu (D21).
+ * gotową do `PUT /api/playlists/{id}/tracks` — układanie liczy front,
+ * backend dostaje gotową permutację składu.
  */
 export function arrangeBy(
   tracks: readonly PlaylistTrackResponse[],
@@ -388,7 +388,7 @@ export function arrangeBy(
  * Kolejność setu po wstawieniu dobranego utworu (M4.4) na wskazane miejsce.
  * API dokłada utwór wyłącznie na koniec (`POST /{id}/tracks`), więc wstawienie
  * w środek to dopisanie i zaraz po nim zmiana kolejności — nowego endpointu
- * do zapisu nie ma i nie potrzeba (D32).
+ * do zapisu nie ma i nie potrzeba.
  *
  * @param tracks   skład setu **po** dopisaniu utworu (dobrany jest ostatni)
  * @param position docelowe miejsce; poza zakresem zostawia utwór na końcu
@@ -406,7 +406,7 @@ export function insertLastAt(
 }
 
 /**
- * Propozycja kolejności setu wg slotów D9: rozgrzewka → środek → szczyt →
+ * Propozycja kolejności setu wg slotów wieczoru: rozgrzewka → środek → szczyt →
  * zamknięcie, wewnątrz fazy rosnąco po BPM. Przerwy trafiają przed zamknięcie,
  * a utwory bez slotu (niewzbogacone) na sam koniec — DJ decyduje, co z nimi.
  * Zwraca listę `spotifyId` gotową do PUT /api/playlists/{id}/tracks.

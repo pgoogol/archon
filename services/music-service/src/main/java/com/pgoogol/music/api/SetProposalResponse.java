@@ -4,7 +4,7 @@ import java.util.List;
 
 /**
  * Propozycja setu (M4.2) — kontrakt {@code POST /api/sets/propose}. Nic nie
- * zostało zapisane (D26): to materiał do obejrzenia, a set zakłada DJ przez
+ * zostało zapisane: to materiał do obejrzenia, a set zakłada DJ przez
  * {@code POST /api/playlists} i {@code POST /api/playlists/{id}/tracks}.
  *
  * @param seed  ziarno użyte przy losowaniu — podaj je z powrotem, żeby dostać

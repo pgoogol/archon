@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * Mapowanie surowego utworu Spotify na {@link SpotifyTrackMetadata} (D5):
+ * Mapowanie surowego utworu Spotify na {@link SpotifyTrackMetadata}:
  * wykonawcy sklejani przecinkami, okładka = pierwszy (największy) obrazek albumu,
  * rok wycinany z {@code release_date} (może mieć precyzję roku, miesiąca lub dnia).
  */

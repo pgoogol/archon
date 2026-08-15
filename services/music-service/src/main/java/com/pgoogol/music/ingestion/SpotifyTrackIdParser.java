@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 /**
  * Rozpoznaje utwór w tym, co przychodzi w kolumnie CSV: URI aplikacji
  * ({@code spotify:track:…}), linku „udostępnij" albo samym 22-znakowym
- * identyfikatorze. Wspólne dla importu biblioteki (M1.2) i metryk (D24).
+ * identyfikatorze. Wspólne dla importu biblioteki (M1.2) i metryk.
  */
 @Component
 public class SpotifyTrackIdParser {

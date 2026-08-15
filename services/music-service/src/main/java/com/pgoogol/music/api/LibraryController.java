@@ -22,7 +22,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/library")
-@Tag(name = "Library", description = "Biblioteka DJ-a — dane prywatne (D3)")
+@Tag(name = "Library", description = "Biblioteka DJ-a — dane prywatne")
 public class LibraryController {
 
     private final LibraryService libraryService;
@@ -49,8 +49,8 @@ public class LibraryController {
     @Operation(summary = "Przegląd biblioteki — rozkłady i pokrycie",
         description = "Rozkłady gatunków, tempa, energii, źródeł BPM i ocen, histogram BPM, "
             + "najczęstsi wykonawcy oraz przyrost biblioteki po miesiącach. Wszystko liczone "
-            + "w bazie jednym wywołaniem (D27). Udział bpm_source mówi, ile biblioteki stoi "
-            + "na faktach, a ile na estymacie LLM — wskaźnik z kryterium D19.")
+            + "w bazie jednym wywołaniem. Udział bpm_source mówi, ile biblioteki stoi "
+            + "na faktach, a ile na estymacie LLM — wskaźnik jakości tempa.")
     public LibraryOverviewResponse getOverview() {
         return mapper.toResponse(libraryService.overview());
     }
@@ -80,7 +80,7 @@ public class LibraryController {
     @PatchMapping("/tracks/{spotifyId}")
     @Operation(summary = "Aktualizacja danych prywatnych DJ-a",
         description = "null = bez zmian; pusty string / pusta lista / rating 0 = wyczyszczenie "
-            + "pola. Pole version jest wymagane (D29) — niezgodna wersja kończy się 409 "
+            + "pola. Pole version jest wymagane — niezgodna wersja kończy się 409 "
             + "RESOURCE_MODIFIED, żeby cudza notatka nie zniknęła po cichu.")
     public LibraryEntryResponse updateTrack(@PathVariable String spotifyId,
                                             @Valid @RequestBody UpdateLibraryEntryRequest request) {

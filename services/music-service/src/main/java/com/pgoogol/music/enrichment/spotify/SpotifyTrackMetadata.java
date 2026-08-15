@@ -1,7 +1,7 @@
 package com.pgoogol.music.enrichment.spotify;
 
 /**
- * Metadane utworu ze Spotify — grupa METADATA (D11); {@code artist} to
+ * Metadane utworu ze Spotify — grupa METADATA; {@code artist} to
  * wszyscy wykonawcy połączeni przecinkami.
  */
 public record SpotifyTrackMetadata(

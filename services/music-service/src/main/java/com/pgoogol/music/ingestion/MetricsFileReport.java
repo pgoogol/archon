@@ -1,7 +1,7 @@
 package com.pgoogol.music.ingestion;
 
 /**
- * Wynik importu jednego pliku z metrykami w partii (D24). Plik albo wszedł
+ * Wynik importu jednego pliku z metrykami w partii. Plik albo wszedł
  * (z własnym raportem wierszy), albo padł w całości — np. na nagłówku bez
  * kolumny identyfikującej utwór. Pozostałe pliki partii idą niezależnie.
  */

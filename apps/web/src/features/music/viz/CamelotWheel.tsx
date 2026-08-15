@@ -1,9 +1,9 @@
 // Koło Camelot (M5.4) — 24 pozycje tonacji jako tarcza, bo tak DJ ich używa:
-// sąsiedztwo na kole jest zgodnością harmoniczną (D25), a lista alfabetyczna
+// sąsiedztwo na kole jest zgodnością harmoniczną, a lista alfabetyczna
 // tę informację gubi. Pierścień wewnętrzny to strona molowa (A), zewnętrzny
 // durowa (B); nasycenie wycinka = ile utworów siedzi w tej tonacji.
 //
-// Pozycja koła jest liczona z tonacji, nigdy zapisana (D25) — backend podaje
+// Pozycja koła jest liczona z tonacji, nigdy zapisana — backend podaje
 // gotowe koszyki, tu zostaje sama geometria.
 
 import type { BucketResponse } from '@/features/music/api'
@@ -138,7 +138,7 @@ export default function CamelotWheel({ buckets, testId }: Props) {
       </svg>
       <figcaption className="muted chart-caption">
         Pierścień wewnętrzny — moll (A), zewnętrzny — dur (B). Obrys pokazuje tonacje
-        wchodzące zgodnie z {dominant?.label ?? '—'} (D25)
+        wchodzące zgodnie z {dominant?.label ?? '—'}
         {withoutKey > 0 && `; ${withoutKey} utworów nadal bez tonacji`}.
       </figcaption>
     </figure>

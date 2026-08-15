@@ -34,7 +34,7 @@ export default function StarRating({ value, onChange, label = 'ocena' }: Props) 
           aria-checked={star === value}
           aria-label={`${star} z 5`}
           className={star <= value ? 'star on' : 'star'}
-          // ponowne kliknięcie tej samej gwiazdki czyści ocenę (rating 0 = brak, D3)
+          // ponowne kliknięcie tej samej gwiazdki czyści ocenę (rating 0 = brak)
           onClick={() => onChange(star === value ? 0 : star)}
         >
           ★

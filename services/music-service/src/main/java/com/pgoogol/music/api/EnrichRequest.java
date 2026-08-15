@@ -10,7 +10,7 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Zlecenie wzbogacania (D10): zakres + grupy pól; {@code spotifyIds}
+ * Zlecenie wzbogacania: zakres + grupy pól; {@code spotifyIds}
  * wymagane dla SINGLE/SELECTED.
  */
 public record EnrichRequest(

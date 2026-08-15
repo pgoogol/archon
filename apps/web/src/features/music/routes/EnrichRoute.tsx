@@ -1,6 +1,6 @@
-// Widok wzbogacania (M1.8, rozbudowa M3.1, koszty M5.1): pokrycie pól D11
+// Widok wzbogacania (M1.8, rozbudowa M3.1, koszty M5.1): pokrycie pól wzbogacania
 // na paskach, zlecenie joba (zakres + grupy pól) i historia wykonań z restartem.
-// Szacunek liczby utworów i kosztu pokazujemy PRZED startem joba (D28) — po
+// Szacunek liczby utworów i kosztu pokazujemy PRZED startem joba — po
 // starcie jest już za późno, żeby się rozmyślić.
 
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -211,7 +211,7 @@ export default function EnrichRoute() {
             />
             zaznaczone ({selectedIds.size})
           </label>
-          <label title="utwory opisane starszym modelem albo starszą wersją promptu (D28)">
+          <label title="utwory opisane starszym modelem albo starszą wersją promptu">
             <input
               type="radio"
               name="scope"
@@ -264,7 +264,7 @@ export default function EnrichRoute() {
                   — ustaw llm.cost.input-per-1m i llm.cost.output-per-1m
                 </span>
               )}
-              {/* sufit dotyczy wyłącznie utworów idących do modelu (D37) —
+              {/* sufit dotyczy wyłącznie utworów idących do modelu —
                   metadane i audio mogą lecieć w dowolnej liczbie */}
               {!estimate.withinLimit && (
                 <span className="error">

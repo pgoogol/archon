@@ -16,7 +16,7 @@ public record EnrichmentJobStatus(
     String fields,
     long readCount,
     long writeCount,
-    /** Utwory pominięte przez job (D37) — powody w {@code enrichment_failure}. */
+    /** Utwory pominięte przez job — powody w {@code enrichment_failure}. */
     long failedCount,
     LocalDateTime startTime,
     LocalDateTime endTime,

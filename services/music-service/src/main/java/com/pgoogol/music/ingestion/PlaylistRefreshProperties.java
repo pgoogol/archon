@@ -6,7 +6,7 @@ import java.time.Duration;
 import java.util.Objects;
 
 /**
- * Automatyczne odświeżanie playlist ze Spotify (M4.7, D35).
+ * Automatyczne odświeżanie playlist ze Spotify (M4.7).
  *
  * <p>{@code interval} i {@code initialDelay} muszą być powtórzone jako
  * placeholdery w adnotacji {@code @Scheduled} — czyta ona środowisko, nie ten

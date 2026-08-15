@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import java.util.Objects;
 
 /**
- * Zapisuje utwory pominięte przez job wzbogacania (D37). Job przechodzi przez
+ * Zapisuje utwory pominięte przez job wzbogacania. Job przechodzi przez
  * całą listę i pomija to, co padło, zamiast wywracać się na pierwszym błędzie —
  * przy 2500 utworach jedna felerna odpowiedź zewnętrznego API kasowała wcześniej
  * efekt całego przebiegu.

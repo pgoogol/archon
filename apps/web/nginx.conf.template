@@ -1,10 +1,10 @@
-# Serwer statyków frontu + proxy API (M5.3/D30).
+# Serwer statyków frontu + proxy API (M5.3).
 #
 # Szablon obrazu nginx: entrypoint podstawia ${API_HOST} i ${API_PORT} ze
 # zmiennych środowiskowych. Zmienne samego nginxa ($host, $uri, …) zapisujemy
 # bez klamer, więc podstawianie ich nie rusza.
 #
-# Bez fallbacku SPA: stan widoku siedzi w hashu (`#/library?…`, D22), więc
+# Bez fallbacku SPA: stan widoku siedzi w hashu (`#/library?…`), więc
 # przeglądarka nigdy nie prosi serwera o /library — wystarczy index.html pod /.
 # Rezygnacja z routera z M3.1 opłaca się tu drugi raz.
 

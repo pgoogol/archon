@@ -11,7 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Provider, model i wersja promptu wyłącznie w konfiguracji (D15) —
+ * Provider, model i wersja promptu wyłącznie w konfiguracji —
  * nigdy w kodzie. {@code provider}: {@code openai} (i wszystkie API zgodne
  * z OpenAI: OpenRouter, Groq, Mistral, lokalne) lub {@code anthropic}.
  */
@@ -37,7 +37,7 @@ public record LlmProperties(
 
     /**
      * Stawki providera (USD za 1M tokenów) — potrzebne, żeby pokazać koszt
-     * zlecenia przed jego startem (D28). Puste = nie znamy cennika i mówimy
+     * zlecenia przed jego startem. Puste = nie znamy cennika i mówimy
      * to wprost zamiast zgadywać.
      */
     public record Cost(BigDecimal inputPer1m, BigDecimal outputPer1m) {
@@ -50,9 +50,9 @@ public record LlmProperties(
     }
 
     /**
-     * Wersja promptu jako liczba do {@code track_catalog.enrich_version} (D3).
+     * Wersja promptu jako liczba do {@code track_catalog.enrich_version}.
      * Trzyma się tu, a nie w {@code TrackEnricher}, bo tej samej wartości używa
-     * zakres {@code OUTDATED} przy szukaniu utworów do przeliczenia (D28).
+     * zakres {@code OUTDATED} przy szukaniu utworów do przeliczenia.
      */
     public Optional<Integer> promptVersionNumber() {
 

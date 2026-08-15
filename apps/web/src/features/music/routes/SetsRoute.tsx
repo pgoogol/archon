@@ -1,8 +1,8 @@
 // Planer setów (M2.3, rozbudowa M3.1): lista setów obok składu wieczoru,
-// statystyki i ostrzeżenia, układanie wg slotów D9 oraz kolejność zmieniana
+// statystyki i ostrzeżenia, układanie wg slotów wieczoru oraz kolejność zmieniana
 // przeciąganiem albo strzałkami (drag&drop nie działa z klawiatury).
 // M4.4: domykanie gotowego setu — dobieranie utworu w lukę i uzupełnianie
-// wieczoru do zadanego czasu (D32).
+// wieczoru do zadanego czasu.
 
 import { useCallback, useEffect, useState } from 'react'
 import {
@@ -31,7 +31,7 @@ import { useMusicWorkspace } from '@/features/music/state/MusicWorkspace'
 
 /** Komunikat po ułożeniu — treść dla trybu faz zostaje z M3.1 (E2E na niej stoi). */
 const ARRANGE_MESSAGES: Record<ArrangeMode, string> = {
-  PHASES: 'Ułożono set wg faz wieczoru (D9)',
+  PHASES: 'Ułożono set wg faz wieczoru',
   TEMPO: 'Ułożono set wg narastającego tempa',
   HARMONY: 'Ułożono set wg zgodności tonacji',
   ENERGY: 'Ułożono set wg narastającej energii',
@@ -90,7 +90,7 @@ export default function SetsRoute() {
       refreshList()
       if (message) notify(message)
     } catch (error) {
-      // konflikt (D29) — set zmienił się w innym miejscu; pokazujemy aktualny stan,
+      // konflikt — set zmienił się w innym miejscu; pokazujemy aktualny stan,
       // bo dalsze przeciąganie po nieaktualnym składzie tylko mnożyłoby konflikty
       if (error instanceof ApiError && error.errorCode === 'RESOURCE_MODIFIED' && openId !== null) {
         setPlaylist(await api.getPlaylist(openId).catch(() => null))
@@ -194,7 +194,7 @@ export default function SetsRoute() {
   }
 
   /**
-   * Zapis idzie istniejącą drogą (D32): API dokłada utwór na koniec, więc
+   * Zapis idzie istniejącą drogą: API dokłada utwór na koniec, więc
    * wstawienie w środek to dopisanie i zaraz po nim zmiana kolejności.
    */
   const insertSuggestion = async (spotifyId: string, position: number) => {

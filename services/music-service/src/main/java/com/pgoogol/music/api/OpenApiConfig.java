@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Swagger UI: /swagger-ui.html (D13); definicja: /v3/api-docs.
+ * Swagger UI: /swagger-ui.html; definicja: /v3/api-docs.
  */
 @Configuration
 public class OpenApiConfig {

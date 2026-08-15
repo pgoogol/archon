@@ -3,7 +3,7 @@
 // w tabeli, a wartości w JSX-ie pod nią — dołożenie kolumny znaczyło trafić
 // w dwa miejsca naraz i nie pomylić kolejności.
 //
-// Tabela opisuje wyłącznie utwór (D39): tożsamość, to, czym się go miksuje
+// Tabela opisuje wyłącznie utwór: tożsamość, to, czym się go miksuje
 // (BPM, tonacja, energia, gatunek), a pod wybierakiem reszta danych katalogu.
 // Dane prywatne DJ-a (ocena, tagi, data dodania) i pochodzenie BPM mieszkają
 // w szufladzie utworu, gdzie da się je od razu zmienić, zamiast zajmować
@@ -29,7 +29,7 @@ export interface LibraryColumn {
   cell: (row: CatalogRowResponse, context: CellContext) => ReactNode
 }
 
-/** Tytuł otwiera szufladę utworu i niesie znacznik braków (D5). */
+/** Tytuł otwiera szufladę utworu i niesie znacznik braków. */
 function titleCell(row: CatalogRowResponse, { onOpenDetails }: CellContext): ReactNode {
 
   const { spotifyId, title } = row.track
@@ -47,7 +47,7 @@ function titleCell(row: CatalogRowResponse, { onOpenDetails }: CellContext): Rea
   )
 }
 
-/** Tonacja jako pozycja koła (D25); pełny zapis w dymku, bo koło jest krótsze. */
+/** Tonacja jako pozycja koła; pełny zapis w dymku, bo koło jest krótsze. */
 function keyCell(row: CatalogRowResponse): ReactNode {
 
   const { camelot, musicalKey } = row.track

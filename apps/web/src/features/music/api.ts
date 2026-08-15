@@ -101,24 +101,24 @@ export type {
 /** Dane prywatne DJ-a pokazywane w wierszu biblioteki (M5.6) — reszta w szufladzie. */
 /**
  * Wiersz wyszukiwarki (M5.6): katalog i dane DJ-a jako dwa obiekty, bo rozdział
- * z D3 obowiązuje też w kontrakcie. `library === null` znaczy „utwór jest
+ * danych obowiązuje też w kontrakcie. `library === null` znaczy „utwór jest
  * w katalogu, ale nie w bibliotece" — co innego niż „w bibliotece bez oceny".
  */
-/** Metryki wgrane ręcznie z CSV (D24) — surowe wartości z pliku, skala 0..1. */
+/** Metryki wgrane ręcznie z CSV — surowe wartości z pliku, skala 0..1. */
 /** Raport jednego pliku partii; `error` niepuste = plik odpadł w całości. */
 /** Liczby na wierzchu są sumą partii; numery wierszy mają sens tylko przy pliku. */
 /** Tryb C: playlista, która padła, nie przerywa importu — wraca w `failed`. */
-/** Utwór pominięty przez job wzbogacania razem z powodem (D37). */
-/** Stan automatycznego odświeżania playlist w tle (M4.7/D35). */
+/** Utwór pominięty przez job wzbogacania razem z powodem. */
+/** Stan automatycznego odświeżania playlist w tle (M4.7). */
 /** Jeden słupek rozkładu w przeglądzie biblioteki (M4.3). */
 /** Komórka macierzy tempo × energia — dwa wymiary naraz (M5.4). */
-/** Średnia cecha audio z metryk ręcznych (D24), skala 0..1. */
+/** Średnia cecha audio z metryk ręcznych, skala 0..1. */
 /**
- * Skala zbioru — same utwory (D36); playlisty i sety mają własne zakładki.
+ * Skala zbioru — same utwory; playlisty i sety mają własne zakładki.
  * Średnie = null dla pustego katalogu, nie zero.
  */
-/** Pięć grup = pięć stref czytania ekranu przeglądu (M5.4/D36). */
-/** Profil kształtu wieczoru dla generatora (M4.5/D33) — udziały faz D9. */
+/** Pięć grup = pięć stref czytania ekranu przeglądu (M5.4). */
+/** Profil kształtu wieczoru dla generatora (M4.5) — udziały faz wieczoru. */
 
 export const SET_CURVES: readonly SetCurve[] = ['STANDARD', 'WEDDING', 'CLUB', 'EVEN']
 
@@ -144,11 +144,11 @@ export interface SetPoolFilters {
   camelotCompatible?: boolean
 }
 
-/** Propozycja setu (M4.2/D26) — generator niczego nie zapisuje. */
-/** Uzupełnienie gotowego setu (M4.4/D32) — `targetMinutes` liczy CAŁY wieczór. */
-/** Dobranie utworu na jedno miejsce w secie (M4.4/D32); brak `position` = na koniec. */
+/** Propozycja setu (M4.2) — generator niczego nie zapisuje. */
+/** Uzupełnienie gotowego setu (M4.4) — `targetMinutes` liczy CAŁY wieczór. */
+/** Dobranie utworu na jedno miejsce w secie (M4.4); brak `position` = na koniec. */
 /** Pokrycie katalogu metrykami z pliku — kontekst filtrów metryk (M4.1). */
-/** Szacunek zlecenia wzbogacania (M5.1/D28) — nic nie uruchamia. */
+/** Szacunek zlecenia wzbogacania (M5.1) — nic nie uruchamia. */
 /** Biała lista sortowania po stronie API (M3.1, dane DJ-a w M5.6; enum CatalogSort). */
 export const CATALOG_SORTS = [
   'RELEVANCE',
@@ -167,11 +167,11 @@ export const CATALOG_SORTS = [
 
 
 
-/** Grupy braków (D11) w wersji filtra biblioteki — ANY = „do wzbogacenia" (M5.6). */
+/** Grupy braków w wersji filtra biblioteki — ANY = „do wzbogacenia" (M5.6). */
 export const MISSING_GROUPS = ['ANY', 'METADATA', 'AUDIO', 'AI'] as const
 
 
-/** Źródła BPM z kaskady D6/D24 — kryterium D19: pomiar czy estymata. */
+/** Źródła BPM z kaskady — kryterium: pomiar czy estymata. */
 export const BPM_SOURCES = ['MANUAL', 'ACOUSTICBRAINZ', 'DEEZER', 'LLM'] as const
 
 export interface SearchParams {
@@ -193,10 +193,10 @@ export interface SearchParams {
   inLibrary?: boolean
   ratingMin?: number
   tag?: string
-  /** Filtr harmoniczny (M4.1/D25): pozycja koła + czy rozszerzyć do zgodnych. */
+  /** Filtr harmoniczny (M4.1): pozycja koła + czy rozszerzyć do zgodnych. */
   camelot?: string
   camelotCompatible?: boolean
-  /** Filtry metryk (D24) — odsiewają utwory bez metryk, stąd licznik pokrycia. */
+  /** Filtry metryk — odsiewają utwory bez metryk, stąd licznik pokrycia. */
   valenceMin?: number
   valenceMax?: number
   instrumentalMin?: number
@@ -350,7 +350,7 @@ export const api = {
     return request(`/api/enrich/jobs/${executionId}`)
   },
 
-  /** Co dokładnie odpadło w danym przebiegu i dlaczego (D37). */
+  /** Co dokładnie odpadło w danym przebiegu i dlaczego. */
   jobFailures(executionId: number, limit = 200): Promise<EnrichFailureResponse[]> {
     return request(`/api/enrich/jobs/${executionId}/failures?limit=${limit}`)
   },

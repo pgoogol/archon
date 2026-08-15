@@ -24,7 +24,7 @@ public class Playlist {
     private Long id;
 
     /**
-     * Blokada optymistyczna na agregacie (D29): zmiana składu albo kolejności
+     * Blokada optymistyczna na agregacie: zmiana składu albo kolejności
      * setu podbija tę wersję, choć zmieniają się wiersze {@code playlist_track}.
      */
     @Version

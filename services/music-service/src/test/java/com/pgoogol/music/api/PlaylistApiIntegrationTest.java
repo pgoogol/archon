@@ -34,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Pełny stos HTTP dla /api/playlists (DoD M2.3): CRUD, skład setu, kolejność
- * i slot wieczoru (D9) razem z override'em DJ-a.
+ * i slot wieczoru razem z override'em DJ-a.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -107,7 +107,7 @@ class PlaylistApiIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.tracks.length()").value(2));
 
-        // then — slot wyliczony z bpm/energy/genre_family (D9)
+        // then — slot wyliczony z bpm/energy/genre_family
         mockMvc.perform(get("/api/playlists/" + playlistId))
             .andExpect(jsonPath("$.tracks[0].position").value(0))
             .andExpect(jsonPath("$.tracks[0].track.spotifyId").value("sp-warmup"))
@@ -293,7 +293,7 @@ class PlaylistApiIntegrationTest {
         return created.get("id").asLong();
     }
 
-    /** Wersja agregatu (D29) rośnie z każdą zmianą składu — czytamy ją, nie zgadujemy. */
+    /** Wersja agregatu rośnie z każdą zmianą składu — czytamy ją, nie zgadujemy. */
     private int currentVersion(long playlistId) throws Exception {
 
         String body = mockMvc.perform(get("/api/playlists/" + playlistId))

@@ -14,8 +14,8 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Rozkłady przeglądu biblioteki (M4.3, rozszerzone w M5.4) liczone w bazie
- * (D27). Dwanaście wymiarów schodzi jednym zapytaniem z {@code union all}
+ * Rozkłady przeglądu biblioteki (M4.3, rozszerzone w M5.4) liczone w bazie.
+ * Dwanaście wymiarów schodzi jednym zapytaniem z {@code union all}
  * i etykietą wymiaru — dwanaście osobnych {@code group by} czytałoby te same
  * tabele dwanaście razy.
  *
@@ -32,7 +32,7 @@ public class LibraryDistributionsRepository {
     /**
      * Rozkłady w jednym przebiegu. Wymiar {@code key} wraca surową tonacją
      * z katalogu — na koło Camelot przelicza ją {@link CamelotKey} w Javie
-     * (D25 zabrania kolumny z pozycją koła), a zapisy enharmoniczne
+     * (kolumna z pozycją koła jest zabroniona), a zapisy enharmoniczne
      * („Eb minor" i „D# minor") schodzą się dopiero po tym przeliczeniu.
      */
     private static final String DISTRIBUTIONS = """

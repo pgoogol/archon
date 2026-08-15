@@ -4,7 +4,7 @@
 // filtrów. Rozjazd między tymi trzema listami był głównym kosztem dokładania
 // kolejnego filtra.
 //
-// Lista jest krótsza niż w M5.6 (D39): parametry, których ekran już nie stawia
+// Lista jest krótsza niż w M5.6: parametry, których ekran już nie stawia
 // (`lib`, `tag`, `yearMin/yearMax`, `popMin`, `explicit`, metryki z pliku,
 // `bpmSrc`, `missing`), nie są też czytane — stary link nie może filtrować
 // czymś, czego nie da się na ekranie zobaczyć ani zdjąć.

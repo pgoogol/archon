@@ -1,5 +1,5 @@
 // Wykres słupkowy rysowany inline w SVG (M4.3) — jak krzywa tempa z M3.1,
-// bez biblioteki wykresów i bez zasobów z sieci (D23). Używany tam, gdzie oś
+// bez biblioteki wykresów i bez zasobów z sieci. Używany tam, gdzie oś
 // jest uporządkowana i niesie znaczenie: przyrost biblioteki po miesiącach.
 // Klasę sekcji dzieli od M5.4 z resztą wykresów pulpitu (`viz`).
 

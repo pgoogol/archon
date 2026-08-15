@@ -11,7 +11,7 @@ import java.util.Base64;
 /**
  * Wyzwanie PKCE (RFC 7636) dla logowania właściciela: losowy {@code code_verifier}
  * i jego skrót {@code S256} jako {@code code_challenge}. Dzięki PKCE wymiana kodu
- * na token nie wymaga client_secret po stronie przeglądarki (D4).
+ * na token nie wymaga client_secret po stronie przeglądarki.
  */
 @Component
 public class SpotifyPkce {

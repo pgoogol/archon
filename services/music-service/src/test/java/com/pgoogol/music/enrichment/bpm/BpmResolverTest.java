@@ -47,7 +47,7 @@ class BpmResolverTest {
     @Test
     void resolve_whenManualMetricsPresent_winOverRemainingSources() {
 
-        // given — plik wgrany ręcznie (D24) jest pierwszy w kaskadzie
+        // given — plik wgrany ręcznie jest pierwszy w kaskadzie
         TrackCatalog track = TrackCatalogFixtures.enrichedTrack("sp-9");
         track.setGenreFamily(GenreFamily.POP);
         ManualMetrics metrics = new ManualMetrics(track);
@@ -163,7 +163,7 @@ class BpmResolverTest {
     @Test
     void resolve_whenLatinHalfTimeBpmFromDeezer_alsoDoublesBpm() {
 
-        // given — korekta half-time dotyczy każdego źródła (D6)
+        // given — korekta half-time dotyczy każdego źródła
         TrackCatalog track = TrackCatalogFixtures.enrichedTrack("sp-1");
         given(audioFeaturesRepository.findByTrackSpotifyId("sp-1")).willReturn(Optional.empty());
         given(deezerClient.findBpmByIsrc(track.getIsrc())).willReturn(Optional.of(new BigDecimal("95")));

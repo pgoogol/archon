@@ -1,8 +1,8 @@
 // Wnioski z przeglądu biblioteki (M5.4) — czysta logika ekranu, bez JSX.
 //
-// Backend podaje surowe rozkłady (D27), a nie zdania po polsku. To, co da się
+// Backend podaje surowe rozkłady, a nie zdania po polsku. To, co da się
 // policzyć z tego, co już przyszło — narastający przyrost, udział faktów, gęsty
-// przedział tempa, tonacje zgodne harmonicznie (D25) — liczy się tutaj, żeby
+// przedział tempa, tonacje zgodne harmonicznie — liczy się tutaj, żeby
 // dało się to sprawdzić testem bez renderowania całego pulpitu.
 
 import type {
@@ -11,7 +11,7 @@ import type {
   MatrixCellResponse,
 } from '@/features/music/api'
 
-/** Źródła BPM, które są pomiarem, a nie zgadywanką modelu (kaskada D6/D24). */
+/** Źródła BPM, które są pomiarem, a nie zgadywanką modelu (kaskada BPM). */
 export const MEASURED_BPM_SOURCES = ['MANUAL', 'ACOUSTICBRAINZ', 'DEEZER'] as const
 
 export const NO_KEY = 'BEZ TONACJI'
@@ -83,7 +83,7 @@ export function cumulativeGrowth(
   return reversed.reverse()
 }
 
-/** Kompletność danych per grupa pól (D11) plus pokrycie metrykami z pliku (D24). */
+/** Kompletność danych per grupa pól plus pokrycie metrykami z pliku. */
 export function coverageParts(overview: LibraryOverviewResponse): CoveragePart[] {
 
   const total = overview.scale.catalogTracks
@@ -104,8 +104,7 @@ export function readinessScore(overview: LibraryOverviewResponse): number {
 }
 
 /**
- * Ile tempa stoi na pomiarze, a ile na estymacie LLM — wskaźnik, który D19
- * uczynił kryterium decyzji o `AudioAnalyzer`.
+ * Ile tempa stoi na pomiarze, a ile na estymacie LLM — wskaźnik będący kryterium decyzji o `AudioAnalyzer`.
  */
 export function bpmFacts(bpmSources: readonly BucketResponse[]) {
 
@@ -119,7 +118,7 @@ export function bpmFacts(bpmSources: readonly BucketResponse[]) {
   return { measured, estimated, known, ratio: share(measured, known) }
 }
 
-/** Zgodne pozycje koła (D25): ta sama, sąsiedzi ±1 i tonacja równoległa. */
+/** Zgodne pozycje koła: ta sama, sąsiedzi ±1 i tonacja równoległa. */
 export function compatibleCamelot(label: string): string[] {
 
   const match = /^(\d{1,2})([AB])$/.exec(label)
@@ -179,7 +178,7 @@ export function insights(overview: LibraryOverviewResponse): Insight[] {
       id: 'facts',
       label: 'tempo z pomiaru',
       value: percentLabel(facts.measured, facts.known),
-      hint: `${facts.estimated} utworów ma BPM wyłącznie z estymaty modelu (D19)`,
+      hint: `${facts.estimated} utworów ma BPM wyłącznie z estymaty modelu`,
     })
   }
 

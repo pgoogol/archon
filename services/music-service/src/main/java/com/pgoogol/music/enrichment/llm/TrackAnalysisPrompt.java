@@ -9,7 +9,7 @@ import java.util.Objects;
 
 /**
  * Prompt „ekspert muzyczny i DJ" ładowany z zasobu wersjonowanego przez
- * konfigurację ({@code llm.prompt-version}, D15) — treść promptu nigdy w kodzie.
+ * konfigurację ({@code llm.prompt-version}) — treść promptu nigdy w kodzie.
  * Format pliku: prompt systemowy, separator {@code ---USER---}, szablon
  * użytkownika z placeholderem {@code {{TRACKS}}}.
  */

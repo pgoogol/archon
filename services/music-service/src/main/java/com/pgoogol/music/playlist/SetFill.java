@@ -1,8 +1,8 @@
 package com.pgoogol.music.playlist;
 
 /**
- * Dalszy ciąg gotowego setu (M4.4, D32): stan sprzed uzupełnienia plus
- * propozycja tego, co dochodzi na koniec. Jak generator (D26) — <b>nic nie
+ * Dalszy ciąg gotowego setu (M4.4): stan sprzed uzupełnienia plus
+ * propozycja tego, co dochodzi na koniec. Jak generator — <b>nic nie
  * zapisuje</b>; skład zmienia dopiero DJ przez {@code /api/playlists}.
  *
  * @param currentTrackCount ile utworów set ma teraz — pozycje w propozycji

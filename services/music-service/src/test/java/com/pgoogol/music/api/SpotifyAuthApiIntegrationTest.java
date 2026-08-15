@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(properties = {
     "clients.spotify.client-id=test-client-id",
     "clients.spotify.auth-url=https://accounts.spotify.com",
-    // konto zostaje połączone w trakcie testu, więc odświeżanie w tle (D35) musi milczeć
+    // konto zostaje połączone w trakcie testu, więc odświeżanie w tle musi milczeć
     "ingestion.playlist-refresh.enabled=false"
 })
 @AutoConfigureMockMvc

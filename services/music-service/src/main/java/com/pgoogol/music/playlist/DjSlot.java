@@ -6,7 +6,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Miejsce utworu w przebiegu wieczoru (D9): rozgrzewka → środek → szczyt →
+ * Miejsce utworu w przebiegu wieczoru: rozgrzewka → środek → szczyt →
  * zamknięcie, plus przerwa („na oddech"). Slot nie jest zapisywany w katalogu —
  * wylicza go {@link DjSlotCalculator}, a DJ może go nadpisać
  * w {@code library_entry.dj_slot_override}.

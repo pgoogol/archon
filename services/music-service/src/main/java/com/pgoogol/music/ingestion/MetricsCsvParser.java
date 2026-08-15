@@ -19,7 +19,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Parser CSV z metrykami wgrywanymi ręcznie (D24). Nagłówki rozpoznawane
+ * Parser CSV z metrykami wgrywanymi ręcznie. Nagłówki rozpoznawane
  * elastycznie — plik ma zwykle więcej kolumn, niż potrzebujemy (metadane utworu
  * bierzemy ze Spotify, gatunki z LLM-a), więc czytamy tylko cechy audio
  * i identyfikator utworu. Wiersz bez identyfikatora albo bez ani jednej metryki

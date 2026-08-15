@@ -17,7 +17,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
- * Wspólne otwieranie plików CSV importu — biblioteki (M1.2) i metryk (D24).
+ * Wspólne otwieranie plików CSV importu — biblioteki (M1.2) i metryk.
  *
  * <p>Format jest celowo wyrozumiały. Eksporty z analizatorów playlist potrafią
  * nie escapować cudzysłowu w środku pola (np. wytwórnia

@@ -1,4 +1,4 @@
-// Stan automatycznego odświeżania playlist (M4.7/D35). Robotę robi backend,
+// Stan automatycznego odświeżania playlist (M4.7). Robotę robi backend,
 // front tylko pyta, kiedy poszedł ostatni przebieg — bez tego otwarta karta
 // pokazywałaby dane sprzed odświeżenia, dopóki DJ sam by jej nie przeładował.
 

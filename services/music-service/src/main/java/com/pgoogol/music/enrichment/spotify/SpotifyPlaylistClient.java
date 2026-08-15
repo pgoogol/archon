@@ -49,7 +49,7 @@ public class SpotifyPlaylistClient {
     /**
      * Playlisty widoczne dla właściciela (tryb C) — także obserwowane cudze,
      * dlatego filtr po właścicielu należy do ingestion. Wymaga połączonego
-     * konta (D4): prywatne playlisty nie są widoczne na tokenie aplikacyjnym.
+     * konta: prywatne playlisty nie są widoczne na tokenie aplikacyjnym.
      */
     public List<SpotifyPlaylist> getMyPlaylists() {
 

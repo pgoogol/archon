@@ -11,7 +11,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Cykliczne odświeżanie własnych playlist ze Spotify (M4.7, D35): to samo, co
+ * Cykliczne odświeżanie własnych playlist ze Spotify (M4.7): to samo, co
  * przycisk „Importuj moje playlisty" (tryb C, M2.2), tylko bez klikania —
  * przy starcie aplikacji i potem co {@code ingestion.playlist-refresh.interval}.
  *
@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * przy {@code fixedRate} kolejne przebiegi wchodziłyby sobie na głowę
  * i mnożyły wywołania Spotify.</p>
  *
- * <p><b>Brak połączonego konta to normalny stan</b>, nie awaria (D20): świeża
+ * <p><b>Brak połączonego konta to normalny stan</b>, nie awaria: świeża
  * instalacja nie ma jeszcze przeprowadzonego OAuth, a aplikacja nie może z tego
  * powodu zasypywać logów błędami co pięć minut.</p>
  */

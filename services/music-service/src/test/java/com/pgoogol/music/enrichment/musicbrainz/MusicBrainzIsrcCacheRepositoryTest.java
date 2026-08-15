@@ -41,7 +41,7 @@ class MusicBrainzIsrcCacheRepositoryTest {
     @Test
     void findById_whenMissCached_returnsEntryWithNullMbid() {
 
-        // given — negative cache (D18): brak wyniku też jest zapamiętywany
+        // given — negative cache: brak wyniku też jest zapamiętywany
         repository.saveAndFlush(new MusicBrainzIsrcCache("PLXXX0000000", null));
 
         // when

@@ -32,7 +32,7 @@ public class CatalogApiMapper {
             metrics.getImportedAt());
     }
 
-    /** Wiersz ekranu Biblioteka — katalog plus dane DJ-a, o ile utwór jest u niego (D3). */
+    /** Wiersz ekranu Biblioteka — katalog plus dane DJ-a, o ile utwór jest u niego. */
     public CatalogRowResponse toResponse(LibraryRow row) {
 
         return new CatalogRowResponse(

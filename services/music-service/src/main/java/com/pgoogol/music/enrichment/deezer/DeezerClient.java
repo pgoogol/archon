@@ -17,7 +17,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
- * Deezer jako fallback BPM w kaskadzie D6: lookup po ISRC
+ * Deezer jako fallback BPM w kaskadzie BPM: lookup po ISRC
  * ({@code /track/isrc:…}), a gdy brak — wyszukiwanie artist+title i dociągnięcie
  * pełnego utworu (wyniki wyszukiwania nie zawierają bpm). {@code bpm = 0}
  * oznacza brak danych, nie wartość. Bez auth; braki sygnalizowane w JSON-ie

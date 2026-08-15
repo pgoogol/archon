@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.stream.IntStream;
 
 /**
- * Dobiera utwór na wskazane miejsce w gotowym secie (M4.4, D32) — „co zagrać
+ * Dobiera utwór na wskazane miejsce w gotowym secie (M4.4) — „co zagrać
  * po tym, co już mam".
  *
  * <p>W odróżnieniu od generatora <b>nie losuje</b>: DJ dostaje listę

@@ -52,7 +52,7 @@ export function spotifyTrackUrl(spotifyId: string): string {
   return `https://open.spotify.com/track/${encodeURIComponent(spotifyId)}`
 }
 
-/** Utwór bez kompletu pól D5 — front oznacza go jako „do wzbogacenia". */
+/** Utwór bez kompletu pól — front oznacza go jako „do wzbogacenia". */
 export function isEnriched(track: { genreFamily: string | null; bpm: number | null }): boolean {
   return track.genreFamily !== null && track.bpm !== null
 }

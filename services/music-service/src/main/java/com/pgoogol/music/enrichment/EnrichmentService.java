@@ -27,7 +27,7 @@ import java.util.Set;
  * status/postęp, restart nieudanego wykonania (dokańcza od checkpointu —
  * te same parametry → ta sama instancja joba) i missing-count per grupa pól.
  *
- * <p>Od M5.1 (D28) dochodzi zakres {@link EnrichmentScope#OUTDATED} (przeliczenie
+ * <p>Od M5.1 dochodzi zakres {@link EnrichmentScope#OUTDATED} (przeliczenie
  * estymat po zmianie modelu albo promptu), szacunek kosztu przed startem oraz
  * twardy sufit {@code llm.max-tracks-per-job} — {@code SELECTED} miał limit od
  * M1.6, a {@code MISSING} nie miał żadnego.</p>
@@ -97,7 +97,7 @@ public class EnrichmentService {
 
     /**
      * Ile utworów obejmie zlecenie i ile to będzie kosztowało — bez uruchamiania
-     * czegokolwiek. UI pyta o to <b>przed</b> startem joba (D28).
+     * czegokolwiek. UI pyta o to <b>przed</b> startem joba.
      */
     public EnrichmentEstimate estimate(EnrichmentScope scope, Set<FieldGroup> fields,
                                        List<String> spotifyIds) {
@@ -115,9 +115,9 @@ public class EnrichmentService {
         };
         long aiTracks = fields.contains(FieldGroup.AI) ? trackCount : 0;
         int limit = llmProperties.maxTracksPerJob();
-        // sufit liczy się po utworach idących do LLM-a, nie po wielkości przebiegu
-        // (D37): metadane i audio jadą z darmowych źródeł (D6), więc blokowanie ich
-        // limitem kosztowym z D28 chroniło budżet, którego one nie ruszają
+        // sufit liczy się po utworach idących do LLM-a, nie po wielkości przebiegu:
+        // metadane i audio jadą z darmowych źródeł, więc blokowanie ich
+        // limitem kosztowym chroniło budżet, którego one nie ruszają
         return new EnrichmentEstimate(
             trackCount,
             aiTracks,
@@ -153,7 +153,7 @@ public class EnrichmentService {
     }
 
     /**
-     * Utwory, które wypadły z danego przebiegu, razem z powodem (D37) — job
+     * Utwory, które wypadły z danego przebiegu, razem z powodem — job
      * przechodzi przez całą listę i pomija to, co padło, więc bez tej listy
      * zostaje sam licznik pominięć.
      */
@@ -235,7 +235,7 @@ public class EnrichmentService {
                         "Zakres SELECTED wymaga listy spotify_id");
                 }
                 if (spotifyIds.size() > MAX_SELECTED_TRACKS) {
-                    // to nie jest limit kosztowy (D28), tylko szerokość kolumny
+                    // to nie jest limit kosztowy, tylko szerokość kolumny
                     // BATCH_JOB_EXECUTION_PARAMS.PARAMETER_VALUE: lista id-ków jedzie
                     // w parametrze joba, żeby restart dokończył dokładnie ten zakres
                     throw new ValidationException("ENRICH_TOO_MANY_TRACKS",
@@ -249,7 +249,7 @@ public class EnrichmentService {
             case OUTDATED -> {
                 requireNoIds(scope, spotifyIds);
                 // fakty nie zależą od modelu ani promptu, więc ich przeliczanie
-                // byłoby wywołaniem cudzego API bez powodu (D28)
+                // byłoby wywołaniem cudzego API bez powodu
                 if (!EnumSet.copyOf(fields).equals(EnumSet.of(FieldGroup.AI))) {
                     throw new ValidationException("ENRICH_OUTDATED_AI_ONLY",
                         "Zakres OUTDATED przelicza wyłącznie estymaty — wybierz samą grupę AI");

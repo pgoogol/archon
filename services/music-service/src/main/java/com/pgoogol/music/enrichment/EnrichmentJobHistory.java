@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Historia wykonań joba wzbogacania jednym zapytaniem (M5.1/D28).
+ * Historia wykonań joba wzbogacania jednym zapytaniem (M5.1).
  *
  * <p>{@code JobExplorer} nie umie „ostatnie N wykonań dowolnej instancji", więc
  * {@link EnrichmentService} odpytywał wykonania osobno dla każdej instancji

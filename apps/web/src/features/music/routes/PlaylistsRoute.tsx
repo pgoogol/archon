@@ -49,7 +49,7 @@ export default function PlaylistsRoute() {
   const [playlists, setPlaylists] = useState<PlaylistSummaryResponse[]>([])
   const [playlist, setPlaylist] = useState<PlaylistResponse | null>(null)
   const [listFilter, setListFilter] = useState('')
-  // backend odświeża playlisty w tle (D35); po każdym przebiegu przeładowujemy listę
+  // backend odświeża playlisty w tle; po każdym przebiegu przeładowujemy listę
   const { status: refreshStatus, completedRuns } = usePlaylistRefresh()
   const [trackFilter, setTrackFilter] = useState('')
 

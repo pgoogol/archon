@@ -10,7 +10,7 @@ import java.time.Instant;
 import java.util.Objects;
 
 /**
- * Trwały cache lookupów ISRC→MBID (D18); {@code mbid = null} to potwierdzony
+ * Trwały cache lookupów ISRC→MBID; {@code mbid = null} to potwierdzony
  * brak wyniku — MusicBrainz nie jest odpytywany ponownie.
  */
 @Entity

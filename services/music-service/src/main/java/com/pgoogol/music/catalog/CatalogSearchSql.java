@@ -16,7 +16,7 @@ final class CatalogSearchSql {
 
     }
 
-    /** Warunki „braku danych" (D11/D17) w wariancie SQL — z aliasem wyszukiwarki. */
+    /** Warunki „braku danych" w wariancie SQL — z aliasem wyszukiwarki. */
     private static final String METADATA_MISSING =
         "t.isrc is null or t.year is null or t.duration_ms is null";
     private static final String AUDIO_MISSING =
@@ -60,7 +60,7 @@ final class CatalogSearchSql {
         """;
 
     /**
-     * Filtry brzmienia. Filtr harmoniczny (D25) przychodzi jako lista dopuszczalnych
+     * Filtry brzmienia. Filtr harmoniczny przychodzi jako lista dopuszczalnych
      * zapisów tonacji sklejona znakiem {@code |} — zbiór liczy aplikacja z koła
      * Camelot, więc zapytanie zostaje przy jednym porównaniu i nie potrzebuje
      * kolejnego złączenia.
@@ -74,7 +74,7 @@ final class CatalogSearchSql {
                or upper(t.musical_key) = any(string_to_array(cast(:musicalKeys as text), '|')))
         """;
 
-    /** Filtry po danych prywatnych DJ-a (D3) — wyszukiwarka nadal chodzi po katalogu. */
+    /** Filtry po danych prywatnych DJ-a — wyszukiwarka nadal chodzi po katalogu. */
     private static final String LIBRARY_CLAUSE = """
           and (cast(:inLibrary as boolean) is null
                or (cast(:inLibrary as boolean) = true and l.id is not null)
@@ -84,7 +84,7 @@ final class CatalogSearchSql {
         """;
 
     /**
-     * Filtry metryk z pliku (D24) celowo odsiewają utwory bez metryk — NULL nie
+     * Filtry metryk z pliku celowo odsiewają utwory bez metryk — NULL nie
      * spełnia nierówności. UI musi to mówić wprost licznikiem pokrycia, inaczej
      * pusty wynik wygląda jak awaria.
      */
@@ -97,7 +97,7 @@ final class CatalogSearchSql {
         """;
 
     /**
-     * Filtry jakości danych (M5.6): skąd wzięło się tempo (kryterium D19) i czego
+     * Filtry jakości danych (M5.6): skąd wzięło się tempo (kryterium jakości tempa) i czego
      * utworowi brakuje. {@code ANY} to „cokolwiek z trzech grup" — to samo pytanie,
      * które zadaje zakładka Wzbogacanie, tyle że zadane z poziomu biblioteki.
      */
@@ -116,7 +116,7 @@ final class CatalogSearchSql {
             + QUALITY_CLAUSE;
 
     /**
-     * Energia jest tekstem (D11), więc sortujemy ją po rosnącej sile, nie alfabetycznie.
+     * Energia jest tekstem, więc sortujemy ją po rosnącej sile, nie alfabetycznie.
      * Spacje na brzegach są istotne: stała wchodzi w środek text blocku, a ten ucina
      * białe znaki na końcach linii — bez nich powstałoby „thencase".
      */
@@ -169,7 +169,7 @@ final class CatalogSearchSql {
                and cast(:direction as text) = 'DESC' then t.danceability end desc nulls last,
         """;
 
-    /** Porządki po danych prywatnych DJ-a (D3) — kolumny ze złączonego wpisu. */
+    /** Porządki po danych prywatnych DJ-a — kolumny ze złączonego wpisu. */
     private static final String ORDER_TAIL = """
           case when cast(:sort as text) = 'RATING'
                and cast(:direction as text) = 'ASC' then l.rating end asc nulls last,

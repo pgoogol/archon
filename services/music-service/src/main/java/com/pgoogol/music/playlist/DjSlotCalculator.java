@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * Slot wieczoru liczony z bpm + energy + genre_family (D9) — w warstwie
+ * Slot wieczoru liczony z bpm + energy + genre_family — w warstwie
  * serwisowej, nigdy w katalogu: ta sama piosenka gra inaczej na weselu
  * i na potańcówce, a ostatnie słowo ma i tak override DJ-a.
  *
@@ -70,7 +70,7 @@ public class DjSlotCalculator {
         if (Objects.isNull(bpm)) {
             return true;
         }
-        // Set.of(…).contains(null) rzuca NPE, a utwór z metryk (D24) ma energię
+        // Set.of(…).contains(null) rzuca NPE, a utwór z metryk ma energię
         // i BPM zanim AI ustali gatunek — brak gatunku to zwykły przypadek, nie błąd.
         return bpm >= PEAK_MIN_BPM
             || (Objects.nonNull(genreFamily)

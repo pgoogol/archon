@@ -1,4 +1,4 @@
-// Ręczne wgrywanie metryk utworów z CSV (D24) — obejście na czas, gdy Spotify
+// Ręczne wgrywanie metryk utworów z CSV — obejście na czas, gdy Spotify
 // nie oddaje już audio-features. Panel celowo mówi wprost, że plik tylko
 // uzupełnia utwory, które są już w katalogu: biblioteka jedzie ze Spotify.
 // Eksport analizatora idzie per playlista, więc plików wybiera się kilka naraz

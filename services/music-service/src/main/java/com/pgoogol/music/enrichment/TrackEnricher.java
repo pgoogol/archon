@@ -29,7 +29,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Wzbogaca partię utworów w kolejności METADATA → AUDIO → AI (D11) — serce
+ * Wzbogaca partię utworów w kolejności METADATA → AUDIO → AI — serce
  * processora joba M1.6. Pracuje na partii wielkości chunka (5), dzięki czemu
  * wywołania Spotify i LLM idą batchem. Mutuje encje; zapis należy do writera.
  */
@@ -123,7 +123,7 @@ public class TrackEnricher {
         track.setAlbumImageUrl(metadata.albumImageUrl());
     }
 
-    /** Metryki wgrane ręcznie (D24) są faktami z pliku, więc idą po AcousticBrainz — wygrywają. */
+    /** Metryki wgrane ręcznie są faktami z pliku, więc idą po AcousticBrainz — wygrywają. */
     private void applyAudio(List<TrackCatalog> tracks, Map<String, ManualMetrics> manualMetrics) {
 
         tracks.forEach(track -> {
@@ -169,7 +169,7 @@ public class TrackEnricher {
     }
 
     /**
-     * Dane z pliku (D24) biją estymatę LLM-a (D34): zmierzona energia i rodzina
+     * Dane z pliku biją estymatę LLM-a: zmierzona energia i rodzina
      * gatunkowa z kolumn z gatunkami zostają nietknięte, reszta analizy jest AI-owa.
      * Bez tego najbliższe wzbogacanie kasowałoby to, co DJ wgrał świadomie.
      */

@@ -18,7 +18,7 @@ const detail = aPlaylist([
   aPlaylistTrack({ spotifyId: 'c', title: 'Bailando', artist: 'Enrique Iglesias', bpm: 102 }, 'PEAK', 2),
 ])
 
-/** Stan odświeżania w tle (M4.7/D35) — testy podmieniają tylko to, co badają. */
+/** Stan odświeżania w tle (M4.7) — testy podmieniają tylko to, co badają. */
 let refreshStatus: PlaylistRefreshStatusResponse = {
   outcome: 'REFRESHED',
   lastRunAt: '2026-08-11T20:15:00Z',

@@ -13,17 +13,17 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Rzutuje metryki wgrane ręcznie (D24) na pola katalogu, których używa reszta
+ * Rzutuje metryki wgrane ręcznie na pola katalogu, których używa reszta
  * aplikacji: rodzina gatunkowa, bpm (+ {@code bpm_source=MANUAL}, korekta
  * half-time, tempo_class), tonacja, danceability i energia. Projekcja jest
  * idempotentna i odtwarzalna — ten sam kod biegnie przy imporcie CSV i przy
  * wzbogacaniu (grupa AUDIO).
  *
- * <p><b>Plik wygrywa z estymatą</b> (D34): wartość z CSV nadpisuje to, co jest
+ * <p><b>Plik wygrywa z estymatą</b>: wartość z CSV nadpisuje to, co jest
  * w katalogu, także gdy pochodzi z LLM-a. Kolumny, których plik nie ma, zostają
  * nietknięte — brak danych to nie to samo co zaprzeczenie.</p>
  *
- * <p>Energia w katalogu jest tekstem (D11), bo tak liczy ją LLM i tak filtruje
+ * <p>Energia w katalogu jest tekstem, bo tak liczy ją LLM i tak filtruje
  * front; zmierzoną wartość 0..1 progujemy więc na {@code low/medium/high},
  * a surowa liczba zostaje w {@code manual_metrics} do podglądu.</p>
  */
@@ -58,7 +58,7 @@ public class ManualMetricsApplier {
         Optional.ofNullable(metrics.getEnergy()).map(this::energyLevel).ifPresent(track::setEnergy);
     }
 
-    /** Zmierzona energia 0..1 na skalę słowną katalogu (D11). */
+    /** Zmierzona energia 0..1 na skalę słowną katalogu. */
     public String energyLevel(BigDecimal energy) {
 
         Objects.requireNonNull(energy, "energy");

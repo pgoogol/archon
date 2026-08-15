@@ -108,7 +108,7 @@ class SetSuggesterTest {
             assertThat(suggestion.bpmDelta()).isEqualTo(-2);
             assertThat(suggestion.harmonic()).isFalse();
         });
-        // brak tonacji albo BPM to brak danych, nie zderzenie (D25)
+        // brak tonacji albo BPM to brak danych, nie zderzenie
         assertThat(suggestions).anySatisfy(suggestion -> {
             assertThat(suggestion.track().getSpotifyId()).isEqualTo("sp-bez-danych");
             assertThat(suggestion.bpmDelta()).isNull();

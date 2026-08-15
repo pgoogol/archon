@@ -1,7 +1,7 @@
 // Historia jobów wzbogacania (M3.1) — wcześniej front pokazywał tylko job
 // uruchomiony w bieżącej sesji, więc po odświeżeniu strony postęp „znikał".
 //
-// Od M5.5 (D37) job nie przerywa się na pierwszym błędzie, tylko pomija to, co
+// Od M5.5 job nie przerywa się na pierwszym błędzie, tylko pomija to, co
 // padło. Kolumna „nieudane" pokazuje ile, a „szczegóły" — co i dlaczego:
 // wcześniej był to `title` na spanie, czyli dymek systemowy, którego nie da się
 // otworzyć z klawiatury ani z dotyku, a przy dłuższym opisie i tak był ucinany.

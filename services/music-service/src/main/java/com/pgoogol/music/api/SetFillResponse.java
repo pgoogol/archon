@@ -4,7 +4,7 @@ import java.util.List;
 
 /**
  * Dalszy ciąg gotowego setu (M4.4) — kontrakt {@code POST /api/sets/{id}/fill}.
- * Jak generator (D26), <b>nic nie zostało zapisane</b>: utwory dopisuje DJ przez
+ * Jak generator, <b>nic nie zostało zapisane</b>: utwory dopisuje DJ przez
  * {@code POST /api/playlists/{id}/tracks}, a {@code position} w każdym wpisie
  * mówi, na którym miejscu wylądują.
  *

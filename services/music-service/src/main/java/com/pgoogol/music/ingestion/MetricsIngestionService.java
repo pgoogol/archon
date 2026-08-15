@@ -26,7 +26,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Import metryk wgrywanych ręcznie z CSV (D24) — tymczasowe wejście na czas,
+ * Import metryk wgrywanych ręcznie z CSV — tymczasowe wejście na czas,
  * gdy Spotify nie oddaje już {@code audio-features}. Nie zakłada niczego
  * w bibliotece: wiersz dla utworu spoza katalogu jest pomijany z raportem,
  * bo biblioteka jedzie ze Spotify (M2.1/M2.2), a plik ma tylko dołożyć metryki.
@@ -97,8 +97,8 @@ public class MetricsIngestionService {
     }
 
     /**
-     * Camelot z pliku zostaje surową wartością (D24), ale logika miksowania liczy
-     * go z {@code musical_key} (D25) — jeśli oba są znane i się rozjeżdżają, wiersz
+     * Camelot z pliku zostaje surową wartością, ale logika miksowania liczy
+     * go z {@code musical_key} — jeśli oba są znane i się rozjeżdżają, wiersz
      * i utwór najpewniej opisują inne nagranie. Nie przerywamy importu: metryki bywają
      * dobre mimo literówki w jednej kolumnie, a decyzja należy do DJ-a.
      */
@@ -121,8 +121,8 @@ public class MetricsIngestionService {
      * sieroty nie do wyjaśnienia. Projekcja na katalog nadpisuje tylko to,
      * co niepuste, więc BPM z poprzedniego źródła nie znika bez powodu.
      *
-     * <p>Rodzina gatunkowa z kolumn z gatunkami jedzie tą samą drogą co reszta
-     * (D34): zapisana obok metryk daje się odróżnić od estymaty LLM-a, więc
+     * <p>Rodzina gatunkowa z kolumn z gatunkami jedzie tą samą drogą co reszta:
+     * zapisana obok metryk daje się odróżnić od estymaty LLM-a, więc
      * wzbogacanie AI jej nie nadpisze.</p>
      */
     private void overwrite(ManualMetrics metrics, TrackMetrics values,

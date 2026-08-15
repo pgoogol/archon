@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 /**
- * Metryki wgrane ręcznie (D24) — kontrakt
+ * Metryki wgrane ręcznie — kontrakt
  * {@code GET /api/catalog/tracks/{spotifyId}/metrics}. Cechy w skali 0..1,
  * {@code bpm} bez korekty half-time (skorygowana wartość jest w katalogu).
  */

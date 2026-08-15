@@ -9,7 +9,7 @@ spring:
     multipart:
       # pełny eksport Exportify (~2500 wierszy) przekracza domyślny 1MB
       max-file-size: 10MB
-      # metryki wgrywa się partiami po kilkanaście plików naraz (D31)
+      # metryki wgrywa się partiami po kilkanaście plików naraz
       max-request-size: 100MB
   batch:
     job:
@@ -28,7 +28,7 @@ management:
       exposure:
         include: health,info
 
-# Warstwa AI (D15): provider, model i wersja promptu wyłącznie tutaj — nigdy w kodzie
+# Warstwa AI: provider, model i wersja promptu wyłącznie tutaj — nigdy w kodzie
 llm:
   provider: ${LLM_PROVIDER:openai}   # openai (i zgodne: OpenRouter/Groq/Mistral/lokalne) | anthropic
   api-key: ${LLM_API_KEY:}
@@ -39,7 +39,7 @@ llm:
   requests-per-second: 2
   max-tokens: 2048
   temperature: 0.2
-  # twardy sufit zlecenia (D28) — SELECTED miał limit od M1.6, MISSING nie miał
+  # twardy sufit zlecenia — SELECTED miał limit od M1.6, MISSING nie miał
   # żadnego, a pomyłka w LLM_MODEL przy 2500 utworach to realny rachunek
   max-tracks-per-job: ${LLM_MAX_TRACKS_PER_JOB:500}
   # stawki providera w USD za 1M tokenów; puste = nie znamy cennika i mówimy to
@@ -48,7 +48,7 @@ llm:
     input-per-1m: ${LLM_COST_INPUT_PER_1M:}
     output-per-1m: ${LLM_COST_OUTPUT_PER_1M:}
 
-# Automatyczne odświeżanie własnych playlist ze Spotify (D35). Przebieg jest
+# Automatyczne odświeżanie własnych playlist ze Spotify. Przebieg jest
 # ten sam co ręczny import trybu C, więc kosztuje tyle samo wywołań Spotify —
 # przy kilkudziesięciu playlistach potrafi trwać dłużej niż domyślny odstęp.
 # Odstęp liczy się od ZAKOŃCZENIA poprzedniego przebiegu (fixedDelay), więc
@@ -67,11 +67,11 @@ clients:
     client-id: ${SPOTIFY_CLIENT_ID:}
     client-secret: ${SPOTIFY_CLIENT_SECRET:}
     requests-per-second: 8
-    # OAuth PKCE (D4) — adres musi być identyczny z wpisanym w dashboardzie Spotify
+    # OAuth PKCE — adres musi być identyczny z wpisanym w dashboardzie Spotify
     redirect-uri: ${SPOTIFY_REDIRECT_URI:http://127.0.0.1:8080/api/auth/spotify/callback}
     scopes: playlist-read-private playlist-read-collaborative playlist-modify-private playlist-modify-public
   musicbrainz:
-    # twardy limit 1 req/s jest w kodzie klienta (D6) — celowo nie w konfiguracji
+    # twardy limit 1 req/s jest w kodzie klienta — celowo nie w konfiguracji
     base-url: https://musicbrainz.org
     user-agent: ${MB_USER_AGENT:}
   deezer:

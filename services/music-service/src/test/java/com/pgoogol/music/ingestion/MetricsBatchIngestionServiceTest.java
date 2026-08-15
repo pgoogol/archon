@@ -18,7 +18,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
 /**
- * Wgrywanie kilku plików z metrykami naraz (D24) — plik odrzucony w całości
+ * Wgrywanie kilku plików z metrykami naraz — plik odrzucony w całości
  * nie zabiera ze sobą pozostałych.
  */
 @ExtendWith(MockitoExtension.class)

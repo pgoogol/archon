@@ -116,7 +116,7 @@ describe('SetsRoute — układanie i domykanie setu', () => {
     )
     expect(reorder).toBeDefined()
     expect(bodyOf(reorder!).spotifyIds).toEqual(['a', 'b', 'nowy', 'c'])
-    // wersja z odpowiedzi na dopisanie, nie z widoku sprzed zmiany (D29)
+    // wersja z odpowiedzi na dopisanie, nie z widoku sprzed zmiany
     expect(bodyOf(reorder!).version).toBe(1)
     expect(screen.queryByTestId('set-suggestions')).not.toBeInTheDocument()
   })

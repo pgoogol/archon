@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Import metryk z kilku plików naraz (D24) — eksport analizatora idzie zwykle
+ * Import metryk z kilku plików naraz — eksport analizatora idzie zwykle
  * per playlista, więc uzupełnienie biblioteki to kilkanaście plików pod rząd.
  *
  * <p>Każdy plik ma własną transakcję (osobne wywołanie

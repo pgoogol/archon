@@ -12,7 +12,7 @@ import java.time.Instant;
 import java.util.Objects;
 
 /**
- * Dane deterministyczne utworu (D3/D5) — metadane, cechy audio i analiza AI.
+ * Dane deterministyczne utworu — metadane, cechy audio i analiza AI.
  * Dane prywatne DJ-a żyją w {@code library_entry}, nie tutaj.
  */
 @Entity

@@ -38,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Tryb C (DoD M2.2): import wszystkich własnych playlist połączonego konta —
  * playlisty obserwowane, ale cudze, są pomijane.
  */
-// odświeżanie w tle (D35) wyłączone: test trzyma połączone konto, a zadanie
+// odświeżanie w tle wyłączone: test trzyma połączone konto, a zadanie
 // cykliczne wywołałoby ten sam import w środku przebiegu
 @SpringBootTest(properties = "ingestion.playlist-refresh.enabled=false")
 @AutoConfigureMockMvc

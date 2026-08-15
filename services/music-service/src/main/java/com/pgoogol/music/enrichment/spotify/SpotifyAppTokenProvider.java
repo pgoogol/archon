@@ -15,10 +15,10 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Token aplikacyjny Spotify (Client Credentials — D6) z cache'em w pamięci;
+ * Token aplikacyjny Spotify (Client Credentials) z cache'em w pamięci;
  * współdzielony przez wszystkich klientów Spotify sięgających po dane publiczne
  * ({@link SpotifyClient}, {@link SpotifyPlaylistClient}). Operacje na koncie
- * właściciela wymagają tokenu użytkownika (OAuth PKCE — D4), nie tego.
+ * właściciela wymagają tokenu użytkownika (OAuth PKCE), nie tego.
  */
 @Component
 public class SpotifyAppTokenProvider {

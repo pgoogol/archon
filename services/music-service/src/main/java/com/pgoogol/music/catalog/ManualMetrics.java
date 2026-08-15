@@ -16,7 +16,7 @@ import java.time.Instant;
 import java.util.Objects;
 
 /**
- * Metryki utworu wgrane ręcznie z CSV (D24) — obejście po tym, jak Spotify
+ * Metryki utworu wgrane ręcznie z CSV — obejście po tym, jak Spotify
  * wyłączył {@code audio-features}. Surowy zapis pliku: wartości 0..1 (nie 0..100),
  * BPM bez korekty half-time. Projekcję na {@code track_catalog} robi
  * {@code ManualMetricsApplier}, żeby dało się ją odtworzyć po ponownym imporcie.
@@ -71,7 +71,7 @@ public class ManualMetrics {
     private Integer timeSignature;
 
     /**
-     * Rodzina gatunkowa z kolumn z gatunkami (D34). Trzymamy ją tutaj, a nie
+     * Rodzina gatunkowa z kolumn z gatunkami. Trzymamy ją tutaj, a nie
      * tylko na katalogu, bo inaczej nie da się odróżnić gatunku z pliku od
      * estymaty LLM-a — a więc nie da się dać plikowi pierwszeństwa.
      */

@@ -13,13 +13,13 @@ import java.util.stream.Collectors;
 
 /**
  * Sprowadza swobodne listy gatunków (np. „timba, son cubano, salsa") do enuma
- * {@link GenreFamily} (D8). Używane przy imporcie metryk z CSV (D24), żeby utwór
+ * {@link GenreFamily}. Używane przy imporcie metryk z CSV, żeby utwór
  * miał rodzinę gatunkową zanim ruszy LLM — bez niej nie policzymy slotu wieczoru
  * ani korekty half-time.
  *
  * <p>Kolejność reguł ma znaczenie: „disco polo" nie jest disco, a „latynoskie
  * dance" nie jest muzyką elektroniczną. Wygrywa pierwsza pasująca reguła;
- * gdy nic nie pasuje, gatunku po prostu nie ma — zostaje dla LLM-a (D11).</p>
+ * gdy nic nie pasuje, gatunku po prostu nie ma — zostaje dla LLM-a.</p>
  */
 @Component
 public class GenreFamilyMapper {

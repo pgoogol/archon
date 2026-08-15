@@ -17,7 +17,7 @@ public final class TrackCatalogFixtures {
         return new TrackCatalog(spotifyId, "La Vida Es Un Carnaval", "Celia Cruz");
     }
 
-    /** Rekord z kompletem pól D5 — jak po pełnym wzbogaceniu METADATA+AUDIO+AI. */
+    /** Rekord z kompletem pól — jak po pełnym wzbogaceniu METADATA+AUDIO+AI. */
     public static TrackCatalog enrichedTrack(String spotifyId) {
 
         TrackCatalog track = new TrackCatalog(spotifyId, "Vivir Mi Vida", "Marc Anthony");

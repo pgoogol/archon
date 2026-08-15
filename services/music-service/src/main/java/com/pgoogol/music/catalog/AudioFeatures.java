@@ -12,8 +12,8 @@ import java.math.BigDecimal;
 import java.util.Objects;
 
 /**
- * Cechy audio z dumpa AcousticBrainz (D7) — fakty kluczowane MBID-em,
- * 0..1 rekord na utwór katalogu (D17).
+ * Cechy audio z dumpa AcousticBrainz — fakty kluczowane MBID-em,
+ * 0..1 rekord na utwór katalogu.
  */
 @Entity
 @Table(name = "audio_features")

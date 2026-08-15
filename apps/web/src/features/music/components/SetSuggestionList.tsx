@@ -1,4 +1,4 @@
-// Kandydaci na jedno miejsce w secie (M4.4/D32). Backend nie losuje i nie
+// Kandydaci na jedno miejsce w secie (M4.4). Backend nie losuje i nie
 // oddaje punktacji — kolejność niesie ocenę, a DJ dostaje powody, po których
 // widać, dlaczego utwór pasuje: różnicę tempa i zgodność tonacji z sąsiadem.
 
@@ -52,7 +52,7 @@ export default function SetSuggestionList({
         {suggestions.map((entry) => (
           <li key={entry.track.spotifyId}>
             <span className="slot">
-              {/* kolor niesie kropka, etykieta zostaje w kolorze tekstu (D22) */}
+              {/* kolor niesie kropka, etykieta zostaje w kolorze tekstu */}
               <span
                 className={`slot-dot slot-bg-${entry.djSlot ?? 'UNKNOWN'}`}
                 aria-hidden="true"

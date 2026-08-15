@@ -13,7 +13,7 @@ const EVERY_FILTER =
   'q=salsa&genre=LATIN&rating=4&durMin=120&durMax=270' +
   '&bpmMin=100&bpmMax=130&tempo=FAST&energy=high&key=8A&keyExact=1'
 
-/** Parametry zdjętych filtrów (D39) — wklejony stary link nie może ich wskrzesić. */
+/** Parametry zdjętych filtrów — wklejony stary link nie może ich wskrzesić. */
 const RETIRED_FILTERS =
   'lib=yes&tag=wesele&yearMin=1990&yearMax=1999&popMin=60&explicit=0' +
   '&valMin=0.3&valMax=0.8&instr=0.5&live=0.4&bpmSrc=DEEZER&missing=ANY'

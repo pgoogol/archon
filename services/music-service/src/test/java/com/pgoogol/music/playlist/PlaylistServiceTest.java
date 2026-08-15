@@ -36,7 +36,7 @@ import static org.mockito.Mockito.verify;
  * Planowanie setów. Trzy rzeczy są tu nieoczywiste i dlatego badane wprost:
  * pozycje muszą zostać zwarte po usunięciu utworu, nowa kolejność musi być
  * permutacją składu (inaczej drag&drop po cichu gubi utwór), a zmiana wierszy
- * playlisty musi podbić wersję agregatu (D29).
+ * playlisty musi podbić wersję agregatu.
  */
 @ExtendWith(MockitoExtension.class)
 class PlaylistServiceTest {

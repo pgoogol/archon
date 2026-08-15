@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Blokada optymistyczna na danych DJ-a (M5.2/D29): dwie karty przeglądarki
+ * Blokada optymistyczna na danych DJ-a (M5.2): dwie karty przeglądarki
  * nie mogą po cichu nadpisać sobie notatek ani kolejności setu.
  */
 @SpringBootTest

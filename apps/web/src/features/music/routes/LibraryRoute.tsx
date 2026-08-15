@@ -4,7 +4,7 @@
 // widoku — front nie trzyma stanu ekranu nigdzie poza hashem.
 //
 // Ekran pyta wyłącznie o utwory: słownik tagów i pokrycie metrykami zniknęły
-// razem z filtrami, które je potrzebowały (D39).
+// razem z filtrami, które je potrzebowały.
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {

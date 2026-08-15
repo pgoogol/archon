@@ -5,7 +5,7 @@ import org.springframework.lang.Nullable;
 import java.time.Instant;
 
 /**
- * Wynik ostatniego automatycznego odświeżenia playlist (M4.7, D35). Trzymany
+ * Wynik ostatniego automatycznego odświeżenia playlist (M4.7). Trzymany
  * w pamięci: to informacja o bieżącym uruchomieniu aplikacji, a nie dane,
  * które warto przeżywać restart — po restarcie i tak zaraz leci odświeżenie.
  *
@@ -27,10 +27,10 @@ public record PlaylistRefreshStatus(
         /** Odświeżanie wyłączone w konfiguracji. */
         DISABLED,
 
-        /** Nie ma po co pytać Spotify — konto nie jest połączone (D20). */
+        /** Nie ma po co pytać Spotify — konto nie jest połączone. */
         SKIPPED_NOT_CONNECTED,
 
-        /** Przebieg się odbył; {@code failedPlaylists} mówi, ile playlist padło (D31). */
+        /** Przebieg się odbył; {@code failedPlaylists} mówi, ile playlist padło. */
         REFRESHED,
 
         /** Przebieg wywrócił się w całości — np. Spotify nie odpowiada. */

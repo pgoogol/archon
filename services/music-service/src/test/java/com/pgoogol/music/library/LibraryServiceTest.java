@@ -27,7 +27,7 @@ import static org.mockito.Mockito.verify;
 
 /**
  * Biblioteka DJ-a. Dwa miejsca warte pilnowania: dodanie utworu spoza katalogu
- * (D3 — szkielet katalogu powstaje raz i zostaje po usunięciu wpisu) oraz
+ * (szkielet katalogu powstaje raz i zostaje po usunięciu wpisu) oraz
  * aktualizacja, gdzie pusta wartość znaczy „wyczyść", a brak pola „nie ruszaj".
  */
 @ExtendWith(MockitoExtension.class)

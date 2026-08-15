@@ -10,7 +10,7 @@ import java.util.Objects;
 import java.util.stream.IntStream;
 
 /**
- * Fakty ze Spotify (D6): metadane + ISRC po spotify_id, batch po 50
+ * Fakty ze Spotify: metadane + ISRC po spotify_id, batch po 50
  * (limit endpointu /v1/tracks). Token aplikacyjny z {@link SpotifyAppTokenProvider},
  * limiter i tłumaczenie błędów w {@link SpotifyApiExecutor}.
  */

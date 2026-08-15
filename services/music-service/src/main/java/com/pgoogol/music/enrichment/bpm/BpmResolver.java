@@ -18,7 +18,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * Kaskada BPM (D6, rozszerzona w D24): metryki wgrane ręcznie →
+ * Kaskada BPM: metryki wgrane ręcznie →
  * {@code audio_features} (AcousticBrainz) → Deezer
  * (ISRC, potem artist+title) → brak (pole zostaje dla AI, M1.5/M1.6).
  * Sanity-check half-time (§16.1) stosowany do każdego źródła: latin + BPM &lt; 100

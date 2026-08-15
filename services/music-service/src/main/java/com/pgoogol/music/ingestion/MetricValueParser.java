@@ -12,7 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Tłumaczy pojedyncze komórki CSV z metrykami (D24) na wartości domenowe.
+ * Tłumaczy pojedyncze komórki CSV z metrykami na wartości domenowe.
  * Eksporty różnią się skalą i zapisem, więc parser jest wyrozumiały: przecinek
  * dziesiętny, procenty i jednostki lecą do kosza, a wartość spoza sensownego
  * zakresu jest traktowana jak brak danych — lepiej puste pole niż śmieć w bazie.

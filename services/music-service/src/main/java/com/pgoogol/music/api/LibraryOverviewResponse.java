@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Przegląd biblioteki (M4.3, rozbudowa M5.4) — kontrakt
  * {@code GET /api/library/overview}. Pola siedzą w pięciu grupach, bo tyle
- * stref czytania ma ekran przeglądu (D36); rozkłady w obrębie grupy mają
+ * stref czytania ma ekran przeglądu; rozkłady w obrębie grupy mają
  * wspólny kształt {@link BucketResponse}, więc front rysuje je jednym
  * komponentem zamiast kilkunastu prawie identycznych.
  */
@@ -34,7 +34,7 @@ public record LibraryOverviewResponse(
         Instant addedAt) { }
 
     /**
-     * Skala zbioru — same utwory (D36); playlisty i sety mają własne zakładki.
+     * Skala zbioru — same utwory; playlisty i sety mają własne zakładki.
      * Średnie są {@code null} dla pustego katalogu, nie zerem.
      */
     public record ScaleResponse(

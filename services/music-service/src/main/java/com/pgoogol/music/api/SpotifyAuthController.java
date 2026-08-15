@@ -14,12 +14,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Objects;
 
 /**
- * Jednorazowe połączenie konta właściciela ze Spotify (D4) — nie jest to system
- * kont aplikacji (D2/D14): logowania do samego music-view nie ma.
+ * Jednorazowe połączenie konta właściciela ze Spotify — nie jest to system
+ * kont aplikacji: logowania do samego music-view nie ma.
  */
 @RestController
 @RequestMapping("/api/auth/spotify")
-@Tag(name = "Auth Spotify", description = "Połączenie konta właściciela (OAuth PKCE — D4)")
+@Tag(name = "Auth Spotify", description = "Połączenie konta właściciela (OAuth PKCE)")
 public class SpotifyAuthController {
 
     private final SpotifyAccountService accountService;

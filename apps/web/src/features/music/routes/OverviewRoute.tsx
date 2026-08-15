@@ -1,13 +1,13 @@
-// Przegląd biblioteki (M4.3, przebudowany na pulpit w M5.4/D36) — ekran
+// Przegląd biblioteki (M4.3, przebudowany na pulpit w M5.4) — ekran
 // o samych utworach: co mam, jakie to jest i skąd o tym wiemy.
 //
-// Świadomie nie ma tu playlist, setów ani generatora (D36) — to, co DJ z tych
+// Świadomie nie ma tu playlist, setów ani generatora — to, co DJ z tych
 // utworów układa, ma własne zakładki; przegląd opisuje sam zbiór.
 //
 // Czyta się go w pięciu strefach, w kolejności malejącej ogólności: skala →
 // wnioski → brzmienie → kompletność danych → czas i zawartość. Wszystkie
-// agregaty liczy baza jednym wywołaniem (D27); front tylko rysuje, inline
-// w SVG, bez biblioteki wykresów i bez zasobów z sieci (D23).
+// agregaty liczy baza jednym wywołaniem; front tylko rysuje, inline
+// w SVG, bez biblioteki wykresów i bez zasobów z sieci.
 
 import { useEffect, useState, type ReactNode } from 'react'
 import { api, type LibraryOverviewResponse } from '@/features/music/api'
@@ -35,7 +35,7 @@ import {
 import { useMusicWorkspace } from '@/features/music/state/MusicWorkspace'
 
 
-/** Kaskada BPM z D6/D24 opisana słowami — „DEEZER" nic nie mówi o wiarygodności. */
+/** Kaskada BPM opisana słowami — „DEEZER" nic nie mówi o wiarygodności. */
 const BPM_SOURCE_LABELS: Record<string, string> = {
   MANUAL: 'pomiar z pliku',
   ACOUSTICBRAINZ: 'AcousticBrainz',
@@ -129,7 +129,7 @@ export default function OverviewRoute() {
                       tone="measure" format={(value) => String(Math.round(value))}
                       hint={scale.averagePopularity === null ? 'brak danych ze Spotify' : 'skala 0–100 z metadanych'} />
             <StatTile label="z metrykami" value={scale.tracksWithMetrics} tone="measure"
-                      hint="utwory z pełnymi cechami audio z pliku (D24)" />
+                      hint="utwory z pełnymi cechami audio z pliku" />
           </div>
           <Gauge
             ratio={readinessScore(overview)}
@@ -162,7 +162,7 @@ export default function OverviewRoute() {
         <h3>Metrum</h3>
         <StackedBar
           buckets={sound.timeSignatures}
-          caption={`Z metryk wgranych z pliku (D24) — ${scale.tracksWithMetrics} utworów, nie cały katalog.`}
+          caption={`Z metryk wgranych z pliku — ${scale.tracksWithMetrics} utworów, nie cały katalog.`}
           testId="time-signatures"
         />
       </DashPanel>
@@ -198,7 +198,7 @@ export default function OverviewRoute() {
         <StackedBar
           buckets={quality.bpmSources}
           labels={BPM_SOURCE_LABELS}
-          caption="Ile biblioteki stoi na zmierzonym fakcie, a ile na estymacie modelu (D6/D19)."
+          caption="Ile biblioteki stoi na zmierzonym fakcie, a ile na estymacie modelu."
           testId="bpm-sources"
         />
         <h3>Pewność analizy AI</h3>
@@ -254,7 +254,7 @@ export default function OverviewRoute() {
         <RankedBars
           buckets={sound.styles}
           total={scale.catalogTracks}
-          emptyText="Styl to pole free-form (D8) — wypełni je wzbogacanie AI."
+          emptyText="Styl to pole free-form — wypełni je wzbogacanie AI."
           testId="styles"
         />
         <h3>Treść</h3>

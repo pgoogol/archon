@@ -15,9 +15,9 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * MusicBrainz wyłącznie do lookupu ISRC→MBID (D6) — klucz do AcousticBrainz.
+ * MusicBrainz wyłącznie do lookupu ISRC→MBID — klucz do AcousticBrainz.
  * Twardy throttle 1 req/s (wymóg MB, niekonfigurowalny) + trwały cache w bazie
- * (D18) z negative cache'em; wymagany User-Agent z kontaktem (D14).
+ * z negative cache'em; wymagany User-Agent z kontaktem.
  */
 @Component
 public class MusicBrainzClient {

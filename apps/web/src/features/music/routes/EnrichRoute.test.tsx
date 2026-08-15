@@ -70,9 +70,9 @@ describe('EnrichRoute — szacunek przed startem (M5.1)', () => {
     expect(screen.getByTestId('enrich-start')).toBeDisabled()
   })
 
-  it('zlecenie bez grupy AI nie ma sufitu, choćby obejmowało cały katalog (D37)', async () => {
+  it('zlecenie bez grupy AI nie ma sufitu, choćby obejmowało cały katalog', async () => {
 
-    // 2500 utworów, zero płatnych — metadane i audio jadą z darmowych źródeł (D6)
+    // 2500 utworów, zero płatnych — metadane i audio jadą z darmowych źródeł
     estimate = { trackCount: 2500, aiTracks: 0, estimatedCost: null, limit: 500, withinLimit: true }
 
     renderRoute(<EnrichRoute />, { selectedIds: new Set(), refresh: vi.fn() })

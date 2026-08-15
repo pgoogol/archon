@@ -17,7 +17,7 @@ import java.util.Objects;
 
 /**
  * Biblioteka DJ-a (M1.7): lista z katalogiem, ręczne dodanie utworu,
- * aktualizacja danych prywatnych (D3), usunięcie wpisu (katalog zostaje —
+ * aktualizacja danych prywatnych, usunięcie wpisu (katalog zostaje —
  * dane deterministyczne deduplikują koszt wzbogacania).
  */
 @Service
@@ -46,7 +46,7 @@ public class LibraryService {
     }
 
     /**
-     * Przegląd biblioteki (M4.3) — wszystkie rozkłady liczy baza (D27). Braki
+     * Przegląd biblioteki (M4.3) — wszystkie rozkłady liczy baza. Braki
      * per grupa pól bierzemy z tego samego zapytania co zakładka Wzbogacanie,
      * żeby obie liczby nigdy się nie rozjechały.
      */
@@ -127,7 +127,7 @@ public class LibraryService {
     }
 
     /**
-     * Nieświeży klient (D29): wersja z żądania nie zgadza się z tą w bazie, więc
+     * Nieświeży klient: wersja z żądania nie zgadza się z tą w bazie, więc
      * PATCH pisałby po zmianie, której nadawca nie widział. Wyścig równoległych
      * transakcji łapie osobno {@code @Version} na encji.
      */

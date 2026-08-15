@@ -7,7 +7,7 @@
 // podzielony na grupy odpowiadające temu, o co pytają: utwór i brzmienie.
 //
 // Grupy „biblioteka DJ-a", „metryki z pliku" i „kompletność danych" znikają
-// razem z filtrami, które je wypełniały (D39) — braki danych zbiera zakładka
+// razem z filtrami, które je wypełniały — braki danych zbiera zakładka
 // Wzbogacanie, a metryki z pliku widać w szufladzie utworu.
 
 import { useCallback, useState, type ReactNode } from 'react'
@@ -19,7 +19,7 @@ const GENRES = ['LATIN', 'ROCK', 'POP', 'DISCO', 'DISCO_POLO', 'ELECTRONIC', 'HI
 const TEMPO_CLASSES = Object.keys(TEMPO_LABELS)
 const ENERGIES = Object.keys(ENERGY_LABELS)
 const RATINGS = [1, 2, 3, 4, 5]
-/** Wszystkie 24 pozycje koła Camelot (D25) — 1A–12A moll, 1B–12B dur. */
+/** Wszystkie 24 pozycje koła Camelot — 1A–12A moll, 1B–12B dur. */
 const CAMELOT_KEYS = Array.from({ length: 12 }, (_, index) => index + 1).flatMap((number) => [
   `${number}A`,
   `${number}B`,
@@ -166,7 +166,7 @@ export default function LibraryFilters({ params, setParams, onClear }: Props) {
             </>,
           )}
 
-          {/* brzmienie: tempo, energia i harmonia (D25) — koło Camelot liczy backend
+          {/* brzmienie: tempo, energia i harmonia — koło Camelot liczy backend
               z tonacji, więc filtr obejmuje też utwory z dumpa AB */}
           {group(
             'harmonic-filters',

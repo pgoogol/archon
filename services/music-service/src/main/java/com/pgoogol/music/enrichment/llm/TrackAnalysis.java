@@ -4,7 +4,7 @@ import com.pgoogol.music.catalog.GenreFamily;
 import org.springframework.lang.Nullable;
 
 /**
- * Strukturalny wynik analizy AI jednego utworu (grupa AI — D11);
+ * Strukturalny wynik analizy AI jednego utworu (grupa AI);
  * {@code bpmEstimate} tylko gdy jawnie zażądano (kaskada M1.4 pusta).
  */
 public record TrackAnalysis(

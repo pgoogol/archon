@@ -26,7 +26,7 @@ describe('refreshLabel', () => {
     expect(refreshLabel(status({}), at)).toBe('Odświeżono automatycznie o 20:15 — playlist: 12')
   })
 
-  it('nieudane playlisty pokazuje osobno — przebieg leci mimo nich (D31)', () => {
+  it('nieudane playlisty pokazuje osobno — przebieg leci mimo nich', () => {
 
     expect(refreshLabel(status({ failedPlaylists: 2 }), at)).toContain('nieudane: 2')
   })

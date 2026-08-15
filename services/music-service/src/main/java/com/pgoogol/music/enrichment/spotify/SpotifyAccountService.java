@@ -15,9 +15,9 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Połączenie konta właściciela ze Spotify (D4): start logowania z wyzwaniem PKCE,
+ * Połączenie konta właściciela ze Spotify: start logowania z wyzwaniem PKCE,
  * domknięcie po powrocie z {@code /callback} i wydawanie ważnego tokenu użytkownika
- * (odświeżanego w tle). Konto jest jedno (D2), więc rozpoczęte logowanie trzymamy
+ * (odświeżanego w tle). Konto jest jedno, więc rozpoczęte logowanie trzymamy
  * w pamięci — po restarcie aplikacji trzeba je po prostu powtórzyć.
  */
 @Service

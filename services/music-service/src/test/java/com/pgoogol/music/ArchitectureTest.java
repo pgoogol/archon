@@ -78,7 +78,7 @@ class ArchitectureTest {
         ArchRule rule = classes()
             .that().haveSimpleNameEndingWith("Controller")
             .should().resideInAPackage(BASE + ".api..")
-            .because("kontrolery, DTO i mappery trzymamy w api (D1)");
+            .because("kontrolery, DTO i mappery trzymamy w api");
 
         // when / then
         rule.check(classesUnderTest);

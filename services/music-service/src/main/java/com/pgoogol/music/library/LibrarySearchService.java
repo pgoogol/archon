@@ -16,7 +16,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Wyszukiwarka ekranu Biblioteka (M5.6): wynik z katalogu (D3) uzupełniony
+ * Wyszukiwarka ekranu Biblioteka (M5.6): wynik z katalogu uzupełniony
  * o dane prywatne DJ-a, żeby ocena i tagi dały się pokazać i posortować
  * w tabeli, a nie dopiero po otwarciu szuflady utworu.
  *

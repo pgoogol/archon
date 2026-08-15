@@ -1,6 +1,6 @@
 // Import playlisty po linku (M2.1, tryby B/D). W M3.2 zniknął z UI import
 // z pliku CSV — biblioteka jedzie ze Spotify, a endpoint `/api/ingest/file`
-// zostaje w API jako awaryjne wejście (tryb A z D6).
+// zostaje w API jako awaryjne wejście (tryb A).
 
 import { useState } from 'react'
 import { api, type IngestPlaylistResponse } from '@/features/music/api'

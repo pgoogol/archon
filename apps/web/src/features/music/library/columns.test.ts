@@ -25,7 +25,7 @@ describe('kolumny biblioteki', () => {
     expect(keys).not.toContain('nieistnieje')
   })
 
-  it('kolumny zdjęte z tabeli odpadają jak każdy nieznany klucz (D39)', () => {
+  it('kolumny zdjęte z tabeli odpadają jak każdy nieznany klucz', () => {
     expect(parseColumns('rating,tags,added,explicit,bpmSource')).toEqual(DEFAULT_COLUMN_KEYS)
   })
 

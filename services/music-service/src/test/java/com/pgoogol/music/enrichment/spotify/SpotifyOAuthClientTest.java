@@ -55,7 +55,7 @@ class SpotifyOAuthClientTest {
     void exchangeCode_whenSpotifyRejectsCode_throwsValidationWithoutRetry(
             WireMockRuntimeInfo wireMock) {
 
-        // given — zużyty lub podrobiony kod: 400 nie jest ponawiane (D16)
+        // given — zużyty lub podrobiony kod: 400 nie jest ponawiane
         stubFor(post(urlPathEqualTo("/api/token")).willReturn(badRequest()));
         SpotifyOAuthClient client = oauthClient(wireMock);
 

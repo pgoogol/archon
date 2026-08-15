@@ -15,7 +15,7 @@ public record EnrichJobResponse(
     String fields,
     long readCount,
     long writeCount,
-    /** Utwory pominięte przez job (D37); powody pod /jobs/{id}/failures. */
+    /** Utwory pominięte przez job; powody pod /jobs/{id}/failures. */
     long failedCount,
     LocalDateTime startTime,
     LocalDateTime endTime,

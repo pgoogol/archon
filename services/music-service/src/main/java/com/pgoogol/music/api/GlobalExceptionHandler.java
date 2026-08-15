@@ -65,7 +65,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Konflikt wykryty przez JPA (D29) — dwa żądania weszły równolegle i drugie
+     * Konflikt wykryty przez JPA — dwa żądania weszły równolegle i drugie
      * pisałoby po świeżo zmienionym wierszu. Nieświeżego klienta łapiemy wcześniej,
      * porównując wersję z żądania; tutaj zostaje wyścig transakcji.
      */

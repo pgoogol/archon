@@ -66,7 +66,7 @@ public class PlaylistIngestionService {
     }
 
     /**
-     * Import playlisty spod linku. Playlista połączonego konta (D4) trafia do
+     * Import playlisty spod linku. Playlista połączonego konta trafia do
      * biblioteki jako własna (tryb B), cudza jako obca (tryb D) — bez połączonego
      * konta każda jest obca.
      */

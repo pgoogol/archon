@@ -27,12 +27,12 @@ import java.util.stream.Collectors;
 /**
  * Buduje pulę kandydatów i oddaje ją generatorowi (M4.2) albo dobieraniu do
  * gotowego setu (M4.4). Nic nie zapisuje — propozycja to materiał do obejrzenia,
- * a skład setu zmienia DJ istniejącą drogą (D26/D32).
+ * a skład setu zmienia DJ istniejącą drogą.
  */
 @Service
 public class SetProposalService {
 
-    /** Sufit puli: biblioteka jednego DJ-a ma rząd 2500 utworów (D2). */
+    /** Sufit puli: biblioteka jednego DJ-a ma rząd 2500 utworów. */
     static final int MAX_CANDIDATES = 2000;
     static final int MIN_TARGET_MINUTES = 15;
     static final int MAX_TARGET_MINUTES = 12 * 60;

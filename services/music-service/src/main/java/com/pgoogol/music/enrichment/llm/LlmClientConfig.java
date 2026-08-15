@@ -7,7 +7,7 @@ import org.springframework.web.client.RestClient;
 import java.util.Locale;
 
 /**
- * Wybór implementacji {@link LlmClient} wyłącznie z konfiguracji (D15).
+ * Wybór implementacji {@link LlmClient} wyłącznie z konfiguracji.
  */
 @Configuration
 public class LlmClientConfig {

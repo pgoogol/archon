@@ -4,11 +4,11 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 /**
- * Pełny rekord katalogu (D5) — kontrakt Catalog API.
+ * Pełny rekord katalogu — kontrakt Catalog API.
  *
  * <p>{@code camelot} nie jest kolumną: liczymy go z {@code musicalKey} przy
- * mapowaniu (D25), tak samo jak {@code djSlot} w playliście liczymy z bpm
- * i energii (D9).</p>
+ * mapowaniu, tak samo jak {@code djSlot} w playliście liczymy z bpm
+ * i energii.</p>
  */
 public record TrackResponse(
     String spotifyId,

@@ -9,8 +9,8 @@ import java.math.BigDecimal;
 /**
  * Żądanie propozycji setu (M4.2) — czas wieczoru plus te same filtry, którymi
  * DJ zawęża wyszukiwarkę. {@code seed} pozwala wrócić do wcześniejszej
- * propozycji; bez niego każde wywołanie daje inny układ (D26).
- * {@code curve} wybiera kształt wieczoru (M4.5, D33); brak = {@code STANDARD}.
+ * propozycji; bez niego każde wywołanie daje inny układ.
+ * {@code curve} wybiera kształt wieczoru (M4.5); brak = {@code STANDARD}.
  */
 public record SetProposalRequest(
     @NotNull @Min(15) @Max(720) Integer targetMinutes,

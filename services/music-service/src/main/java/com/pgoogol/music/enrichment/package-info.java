@@ -1,5 +1,5 @@
 /**
  * Wzbogacanie utworów — klienci źródeł (Spotify, MusicBrainz, Deezer),
- * kaskada BPM (D6), warstwa LLM (D15) i joby Spring Batch (D10).
+ * kaskada BPM, warstwa LLM i joby Spring Batch.
  */
 package com.pgoogol.music.enrichment;

@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Komórki CSV z metrykami (D24) — skale, zapisy tonacji i wartości do odrzucenia.
+ * Komórki CSV z metrykami — skale, zapisy tonacji i wartości do odrzucenia.
  */
 class MetricValueParserTest {
 

@@ -37,7 +37,7 @@ import static org.mockito.Mockito.verify;
 
 /**
  * Import playlisty ze Spotify. Trzy zachowania decydują o poprawności: playlista
- * połączonego konta jest własna, a cudza obca (D4); metadane istniejącego utworu
+ * połączonego konta jest własna, a cudza obca; metadane istniejącego utworu
  * uzupełniamy tylko tam, gdzie są puste (wzbogacanie jest właścicielem tego,
  * co już ustalone); a ponowny import odtwarza kolejność zamiast dokładać duplikaty.
  */

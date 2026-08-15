@@ -65,7 +65,7 @@ class LibraryOverviewIntegrationTest {
         save("sp-rock-1", GenreFamily.ROCK, 128, BpmSource.LLM, "low", TempoClass.FAST);
         save("sp-goly", null, null, null, null, null);
 
-        // dwa zapisy tej samej tonacji — na kole Camelot mają zejść się w 2A (D25)
+        // dwa zapisy tej samej tonacji — na kole Camelot mają zejść się w 2A
         describe("sp-latin-1", 1998, 240_000, "Eb minor", "salsa dura", "Contra La Corriente");
         describe("sp-latin-2", 2004, 195_000, "D# minor", "bachata", "Contra La Corriente");
         describe("sp-rock-1", 2015, 300_000, "C major", "rock", "Wybór");
@@ -119,7 +119,7 @@ class LibraryOverviewIntegrationTest {
     }
 
     @Test
-    @DisplayName("udział źródeł BPM pokazuje, ile biblioteki to fakt, a ile estymata (D19)")
+    @DisplayName("udział źródeł BPM pokazuje, ile biblioteki to fakt, a ile estymata")
     void overview_reportsBpmSourceShare() throws Exception {
 
         mockMvc.perform(get("/api/library/overview"))
@@ -151,7 +151,7 @@ class LibraryOverviewIntegrationTest {
     }
 
     @Test
-    @DisplayName("koło Camelot skleja enharmoniczne zapisy tej samej tonacji (D25)")
+    @DisplayName("koło Camelot skleja enharmoniczne zapisy tej samej tonacji")
     void overview_mergesEnharmonicSpellingsIntoOneWheelPosition() throws Exception {
 
         mockMvc.perform(get("/api/library/overview"))
@@ -177,7 +177,7 @@ class LibraryOverviewIntegrationTest {
     }
 
     @Test
-    @DisplayName("profil brzmienia uśrednia metryki ręczne (D24)")
+    @DisplayName("profil brzmienia uśrednia metryki ręczne")
     void overview_averagesManualMetrics() throws Exception {
 
         mockMvc.perform(get("/api/library/overview"))
@@ -240,7 +240,7 @@ class LibraryOverviewIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.taste.topAlbums[0].label").value("Contra La Corriente"))
             .andExpect(jsonPath("$.taste.topAlbums[0].count").value(2))
-            // playlisty i sety mają własne zakładki (D36)
+            // playlisty i sety mają własne zakładki
             .andExpect(jsonPath("$.taste.sources").doesNotExist())
             .andExpect(jsonPath("$.scale.playlists").doesNotExist())
             .andExpect(jsonPath("$.scale.tracksOutsidePlaylists").doesNotExist());

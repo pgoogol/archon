@@ -18,7 +18,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 /**
- * Cykliczne odświeżanie playlist (D35). Zadanie leci w tle bez nikogo, kto by
+ * Cykliczne odświeżanie playlist. Zadanie leci w tle bez nikogo, kto by
  * je oglądał, więc najważniejsze jest to, czego <b>nie</b> robi: nie woła
  * Spotify bez połączonego konta i nie wypuszcza wyjątku, który zatrzymałby
  * harmonogram.
@@ -56,7 +56,7 @@ class PlaylistRefreshSchedulerTest {
     @DisplayName("bez połączonego konta nie woła Spotify — to normalny stan, nie awaria")
     void refresh_whenAccountNotConnected_skipsWithoutCallingSpotify() {
 
-        // given — świeża instalacja, OAuth jeszcze nieprzeprowadzone (D20)
+        // given — świeża instalacja, OAuth jeszcze nieprzeprowadzone
         PlaylistRefreshScheduler scheduler = scheduler(true);
         given(accountService.connectedUserId()).willReturn(Optional.empty());
 

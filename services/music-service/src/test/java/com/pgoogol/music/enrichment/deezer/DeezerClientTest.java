@@ -38,7 +38,7 @@ class DeezerClientTest {
     @Test
     void findBpmByIsrc_whenBpmZero_returnsEmpty(WireMockRuntimeInfo wireMock) {
 
-        // given — Deezer zwraca bpm=0 gdy nie zna wartości (D6)
+        // given — Deezer zwraca bpm=0 gdy nie zna wartości
         stubFor(get(urlPathEqualTo("/track/isrc:PLXXX0000001"))
             .willReturn(okJson("{\"id\": 123, \"title\": \"Utwór bez BPM\", \"bpm\": 0}")));
         DeezerClient client = deezerClient(wireMock);

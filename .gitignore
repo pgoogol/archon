@@ -12,7 +12,7 @@ dist/
 playwright-report/
 test-results/
 
-# === sekrety (D14) — w repo wyłącznie .env.example ===
+# === sekrety — w repo wyłącznie .env.example ===
 .env
 .env.*
 !.env.example

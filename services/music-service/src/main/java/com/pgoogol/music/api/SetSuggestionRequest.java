@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Min;
 import java.math.BigDecimal;
 
 /**
- * Żądanie dobrania utworu na wskazane miejsce w secie (M4.4, D32).
+ * Żądanie dobrania utworu na wskazane miejsce w secie (M4.4).
  *
  * @param position miejsce wstawienia: 0 przed pierwszym utworem, {@code null}
  *                 albo długość setu — na koniec

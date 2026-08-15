@@ -9,7 +9,7 @@ import java.time.Instant;
 import java.util.Objects;
 
 /**
- * Połączone konto Spotify właściciela (D4/D20). Narzędzie jest jednoosobowe (D2),
+ * Połączone konto Spotify właściciela. Narzędzie jest jednoosobowe,
  * więc w tabeli żyje dokładnie jeden wiersz o stałym {@link #SINGLE_ROW_ID} —
  * ponowne połączenie nadpisuje ten sam rekord. Tokeny nie opuszczają serwera:
  * nie trafiają do odpowiedzi API ani do logów (docs/rules/security.md).

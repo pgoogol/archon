@@ -33,7 +33,7 @@ import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/catalog")
-@Tag(name = "Catalog", description = "Katalog utworów — dane deterministyczne (D3)")
+@Tag(name = "Catalog", description = "Katalog utworów — dane deterministyczne")
 public class CatalogController {
 
     static final int DEFAULT_PAGE_SIZE = 20;
@@ -65,7 +65,7 @@ public class CatalogController {
     }
 
     @GetMapping("/tracks/{spotifyId}/metrics")
-    @Operation(summary = "Metryki utworu wgrane ręcznie z CSV (D24)",
+    @Operation(summary = "Metryki utworu wgrane ręcznie z CSV",
         description = "Surowe wartości z pliku: cechy w skali 0..1, BPM bez korekty half-time. "
             + "204, gdy utwór nie dostał jeszcze metryk.")
     public ResponseEntity<TrackMetricsResponse> getTrackMetrics(@PathVariable String spotifyId) {
@@ -77,7 +77,7 @@ public class CatalogController {
     }
 
     @GetMapping("/metrics-coverage")
-    @Operation(summary = "Ile utworów katalogu ma metryki z pliku (D24)",
+    @Operation(summary = "Ile utworów katalogu ma metryki z pliku",
         description = "Kontekst dla filtrów valenceMin/valenceMax/instrumentalMin/livenessMax — "
             + "działają wyłącznie na utworach z metrykami, więc UI musi pokazać pokrycie.")
     public MetricsCoverageResponse getMetricsCoverage() {
@@ -91,15 +91,15 @@ public class CatalogController {
         description = "Pełnotekstowo (tsvector) + fuzzy (pg_trgm) po tytule/wykonawcy; "
             + "filtry utworu: genreFamily, yearMin/yearMax, durationMinSec/durationMaxSec, "
             + "popularityMin, explicit; "
-            + "filtry brzmienia: bpmMin/bpmMax, tempoClass, energy oraz harmonia (D25): "
+            + "filtry brzmienia: bpmMin/bpmMax, tempoClass, energy oraz harmonia: "
             + "camelot (np. 8A) + camelotCompatible (true = także sąsiedzi na kole "
             + "i tonacja równoległa); "
-            + "filtry biblioteki DJ-a (D3): inLibrary (true = tylko z biblioteki, "
+            + "filtry biblioteki DJ-a: inLibrary (true = tylko z biblioteki, "
             + "false = tylko spoza), ratingMin, tag; "
-            + "filtry metryk (D24): valenceMin/valenceMax, instrumentalMin, livenessMax — "
+            + "filtry metryk: valenceMin/valenceMax, instrumentalMin, livenessMax — "
             + "odsiewają utwory bez metryk, por. /api/catalog/metrics-coverage; "
             + "filtry kompletności danych: bpmSource (MANUAL/ACOUSTICBRAINZ/DEEZER/LLM, "
-            + "kryterium D19) i missing (METADATA/AUDIO/AI/ANY); "
+            + "kryterium jakości tempa) i missing (METADATA/AUDIO/AI/ANY); "
             + "sortowanie: sort (RELEVANCE domyślnie, TITLE, ARTIST, ALBUM, YEAR, BPM, "
             + "POPULARITY, DURATION, DANCEABILITY, ENERGY, RATING, ADDED_AT) "
             + "+ direction (ASC/DESC), braki zawsze na końcu; "

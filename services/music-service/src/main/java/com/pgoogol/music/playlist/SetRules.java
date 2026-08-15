@@ -10,9 +10,9 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Reguły układania setu (D26) wspólne dla generatora od zera
+ * Reguły układania setu wspólne dla generatora od zera
  * ({@link SetGenerator}) i dobierania do gotowego setu ({@link SetSuggester},
- * M4.4/D32). Obie ścieżki muszą oceniać kandydata tak samo — inaczej „dobierz
+ * M4.4). Obie ścieżki muszą oceniać kandydata tak samo — inaczej „dobierz
  * następny" podpowiadałoby utwór, którego generator by nie wybrał, i DJ
  * dostawałby dwie różne opinie o tej samej bibliotece.
  *
@@ -33,7 +33,7 @@ public class SetRules {
 
     static final long ARTIST_GAP_MS = Duration.ofMinutes(ARTIST_GAP_MINUTES).toMillis();
 
-    /** Kolejność faz wieczoru (D9) — po niej liczymy odległość slotu od fazy. */
+    /** Kolejność faz wieczoru — po niej liczymy odległość slotu od fazy. */
     static final List<DjSlot> PHASE_ORDER =
         List.of(DjSlot.WARMUP, DjSlot.MIDDLE, DjSlot.PEAK, DjSlot.CLOSING);
 
@@ -78,7 +78,7 @@ public class SetRules {
         return penalty + 2 * Math.max(0, jump - BPM_JUMP_TOLERANCE);
     }
 
-    /** Nieznana tonacja po którejkolwiek stronie to brak danych, nie zderzenie (D25). */
+    /** Nieznana tonacja po którejkolwiek stronie to brak danych, nie zderzenie. */
     public boolean isHarmonic(SetCandidate previous, SetCandidate candidate) {
 
         Optional<CamelotKey> before = previous.key();

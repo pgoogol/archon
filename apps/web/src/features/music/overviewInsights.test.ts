@@ -37,7 +37,7 @@ describe('cumulativeGrowth', () => {
 
 describe('bpmFacts', () => {
 
-  it('liczy pomiar i estymatę osobno, pomijając utwory bez tempa (D19)', () => {
+  it('liczy pomiar i estymatę osobno, pomijając utwory bez tempa', () => {
 
     const facts = bpmFacts([
       { label: 'MANUAL', count: 120 },
@@ -63,7 +63,7 @@ describe('bpmFacts', () => {
 
 describe('compatibleCamelot', () => {
 
-  it('podaje sąsiadów koła i tonację równoległą (D25)', () => {
+  it('podaje sąsiadów koła i tonację równoległą', () => {
     expect(compatibleCamelot('8A')).toEqual(['9A', '7A', '8B'])
   })
 
@@ -114,7 +114,7 @@ describe('largestBucket', () => {
 
 describe('coverageParts i readinessScore', () => {
 
-  it('liczą pokrycie jako dopełnienie braków z grup pól (D11)', () => {
+  it('liczą pokrycie jako dopełnienie braków z grup pól', () => {
 
     const parts = coverageParts(overviewFixture)
 
@@ -167,7 +167,7 @@ describe('insights', () => {
     expect(found.map((insight) => insight.id)).not.toContain('unused')
   })
 
-  it('podpowiada tonacje wchodzące zgodnie z dominującą (D25)', () => {
+  it('podpowiada tonacje wchodzące zgodnie z dominującą', () => {
 
     const key = insights(overviewFixture).find((insight) => insight.id === 'key')
 

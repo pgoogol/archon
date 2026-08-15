@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 
 /**
- * Test E2E przepływu (M5.3/D30) — przeciw DWÓM OSOBNYM APLIKACJOM, tak jak
+ * Test E2E przepływu (M5.3) — przeciw DWÓM OSOBNYM APLIKACJOM, tak jak
  * działają na produkcji: zbudowany front podany statycznie (`vite preview`,
  * odpowiednik nginksa z obrazu) i backend jako osobny proces, z API pod
  * względnym /api przez proxy. Nie serwer dev z HMR-em i nie jeden artefakt.
@@ -31,7 +31,7 @@ export default defineConfig({
     baseURL: `http://127.0.0.1:${WEB_PORT}`,
     trace: 'retain-on-failure',
   },
-  // Jedna przeglądarka wystarczy: aplikacja jest narzędziem jednego DJ-a (D2),
+  // Jedna przeglądarka wystarczy: aplikacja jest narzędziem jednego DJ-a,
   // a od E2E chcemy sygnału „całość działa", nie macierzy zgodności.
   // E2E_CHROMIUM_PATH pozwala wskazać Chromium już obecne w systemie (obrazy CI
   // i kontenery deweloperskie często je mają) zamiast pobierać własne.

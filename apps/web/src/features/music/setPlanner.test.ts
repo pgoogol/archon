@@ -157,7 +157,7 @@ describe('arrangeBySlot', () => {
   })
 })
 
-describe('zgodność harmoniczna (D25)', () => {
+describe('zgodność harmoniczna', () => {
 
   it('uznaje za zgodne tę samą tonację, sąsiadów na kole i tonację równoległą', () => {
 
@@ -325,7 +325,7 @@ describe('arrangeBy', () => {
     expect(arrangeBy(tracks, 'HARMONY')).toEqual(['start', 'zgodny', 'zderzenie'])
   })
 
-  it('tryb faz robi to samo co układanie wg slotów D9 z M3.1', () => {
+  it('tryb faz robi to samo co układanie wg slotów wieczoru z M3.1', () => {
 
     const tracks = [
       aPlaylistTrack({ spotifyId: 'szczyt', bpm: 130 }, 'PEAK', 0),
@@ -335,7 +335,7 @@ describe('arrangeBy', () => {
     expect(arrangeBy(tracks, 'PHASES')).toEqual(arrangeBySlot(tracks))
   })
 
-  it('każdy tryb zwraca permutację składu — kontrakt PUT /tracks (D21)', () => {
+  it('każdy tryb zwraca permutację składu — kontrakt PUT /tracks', () => {
 
     const tracks = [
       aPlaylistTrack({ spotifyId: 'a', bpm: 120, camelot: '8A', energy: 'high' }, 'PEAK', 0),
@@ -359,7 +359,7 @@ describe('arrangeBy', () => {
 
 describe('arrangeBy — tryby falowe (M4.6)', () => {
 
-  /** Utwór z intensywnością podaną zmierzoną energią z pliku (D24). */
+  /** Utwór z intensywnością podaną zmierzoną energią z pliku. */
   function measured(spotifyId: string, energy: number) {
     return aPlaylistTrack({ spotifyId, bpm: 120 }, 'MIDDLE', 0, {
       metrics: aMetrics({ energy }),
@@ -407,7 +407,7 @@ describe('arrangeBy — tryby falowe (M4.6)', () => {
     expect(energies.at(-1)).toBeLessThan(Math.max(...energies))
   })
 
-  it('zmierzona energia z pliku bije BPM przy liczeniu intensywności (D34)', () => {
+  it('zmierzona energia z pliku bije BPM przy liczeniu intensywności', () => {
 
     // BPM sugeruje odwrotną kolejność niż zmierzona energia — wygrywa plik
     const tracks = [

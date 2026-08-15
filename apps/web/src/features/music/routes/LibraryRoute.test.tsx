@@ -74,7 +74,7 @@ describe('LibraryRoute', () => {
     expect(within(rowWithGaps).getByText('do wzbogacenia')).toBeInTheDocument()
   })
 
-  it('tabela opisuje utwór, a dane prywatne DJ-a zostawia szufladzie (D39)', async () => {
+  it('tabela opisuje utwór, a dane prywatne DJ-a zostawia szufladzie', async () => {
 
     renderLibrary()
     await screen.findByText('Vivir Mi Vida')
@@ -179,7 +179,7 @@ describe('LibraryRoute', () => {
     expect(window.location.hash).toContain('durMax=240')
   })
 
-  it('panel filtrów ma już tylko utwór i brzmienie (D39)', async () => {
+  it('panel filtrów ma już tylko utwór i brzmienie', async () => {
 
     const user = userEvent.setup()
     renderLibrary()
@@ -238,7 +238,7 @@ describe('LibraryRoute', () => {
     expect(window.location.hash).not.toContain('durMax=240')
   })
 
-  it('zdjęty filtr ze starego linku nie zawęża wyniku ani nie wraca na ekran (D39)', async () => {
+  it('zdjęty filtr ze starego linku nie zawęża wyniku ani nie wraca na ekran', async () => {
 
     window.location.hash = '#/library?lib=yes&missing=ANY&instr=0.5'
     renderLibrary()

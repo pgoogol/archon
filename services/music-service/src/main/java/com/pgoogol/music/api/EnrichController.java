@@ -21,7 +21,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/enrich")
-@Tag(name = "Enrichment", description = "Joby wzbogacania Spring Batch (D10)")
+@Tag(name = "Enrichment", description = "Joby wzbogacania Spring Batch")
 public class EnrichController {
 
     private final EnrichmentService enrichmentService;
@@ -34,7 +34,7 @@ public class EnrichController {
     @ResponseStatus(HttpStatus.ACCEPTED)
     @Operation(summary = "Zlecenie wzbogacania (asynchroniczne)",
         description = "scope: SINGLE/SELECTED (z spotifyIds, max 100), MISSING (wg braków) "
-            + "albo OUTDATED (utwory opisane starszym modelem/promptem — wyłącznie grupa AI, D28); "
+            + "albo OUTDATED (utwory opisane starszym modelem/promptem — wyłącznie grupa AI); "
             + "fields: podzbiór METADATA/AUDIO/AI. Zlecenie ponad llm.max-tracks-per-job "
             + "kończy się 400 ENRICH_TOO_MANY_TRACKS — sprawdź wcześniej /api/enrich/estimate.")
     public Map<String, Long> startEnrichment(@Valid @RequestBody EnrichRequest request) {
@@ -46,8 +46,8 @@ public class EnrichController {
 
     @PostMapping("/estimate")
     @Operation(summary = "Ile utworów obejmie zlecenie i ile będzie kosztowało",
-        description = "Nie uruchamia niczego (D28). Koszt liczony tylko dla grupy AI — metadane "
-            + "i cechy audio jadą z darmowych źródeł (D6). Pusty koszt oznacza brak stawek "
+        description = "Nie uruchamia niczego. Koszt liczony tylko dla grupy AI — metadane "
+            + "i cechy audio jadą z darmowych źródeł. Pusty koszt oznacza brak stawek "
             + "w konfiguracji (llm.cost.input-per-1m / llm.cost.output-per-1m), nie zero.")
     public EnrichmentEstimateResponse estimate(@Valid @RequestBody EnrichRequest request) {
 
@@ -74,7 +74,7 @@ public class EnrichController {
     }
 
     @GetMapping("/jobs/{executionId}/failures")
-    @Operation(summary = "Utwory pominięte przez job razem z powodem (D37)",
+    @Operation(summary = "Utwory pominięte przez job razem z powodem",
         description = "Job nie przerywa się na pierwszym błędzie — przechodzi przez całą listę "
             + "i pomija to, co padło. Ta lista mówi, co dokładnie odpadło i dlaczego.")
     public List<EnrichFailureResponse> jobFailures(@PathVariable long executionId,
@@ -93,7 +93,7 @@ public class EnrichController {
     }
 
     @GetMapping("/missing-count")
-    @Operation(summary = "Liczba utworów z brakami per grupa pól (D11)")
+    @Operation(summary = "Liczba utworów z brakami per grupa pól")
     public MissingFieldsCount missingCount() {
         return enrichmentService.missingCount();
     }

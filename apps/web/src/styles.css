@@ -988,7 +988,7 @@ td .stars-static { font-size: 12px; letter-spacing: -1px; }
   background: var(--panel-2);
 }
 
-/* --- przegląd biblioteki: pulpit (M4.3, przebudowa M5.4/D36) --- */
+/* --- przegląd biblioteki: pulpit (M4.3, przebudowa M5.4) --- */
 
 /*
  * Sześć kolumn zamiast dwóch panelów obok siebie: moduł ma dostać dokładnie
@@ -1282,7 +1282,7 @@ td .stars-static { font-size: 12px; letter-spacing: -1px; }
 /*
  * Rampa kolorów wykresów. Świadomie osobna od kolorów semantycznych (akcent =
  * akcja, cyjan = pomiar): segmenty jednego paska muszą się od siebie odróżniać,
- * a znaczenie i tak niesie legenda (D23). Podmiana palety = podmiana tych sześciu.
+ * a znaczenie i tak niesie legenda. Podmiana palety = podmiana tych sześciu.
  */
 .viz-tone-0 { background: var(--viz-1); }
 .viz-tone-1 { background: var(--viz-2); }
@@ -1412,7 +1412,7 @@ td .stars-static { font-size: 12px; letter-spacing: -1px; }
 @keyframes bar-grow { from { transform: scaleY(0); } }
 .chart-tick { fill: var(--muted); font: 9px var(--font-mono); }
 
-/* --- historia jobów: pominięte utwory (M5.5/D37) --- */
+/* --- historia jobów: pominięte utwory (M5.5) --- */
 
 /* pominięcia nie są awarią przebiegu, ale mają kłuć w oczy — job kończy się
    zielono także wtedy, gdy odpadła połowa listy */

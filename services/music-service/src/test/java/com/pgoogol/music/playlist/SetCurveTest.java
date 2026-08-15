@@ -13,7 +13,7 @@ class SetCurveTest {
 
     @ParameterizedTest
     @EnumSource(SetCurve.class)
-    @DisplayName("każdy profil obejmuje cztery fazy D9 w kolejności i sumuje się do całości")
+    @DisplayName("każdy profil obejmuje cztery fazy wieczoru w kolejności i sumuje się do całości")
     void shouldCoverWholeEveningInOrder(SetCurve curve) {
 
         List<SetCurve.Phase> phases = curve.phases();

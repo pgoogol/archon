@@ -14,7 +14,7 @@ import jakarta.persistence.Table;
 import java.util.Objects;
 
 /**
- * Utwór na playliście z pozycją; utwór występuje na playliście najwyżej raz (D17).
+ * Utwór na playliście z pozycją; utwór występuje na playliście najwyżej raz.
  */
 @Entity
 @Table(name = "playlist_track")

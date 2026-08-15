@@ -34,7 +34,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 /**
- * Import metryk z pliku (D24). Dopasowanie idzie po spotify_id, a gdy go brak —
+ * Import metryk z pliku. Dopasowanie idzie po spotify_id, a gdy go brak —
  * po ISRC, który identyfikuje nagranie, więc trafia do wszystkich jego wydań.
  * Wiersz bez odpowiednika w katalogu jest pomijany z raportem, nie zakłada
  * utworu: biblioteka jedzie ze Spotify, plik ma tylko dołożyć metryki.
@@ -145,7 +145,7 @@ class MetricsIngestionServiceTest {
     @DisplayName("kolumna nieobecna w pliku kasuje poprzednią wartość metryki")
     void ingest_whenColumnAbsent_clearsPreviousValue() {
 
-        // given — plik jest źródłem prawdy dla metryk (D24)
+        // given — plik jest źródłem prawdy dla metryk
         TrackCatalog track = TrackCatalogFixtures.enrichedTrack(SPOTIFY_ID);
         ManualMetrics existing = persistedMetrics(track);
         existing.setValence(new BigDecimal("0.900"));

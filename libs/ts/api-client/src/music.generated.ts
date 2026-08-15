@@ -45,7 +45,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Metryki wgrane z pliku (D24) */
+        /** Metryki wgrane z pliku */
         get: operations["getTrackMetrics"];
         put?: never;
         post?: never;
@@ -107,7 +107,7 @@ export interface paths {
         /**
          * Zmiana danych prywatnych DJ-a
          * @description Pole pominięte zostaje bez zmian; pusta wartość czyści pole.
-         *     `version` jest wymagana (D29) — nieświeża kończy się 409.
+         *     `version` jest wymagana — nieświeża kończy się 409.
          */
         patch: operations["updateLibraryTrack"];
         trace?: never;
@@ -119,7 +119,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Przegląd biblioteki — rozkłady liczone w bazie (D27) */
+        /** Przegląd biblioteki — rozkłady liczone w bazie */
         get: operations["getLibraryOverview"];
         put?: never;
         post?: never;
@@ -354,7 +354,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Utwory pominięte w przebiegu wraz z powodem (D37) */
+        /** Utwory pominięte w przebiegu wraz z powodem */
         get: operations["getEnrichJobFailures"];
         put?: never;
         post?: never;
@@ -424,7 +424,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Import metryk z jednego lub wielu plików (D24) */
+        /** Import metryk z jednego lub wielu plików */
         post: operations["ingestMetrics"];
         delete?: never;
         options?: never;
@@ -598,7 +598,7 @@ export interface components {
             bpmSource: string | null;
             danceability: number | null;
             musicalKey: string | null;
-            /** @description Liczona z `musicalKey` przez backend (D25) — nie kolumna w bazie */
+            /** @description Liczona z `musicalKey` przez backend — nie kolumna w bazie */
             camelot: string | null;
             tempoClass: string | null;
             energy: string | null;
@@ -825,7 +825,7 @@ export interface components {
             name: string;
             /**
              * Format: int32
-             * @description Wymagana przy zmianie nazwy (D29); pomijana przy tworzeniu
+             * @description Wymagana przy zmianie nazwy; pomijana przy tworzeniu
              */
             version?: number | null;
         };
@@ -1150,7 +1150,7 @@ export interface operations {
                 bpmMax?: number;
                 tempoClass?: components["schemas"]["TempoClass"];
                 energy?: string;
-                /** @description Pozycja koła Camelot, np. `8A` (D25) */
+                /** @description Pozycja koła Camelot, np. `8A` */
                 camelot?: string;
                 /** @description Rozszerza filtr o tonacje zgodne (±1 i równoległa) */
                 camelotCompatible?: boolean;

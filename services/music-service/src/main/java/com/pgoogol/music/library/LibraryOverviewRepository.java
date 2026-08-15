@@ -14,7 +14,7 @@ import java.util.Objects;
 
 /**
  * Liczby i próbki przeglądu biblioteki (M4.3, rozszerzone w M5.4) liczone
- * w bazie (D27) — front nie dostaje 2500 wierszy po to, żeby je zliczyć
+ * w bazie — front nie dostaje 2500 wierszy po to, żeby je zliczyć
  * w przeglądarce. Rozkłady mieszkają obok, w {@link LibraryDistributionsRepository}.
  *
  * <p>Bez cache: kilkanaście agregatów na tej skali Postgres liczy w kilkanaście
@@ -32,7 +32,7 @@ public class LibraryOverviewRepository {
     private static final int RECENT_TRACKS = 12;
 
     /**
-     * Liczby nagłówkowe jednym zapytaniem — wyłącznie o utworach (D36).
+     * Liczby nagłówkowe jednym zapytaniem — wyłącznie o utworach.
      * Czas, wykonawców i albumy liczymy po bibliotece, nie po katalogu: katalog
      * trzyma też utwory, które DJ zna ze wzbogacania, ale których u siebie nie ma.
      */
@@ -93,7 +93,7 @@ public class LibraryOverviewRepository {
         """;
 
     /**
-     * Uśredniony profil brzmienia z metryk ręcznych (D24). Puste
+     * Uśredniony profil brzmienia z metryk ręcznych. Puste
      * {@code manual_metrics} daje same {@code null}-e i pusty profil —
      * średnia z zera utworów to nie zero, tylko brak odpowiedzi.
      */

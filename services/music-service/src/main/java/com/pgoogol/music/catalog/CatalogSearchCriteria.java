@@ -11,11 +11,11 @@ import java.util.Objects;
  *
  * <p>Filtry chodzą w grupach, a nie w jednym płaskim rzędzie kilkunastu pól:
  * grupa mówi, <em>o co</em> pytamy ({@link TrackFilter} — sam utwór,
- * {@link SoundFilter} — brzmienie, {@link LibraryFilter} — dane prywatne DJ-a
- * (D3), {@link MetricFilter} — metryki z pliku (D24), {@link QualityFilter} —
+ * {@link SoundFilter} — brzmienie, {@link LibraryFilter} — dane prywatne DJ-a,
+ * {@link MetricFilter} — metryki z pliku, {@link QualityFilter} —
  * kompletność danych). Konstruktor z osiemnastoma argumentami tego samego typu
  * nie ma jak wyłapać przestawienia {@code bpmMin} z {@code yearMin} —
- * ten sam argument, który w D36 kazał rozbić kontrakt przeglądu.</p>
+ * ten sam argument, który kazał rozbić kontrakt przeglądu.</p>
  */
 public record CatalogSearchCriteria(
     @Nullable String search,
@@ -39,7 +39,7 @@ public record CatalogSearchCriteria(
     }
 
     /**
-     * Filtry samego utworu (D5): gatunek, rocznik, długość, popularność i to,
+     * Filtry samego utworu: gatunek, rocznik, długość, popularność i to,
      * czy tekst jest oznaczony jako explicit — przy weselu to nie ciekawostka,
      * tylko kryterium.
      */
@@ -56,7 +56,7 @@ public record CatalogSearchCriteria(
             new TrackFilter(null, null, null, null, null, null, null);
     }
 
-    /** Filtry brzmienia: tempo, energia i harmonia (D25). */
+    /** Filtry brzmienia: tempo, energia i harmonia. */
     public record SoundFilter(
         @Nullable Integer bpmMin,
         @Nullable Integer bpmMax,
@@ -68,8 +68,8 @@ public record CatalogSearchCriteria(
     }
 
     /**
-     * Filtry po danych prywatnych DJ-a (M3.2): wyszukiwarka chodzi po katalogu
-     * (D3), ale potrafi zawęzić go do tego, co jest (albo czego nie ma)
+     * Filtry po danych prywatnych DJ-a (M3.2): wyszukiwarka chodzi po katalogu,
+     * ale potrafi zawęzić go do tego, co jest (albo czego nie ma)
      * w bibliotece.
      */
     public record LibraryFilter(
@@ -81,7 +81,7 @@ public record CatalogSearchCriteria(
     }
 
     /**
-     * Filtr harmoniczny (D25): pozycja koła Camelot i to, czy zawęzić do niej
+     * Filtr harmoniczny: pozycja koła Camelot i to, czy zawęzić do niej
      * samej, czy rozszerzyć do zbioru zgodnych (ta sama tonacja, ±1, równoległa).
      */
     public record HarmonicFilter(CamelotKey key, boolean compatible) {
@@ -92,7 +92,7 @@ public record CatalogSearchCriteria(
     }
 
     /**
-     * Filtry po metrykach wgranych z pliku (D24/D25). Działają wyłącznie dla
+     * Filtry po metrykach wgranych z pliku. Działają wyłącznie dla
      * utworów, które te metryki dostały — utwór bez wiersza w {@code manual_metrics}
      * wypada z wyniku, bo porównanie z NULL-em nie jest prawdziwe. To celowe,
      * ale UI musi to mówić wprost licznikiem pokrycia, inaczej pusty wynik
@@ -109,7 +109,7 @@ public record CatalogSearchCriteria(
 
     /**
      * Filtry kompletności danych (M5.6): skąd wzięło się tempo (pomiar czy
-     * estymata LLM — kryterium D19) i czego utworowi brakuje. Dzięki nim badge
+     * estymata LLM — kryterium jakości tempa) i czego utworowi brakuje. Dzięki nim badge
      * „do wzbogacenia" z tabeli daje się zamienić w zaznaczenie i wysłać do joba,
      * zamiast szukać braków oczami strona po stronie.
      */

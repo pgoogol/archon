@@ -13,7 +13,7 @@ import org.springframework.web.client.RestClient;
 import java.util.Objects;
 
 /**
- * Wymiana i odświeżanie tokenów konta właściciela (Authorization Code + PKCE — D4)
+ * Wymiana i odświeżanie tokenów konta właściciela (Authorization Code + PKCE)
  * oraz odczyt profilu {@code /v1/me}. PKCE nie wymaga client_secret — dowodem
  * tożsamości klienta jest {@code code_verifier}.
  */

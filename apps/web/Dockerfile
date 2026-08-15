@@ -1,7 +1,7 @@
 # Obraz frontu — statyki zbudowane Vite i podane przez nginx. To osobna
 # aplikacja od serwisu: własny obraz, własny cykl życia, własny port.
 # nginx przekazuje /api na backend, więc front woła adresy względne i nie
-# trzeba otwierać CORS-a w aplikacji bez auth (D2/D14).
+# trzeba otwierać CORS-a w aplikacji bez auth.
 #
 # Kontekstem builda jest KATALOG GŁÓWNY repozytorium: front zależy od
 # @archon/api-client z libs/ts, więc sam katalog apps/web nie wystarczy.

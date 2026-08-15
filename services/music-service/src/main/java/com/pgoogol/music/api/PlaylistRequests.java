@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Zlecenia zmian playlisty — kontrakty {@code /api/playlists*}.
  *
- * <p>{@code version} jedzie w ciele, nie w nagłówku {@code If-Match} (D29):
+ * <p>{@code version} jedzie w ciele, nie w nagłówku {@code If-Match}:
  * front trzyma cały obiekt w stanie widoku, więc wersja jedzie z nim za darmo,
  * a ETagi wymagałyby osobnego magazynu obok stanu.</p>
  */
@@ -20,7 +20,7 @@ public final class PlaylistRequests {
 
     }
 
-    /** {@code version} wymagana przy zmianie nazwy istniejącego setu (D29). */
+    /** {@code version} wymagana przy zmianie nazwy istniejącego setu. */
     public record SavePlaylistRequest(@NotBlank @Size(max = 255) String name, Integer version) {
 
     }

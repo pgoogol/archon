@@ -2,7 +2,7 @@ package com.pgoogol.music.catalog;
 
 /**
  * Grupa braków, po której da się filtrować katalog (M5.6). Wartości odpowiadają
- * grupom pól wzbogacania z D11 ({@code enrichment.FieldGroup}) i tym samym
+ * grupom pól wzbogacania ({@code enrichment.FieldGroup}) i tym samym
  * warunkom „missing", którymi liczy się braki w zakładce Wzbogacanie — powtórzone
  * tutaj, bo {@code catalog} jest modułem niższym niż {@code enrichment}
  * i nie może o nim wiedzieć.

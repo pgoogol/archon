@@ -1,7 +1,7 @@
 package com.pgoogol.music.catalog;
 
 /**
- * Źródło wartości BPM — audyt kaskady D6 rozszerzonej w D24:
+ * Źródło wartości BPM — audyt kaskady BPM:
  * metryki ręczne → AcousticBrainz → Deezer → LLM.
  */
 public enum BpmSource {

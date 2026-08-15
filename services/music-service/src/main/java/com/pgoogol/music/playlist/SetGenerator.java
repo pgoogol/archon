@@ -16,11 +16,11 @@ import java.util.Random;
 import java.util.Set;
 
 /**
- * Układa propozycję setu na zadany czas (M4.2, rozstrzygnięcia w D26) oraz
- * dokłada dalszy ciąg do setu, który już stoi (M4.4, D32).
+ * Układa propozycję setu na zadany czas (M4.2) oraz
+ * dokłada dalszy ciąg do setu, który już stoi (M4.4).
  *
- * <p><b>Kształt wieczoru wybiera profil</b> {@link SetCurve} (M4.5, D33):
- * fazy D9 i ich kolejność są stałe, zmieniają się tylko proporcje — wesele
+ * <p><b>Kształt wieczoru wybiera profil</b> {@link SetCurve} (M4.5):
+ * fazy wieczoru i ich kolejność są stałe, zmieniają się tylko proporcje — wesele
  * potrzebuje długiej rozgrzewki, klub długiego szczytu.</p>
  *
  * <p>Ograniczenia twarde i miękkie opisuje {@link SetRules} — tam też siedzi

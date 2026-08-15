@@ -18,7 +18,7 @@ import java.util.function.Supplier;
  * Wspólne wejście do API Spotify: jeden limiter na całe konto (osobne limitery
  * w każdym kliencie zwielokrotniłyby dozwolony ruch) + tłumaczenie błędów HTTP
  * na wyjątki domenowe. 429 honoruje {@code Retry-After}, 5xx/timeout jest
- * ponawiany, 404 nie (D16).
+ * ponawiany, 404 nie.
  */
 @Component
 public class SpotifyApiExecutor {

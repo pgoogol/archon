@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * Wspólne wejście CSV importów (M1.2, D24) — tolerancja na felerne cudzysłowy
+ * Wspólne wejście CSV importów (M1.2) — tolerancja na felerne cudzysłowy
  * z eksportów oraz komunikat z numerem wiersza, gdy odczyt naprawdę pada.
  */
 class CsvReaderTest {

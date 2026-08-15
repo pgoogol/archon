@@ -34,7 +34,7 @@ beforeEach(() => {
 
 describe('JobHistory', () => {
 
-  it('pokazuje liczbę pominiętych utworów obok przetworzonych (D37)', () => {
+  it('pokazuje liczbę pominiętych utworów obok przetworzonych', () => {
 
     renderWithToasts(<JobHistory jobs={[aJob()]} onRestart={vi.fn()} busy={false} />)
 

@@ -54,7 +54,7 @@ describe('OverviewRoute', () => {
     expect(screen.getByTestId('readiness')).toBeInTheDocument()
   })
 
-  it('tłumaczy źródła BPM na słowa — ile faktu, ile estymaty (D19)', async () => {
+  it('tłumaczy źródła BPM na słowa — ile faktu, ile estymaty', async () => {
 
     renderRoute(<OverviewRoute />, { refreshKey: 0 })
 

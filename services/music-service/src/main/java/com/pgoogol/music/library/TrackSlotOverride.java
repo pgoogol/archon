@@ -1,7 +1,7 @@
 package com.pgoogol.music.library;
 
 /**
- * Ręczne nadpisanie slotu wieczoru (D9) dla utworu — projekcja pod planowanie
+ * Ręczne nadpisanie slotu wieczoru dla utworu — projekcja pod planowanie
  * setu, żeby nie ciągnąć całych wpisów biblioteki.
  */
 public record TrackSlotOverride(String spotifyId, String djSlotOverride) {

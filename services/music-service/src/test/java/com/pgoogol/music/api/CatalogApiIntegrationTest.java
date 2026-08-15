@@ -62,7 +62,7 @@ class CatalogApiIntegrationTest {
         rock.setBpm(72);
         rock.setTempoClass(TempoClass.SLOW);
         rock.setEnergy("medium");
-        // 8B — tonacja równoległa do 8A utworu sp-vivir (D25)
+        // 8B — tonacja równoległa do 8A utworu sp-vivir
         rock.setMusicalKey("C major");
         trackCatalogRepository.save(rock);
     }

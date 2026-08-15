@@ -13,7 +13,7 @@ import java.util.function.Supplier;
 
 /**
  * Wspólna ochrona wywołań zewnętrznych API (M1.3): rate limiter + retry
- * z wykładniczym backoffem (Resilience4j — D16). Ponawiane są wyłącznie
+ * z wykładniczym backoffem (Resilience4j). Ponawiane są wyłącznie
  * {@link ExternalServiceException} (5xx/timeout/429); 4xx nie są ponawiane.
  * Przy 429 z nagłówkiem Retry-After odczekiwany jest wskazany czas.
  * Limiter działa wewnątrz retry — każda ponowiona próba też podlega limitowi.

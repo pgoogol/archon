@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import java.util.Objects;
 
 /**
- * Sanity-check half-time (§16.1, D6) — wspólny dla kaskady BPM (M1.4)
+ * Sanity-check half-time (§16.1) — wspólny dla kaskady BPM (M1.4)
  * i estymat LLM (M1.5): latin + BPM &lt; 100 → podwojenie, o ile wynik
  * pozostaje w wiarygodnym zakresie tanecznym.
  */

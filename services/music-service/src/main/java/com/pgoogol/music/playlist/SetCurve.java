@@ -7,11 +7,11 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Kształt wieczoru dla generatora setu (M4.5, D33): jak długo trwa każda faza
- * D9 w stosunku do całości. Fazy i ich kolejność są stałe — profil zmienia
+ * Kształt wieczoru dla generatora setu (M4.5): jak długo trwa każda faza
+ * w stosunku do całości. Fazy i ich kolejność są stałe — profil zmienia
  * wyłącznie proporcje, bo to jedyne, co realnie różni wesele od klubu.
  *
- * <p>Do M4.4 krzywa była zaszyta w generatorze jako 25/30/30/15 (D26).
+ * <p>Do M4.4 krzywa była zaszyta w generatorze jako 25/30/30/15.
  * Wystarczała, dopóki narzędzie układało „jakiś wieczór"; przy trzeciej
  * imprezie pod rząd okazało się, że wesele potrzebuje długiej rozgrzewki
  * (goście jedzą), a klub odwrotnie — parkiet jest gorący od pierwszej godziny.
@@ -20,7 +20,7 @@ import java.util.Optional;
  */
 public enum SetCurve {
 
-    /** Domyślny przebieg z D26 — punkt wyjścia, gdy nie wiadomo, co za impreza. */
+    /** Domyślny przebieg — punkt wyjścia, gdy nie wiadomo, co za impreza. */
     STANDARD(0.25, 0.30, 0.30, 0.15),
 
     /** Wesele: długa rozgrzewka (goście przy stołach), szczyt krótszy i wcześniej. */

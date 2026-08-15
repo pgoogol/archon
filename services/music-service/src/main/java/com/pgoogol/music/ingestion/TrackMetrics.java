@@ -7,7 +7,7 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
- * Komplet metryk jednego utworu odczytany z CSV (D24). Cechy w skali 0..1,
+ * Komplet metryk jednego utworu odczytany z CSV. Cechy w skali 0..1,
  * BPM surowy (bez korekty half-time), tonacja w zapisie „G minor".
  * Każde pole jest opcjonalne — eksporty różnią się zestawem kolumn.
  */

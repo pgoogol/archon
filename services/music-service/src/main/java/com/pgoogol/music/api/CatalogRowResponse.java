@@ -5,7 +5,7 @@ import java.util.List;
 
 /**
  * Wiersz wyszukiwarki katalogu (M5.6): dane deterministyczne utworu i — o ile
- * DJ ma go u siebie — jego dane prywatne. Rozdział z D3 obowiązuje też
+ * DJ ma go u siebie — jego dane prywatne. Rozdział danych obowiązuje też
  * w kontrakcie, więc to dwa obiekty, a nie jeden płaski rekord: {@code library}
  * puste znaczy „utwór jest w katalogu, ale nie w bibliotece", a nie „bez oceny".
  */

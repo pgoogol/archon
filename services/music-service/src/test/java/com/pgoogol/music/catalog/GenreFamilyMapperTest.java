@@ -9,7 +9,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Sprowadzanie swobodnych list gatunków do enuma D8 — reguły, które muszą
+ * Sprowadzanie swobodnych list gatunków do enuma rodzin gatunkowych — reguły, które muszą
  * wygrywać z ogólniejszymi (disco polo, latynoskie dance).
  */
 class GenreFamilyMapperTest {

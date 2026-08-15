@@ -29,7 +29,7 @@ import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/sets")
-@Tag(name = "Sets", description = "Generator setu i domykanie gotowego setu (D26, D32)")
+@Tag(name = "Sets", description = "Generator setu i domykanie gotowego setu")
 public class SetController {
 
     private final SetProposalService setProposalService;
@@ -45,10 +45,10 @@ public class SetController {
     @Operation(summary = "Propozycja setu na zadany czas",
         description = "Układa set z utworów spełniających te same filtry co wyszukiwarka: "
             + "kształt wieczoru wg profilu curve (STANDARD 25/30/30/15, WEDDING 30/30/25/15, "
-            + "CLUB 15/25/45/15, EVEN 25/25/25/25 — udziały faz D9), "
+            + "CLUB 15/25/45/15, EVEN 25/25/25/25 — udziały faz wieczoru), "
             + "utwór raz w secie, ten sam wykonawca nie częściej niż raz na 30 minut, "
             + "kary za skok BPM, zderzenie tonacji i brak oceny. "
-            + "NICZEGO NIE ZAPISUJE (D26) — playlistę zakłada DJ przez /api/playlists. "
+            + "NICZEGO NIE ZAPISUJE — playlistę zakłada DJ przez /api/playlists. "
             + "Ten sam seed daje tę samą propozycję.")
     public SetProposalResponse propose(@Valid @RequestBody SetProposalRequest request) {
 
@@ -68,7 +68,7 @@ public class SetController {
         description = "Dokłada dalszy ciąg do setu, który już stoi: utwory z setu zajmują "
             + "początek wieczoru (liczą się do czasu, blokują powtórkę utworu i odstęp "
             + "wykonawcy), a wynikiem jest sama końcówka. targetMinutes to długość CAŁEGO "
-            + "wieczoru, nie tego, co dochodzi. NICZEGO NIE ZAPISUJE (D32) — utwory dopisuje "
+            + "wieczoru, nie tego, co dochodzi. NICZEGO NIE ZAPISUJE — utwory dopisuje "
             + "DJ przez /api/playlists/{id}/tracks. Ten sam seed daje ten sam dalszy ciąg.")
     public SetFillResponse fill(@PathVariable Long playlistId,
                                 @Valid @RequestBody SetFillRequest request) {
@@ -111,7 +111,7 @@ public class SetController {
                 .toList());
     }
 
-    /** Brak profilu w żądaniu to najczęstszy przypadek — domyślny przebieg z D26. */
+    /** Brak profilu w żądaniu to najczęstszy przypadek — domyślny przebieg. */
     private SetCurve curve(String raw) {
 
         if (Objects.isNull(raw) || raw.isBlank()) {

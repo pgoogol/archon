@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Zapytania „missing" per grupa pól (D11/D17) — pola-wyznaczniki braków:
+ * Zapytania „missing" per grupa pól — pola-wyznaczniki braków:
  * METADATA → isrc/year/duration_ms, AUDIO → bpm/musical_key/danceability/tempo_class,
  * AI → style/genre_family/lyrics_theme/description_pl/energy. Mapowanie
  * {@code FieldGroup} → zapytanie robi warstwa serwisowa enrichmentu (M1.6).
@@ -35,8 +35,8 @@ public interface TrackCatalogRepository extends JpaRepository<TrackCatalog, Stri
     List<TrackCatalog> findAiMissing();
 
     /**
-     * Braki we wszystkich trzech grupach pól (D11/D17) jednym przejściem po tabeli
-     * (D27) — wcześniej były to trzy osobne {@code count}-y odpalane przy każdym
+     * Braki we wszystkich trzech grupach pól jednym przejściem po tabeli
+     * — wcześniej były to trzy osobne {@code count}-y odpalane przy każdym
      * wejściu na zakładkę Wzbogacanie.
      */
     @Query(value = """
@@ -66,7 +66,7 @@ public interface TrackCatalogRepository extends JpaRepository<TrackCatalog, Stri
 
     /**
      * Ile utworów obejmie zlecenie o zakresie MISSING dla wybranych grup pól —
-     * potrzebne do szacunku kosztu przed startem joba (D28). Warunki łączy OR,
+     * potrzebne do szacunku kosztu przed startem joba. Warunki łączy OR,
      * bo job bierze utwór, któremu brakuje czegokolwiek z zaznaczonych grup.
      */
     @Query(value = """
@@ -86,7 +86,7 @@ public interface TrackCatalogRepository extends JpaRepository<TrackCatalog, Stri
 
     /**
      * Utwory opisane innym modelem albo inną wersją promptu niż bieżąca
-     * konfiguracja (D28). Utwór nigdy nieopisany tu nie wchodzi — należy
+     * konfiguracja. Utwór nigdy nieopisany tu nie wchodzi — należy
      * do zakresu MISSING.
      */
     @Query(value = """
@@ -101,7 +101,7 @@ public interface TrackCatalogRepository extends JpaRepository<TrackCatalog, Stri
     Set<String> findExistingIds(@Param("spotifyIds") Collection<String> spotifyIds);
 
     /**
-     * Dopasowanie po ISRC dla importu metryk (D24) — ISRC identyfikuje nagranie,
+     * Dopasowanie po ISRC dla importu metryk — ISRC identyfikuje nagranie,
      * więc jeden kod może wskazać kilka wydań w katalogu. Wielkość liter bywa
      * różna w eksportach, stąd porównanie po {@code upper}.
      */
@@ -110,8 +110,8 @@ public interface TrackCatalogRepository extends JpaRepository<TrackCatalog, Stri
 
     /**
      * Wyszukiwarka katalogu (M1.7): pełnotekstowo po search_vector (tsvector,
-     * generowana kolumna z V1) + fuzzy pg_trgm po title/artist; filtry D5
-     * uzupełnione o filtry biblioteczne (M3.2), harmoniczne (D25), metryk (D24)
+     * generowana kolumna z V1) + fuzzy pg_trgm po title/artist; filtry kompletności
+     * uzupełnione o filtry biblioteczne (M3.2), harmoniczne, metryk
      * oraz filtry utworu i jakości danych (M5.6). Domyślnie (sort = RELEVANCE)
      * przy zapytaniu tekstowym kolejność wg trafności; pozostałe porządki
      * wg {@link CatalogSort}. Sam tekst zapytania siedzi w {@link CatalogSearchSql};

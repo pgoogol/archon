@@ -15,7 +15,7 @@ public record LibraryEntryResponse(
     List<String> customTags,
     Integer rating,
     String djSlotOverride,
-    /** Wersja do blokady optymistycznej (D29) — odeślij ją przy PATCH-u. */
+    /** Wersja do blokady optymistycznej — odeślij ją przy PATCH-u. */
     int version,
     TrackResponse track) {
 

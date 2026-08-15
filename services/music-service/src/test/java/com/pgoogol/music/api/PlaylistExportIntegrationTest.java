@@ -41,7 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Eksport setu na Spotify (DoD M2.4): pierwszy eksport zakłada playlistę,
  * kolejny nadpisuje tę samą, zachowując kolejność setu.
  */
-// odświeżanie w tle (D35) wyłączone: test trzyma połączone konto, a zadanie
+// odświeżanie w tle wyłączone: test trzyma połączone konto, a zadanie
 // cykliczne sięgnęłoby po playlisty w środku przebiegu
 @SpringBootTest(properties = "ingestion.playlist-refresh.enabled=false")
 @AutoConfigureMockMvc

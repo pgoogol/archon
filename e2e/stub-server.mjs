@@ -1,4 +1,4 @@
-// Stub zewnętrznych źródeł na czas testu E2E (M5.3/D30). Test przepływu nie może
+// Stub zewnętrznych źródeł na czas testu E2E (M5.3). Test przepływu nie może
 // zależeć od dostępności Spotify ani od klucza LLM — inaczej czerwone CI przestaje
 // cokolwiek znaczyć. To nie jest WireMock (ten obsługuje testy integracyjne
 // backendu), tylko kilkadziesiąt linii, żeby nie stawiać drugiego procesu JVM.
@@ -50,7 +50,7 @@ const server = createServer((request, response) => {
       })
     }
 
-    // Deezer i MusicBrainz: „nie znam tego nagrania" — kaskada BPM (D6) ma
+    // Deezer i MusicBrainz: „nie znam tego nagrania" — kaskada BPM ma
     // spokojnie zejść do kolejnego źródła zamiast się wywrócić
     if (url.startsWith('/track/isrc:') || url.startsWith('/search')) {
       return send(404, { error: { code: 404, message: 'not found' } })

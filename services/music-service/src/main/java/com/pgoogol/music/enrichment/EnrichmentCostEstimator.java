@@ -8,15 +8,15 @@ import java.math.RoundingMode;
 import java.util.Optional;
 
 /**
- * Szacunek kosztu wzbogacania (M5.1/D28). Zużycie tokenów bierze się z próby
+ * Szacunek kosztu wzbogacania (M5.1). Zużycie tokenów bierze się z próby
  * generalnej M1.9 (prompt v1, batch po 5): ~{@value #INPUT_TOKENS_PER_TRACK}
  * tokenów wejścia i ~{@value #OUTPUT_TOKENS_PER_TRACK} wyjścia na utwór.
  * Stawki providera siedzą w konfiguracji ({@code llm.cost.*}) — wcześniej były
  * wyłącznie zmiennymi środowiskowymi {@code LlmSmokeTest}, więc nie dawało się
  * ich pokazać w UI.
  *
- * <p>Płatna jest tylko grupa AI: metadane i cechy audio jadą z darmowych źródeł
- * (D6), więc liczba utworów w zleceniu nie musi równać się liczbie płatnych.</p>
+ * <p>Płatna jest tylko grupa AI: metadane i cechy audio jadą z darmowych źródeł,
+ * więc liczba utworów w zleceniu nie musi równać się liczbie płatnych.</p>
  */
 @Component
 public class EnrichmentCostEstimator {

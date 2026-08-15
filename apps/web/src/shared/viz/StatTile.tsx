@@ -1,6 +1,6 @@
 // Kafel odczytu (M5.4) — jedna liczba nabijana od zera, etykieta i zdanie
 // wyjaśniające, co ta liczba znaczy. Kolor niesie ton (akcent / pomiar /
-// ostrzeżenie), ale nigdy sam nie niesie znaczenia — zawsze jest etykieta (D23).
+// ostrzeżenie), ale nigdy sam nie niesie znaczenia — zawsze jest etykieta.
 
 import { useCountUp } from '@/shared/hooks/useCountUp'
 

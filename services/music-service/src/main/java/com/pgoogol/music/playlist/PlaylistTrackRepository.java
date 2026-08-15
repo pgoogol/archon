@@ -24,7 +24,7 @@ public interface PlaylistTrackRepository extends JpaRepository<PlaylistTrack, Lo
     /**
      * Czyszczenie playlisty przed odtworzeniem kolejności; DML omija kontekst
      * persystencji, dlatego {@code flushAutomatically} gwarantuje kolejność
-     * delete→insert wobec unikalności (playlist_id, spotify_id) — D17.
+     * delete→insert wobec unikalności (playlist_id, spotify_id).
      */
     @Modifying(flushAutomatically = true)
     @Query("delete from PlaylistTrack pt where pt.playlist.id = :playlistId")

@@ -13,7 +13,7 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Powody, dla których pojedyncze utwory wypadły z przebiegu wzbogacania (D37).
+ * Powody, dla których pojedyncze utwory wypadły z przebiegu wzbogacania.
  *
  * <p>Zapis idzie <b>własną transakcją</b> ({@code REQUIRES_NEW}): wołamy go
  * z {@code SkipListener}, czyli w środku chunka, który Spring Batch właśnie

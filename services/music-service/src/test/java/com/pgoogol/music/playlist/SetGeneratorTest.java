@@ -35,7 +35,7 @@ class SetGeneratorTest {
     }
 
     @Test
-    @DisplayName("prowadzi set przez fazy wieczoru w kolejności D9")
+    @DisplayName("prowadzi set przez fazy wieczoru w kolejności faz wieczoru")
     void shouldFollowEveningCurve() {
 
         SetProposal proposal = generator.generate(bigPool(), Duration.ofMinutes(120), SetCurve.STANDARD, 7L);

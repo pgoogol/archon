@@ -1,7 +1,7 @@
 package com.pgoogol.music.catalog;
 
 /**
- * Kontrolowany enum rodziny gatunkowej (D8); wartości swobodne trzymamy w polu {@code style}.
+ * Kontrolowany enum rodziny gatunkowej; wartości swobodne trzymamy w polu {@code style}.
  */
 public enum GenreFamily {
 

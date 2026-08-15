@@ -21,8 +21,8 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Wpis biblioteki DJ-a (D3) — dane prywatne: uwagi, custom tagi, rating,
- * override slotu. Jeden wpis na utwór katalogu (D17).
+ * Wpis biblioteki DJ-a — dane prywatne: uwagi, custom tagi, rating,
+ * override slotu. Jeden wpis na utwór katalogu.
  */
 @Entity
 @Table(name = "library_entry")
@@ -32,7 +32,7 @@ public class LibraryEntry {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** Blokada optymistyczna (D29) — dwie karty przeglądarki nie nadpiszą sobie notatek. */
+    /** Blokada optymistyczna — dwie karty przeglądarki nie nadpiszą sobie notatek. */
     @Version
     @Column(nullable = false)
     private int version;

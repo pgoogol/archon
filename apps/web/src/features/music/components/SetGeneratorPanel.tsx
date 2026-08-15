@@ -1,4 +1,4 @@
-// Generator setu (M4.2/D26): propozycja do obejrzenia, nie zapis. Playlistę
+// Generator setu (M4.2): propozycja do obejrzenia, nie zapis. Playlistę
 // zakłada dopiero „Utwórz set z propozycji" — istniejącą drogą przez
 // POST /api/playlists, więc generator zostaje bezstanowy.
 
@@ -54,7 +54,7 @@ export default function SetGeneratorPanel({ onCreated }: Props) {
     }
   }
 
-  // zapis idzie istniejącą drogą (D26) — utwór po utworze, tak jak przy
+  // zapis idzie istniejącą drogą — utwór po utworze, tak jak przy
   // dokładaniu zaznaczonych z biblioteki
   const materialize = async () => {
     if (!proposal || proposal.tracks.length === 0) return
@@ -176,7 +176,7 @@ export default function SetGeneratorPanel({ onCreated }: Props) {
           <ol className="proposal-tracks">
             {proposal.tracks.map((entry) => (
               <li key={entry.track.spotifyId}>
-                {/* kolor niesie kropka, etykieta zostaje w kolorze tekstu (D22) */}
+                {/* kolor niesie kropka, etykieta zostaje w kolorze tekstu */}
                 <span className="slot">
                   <span
                     className={`slot-dot slot-bg-${entry.djSlot ?? 'UNKNOWN'}`}

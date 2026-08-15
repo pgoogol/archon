@@ -24,7 +24,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/playlists")
-@Tag(name = "Playlists", description = "Playlisty i planowanie setów (D9)")
+@Tag(name = "Playlists", description = "Playlisty i planowanie setów")
 public class PlaylistController {
 
     private final PlaylistService playlistService;
@@ -52,7 +52,7 @@ public class PlaylistController {
     @GetMapping("/{id}")
     @Operation(summary = "Playlista ze składem setu i slotami wieczoru",
         description = "djSlot = override DJ-a, a gdy go nie ma — wyliczenie z bpm/energy/"
-            + "genre_family (D9); null oznacza utwór jeszcze niewzbogacony.")
+            + "genre_family; null oznacza utwór jeszcze niewzbogacony.")
     public PlaylistResponse get(@PathVariable Long id) {
         return mapper.toResponse(playlistService.get(id));
     }

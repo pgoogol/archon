@@ -1,5 +1,5 @@
 // Pajęczyna cech audio (M5.4) — uśredniony profil brzmienia biblioteki
-// z metryk wgranych ręcznie (D24). Siedem osi w skali 0..1; wielokąt rysuje się
+// z metryk wgranych ręcznie. Siedem osi w skali 0..1; wielokąt rysuje się
 // przy wejściu na ekran, żeby było widać kształt, a nie tylko siedem liczb.
 
 import type { MetricResponse } from '@/features/music/api'
@@ -105,7 +105,7 @@ export default function RadarChart({ metrics, basis, testId }: Props) {
         })}
       </svg>
       <figcaption className="muted chart-caption">
-        Średnia z {basis} utworów z metrykami (D24) — reszta biblioteki nie wchodzi do wykresu.
+        Średnia z {basis} utworów z metrykami — reszta biblioteki nie wchodzi do wykresu.
       </figcaption>
     </figure>
   )

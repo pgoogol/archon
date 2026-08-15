@@ -10,7 +10,7 @@
 **/dist/
 **/.turbo/
 
-# sekrety nigdy nie wchodzą do obrazu (D14) — .env.example zostaje w repo
+# sekrety nigdy nie wchodzą do obrazu — .env.example zostaje w repo
 .env
 .env.*
 !.env.example

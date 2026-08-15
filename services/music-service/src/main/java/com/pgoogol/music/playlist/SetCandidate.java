@@ -9,8 +9,8 @@ import java.util.Optional;
 
 /**
  * Utwór w puli generatora setu (M4.2) razem z tym, co generator o nim wie:
- * slot wieczoru (D9 — po uwzględnieniu override'u DJ-a) i ocena z biblioteki.
- * Pozycję koła Camelot (D25) liczymy raz przy budowie puli, żeby nie parsować
+ * slot wieczoru (po uwzględnieniu override'u DJ-a) i ocena z biblioteki.
+ * Pozycję koła Camelot liczymy raz przy budowie puli, żeby nie parsować
  * tonacji przy każdym porównaniu kandydatów.
  */
 public record SetCandidate(TrackCatalog track, @Nullable DjSlot slot, @Nullable Integer rating) {

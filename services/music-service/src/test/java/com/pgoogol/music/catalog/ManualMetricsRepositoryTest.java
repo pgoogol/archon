@@ -15,7 +15,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Metryki wgrane ręcznie (D24) — klucz dzielony z utworem katalogu i odczyt
+ * Metryki wgrane ręcznie — klucz dzielony z utworem katalogu i odczyt
  * partiami, tak jak czyta je job wzbogacania.
  */
 @DataJpaTest

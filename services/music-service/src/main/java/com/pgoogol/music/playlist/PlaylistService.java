@@ -28,7 +28,7 @@ import java.util.stream.IntStream;
 
 /**
  * Planowanie setów (M2.3): CRUD playlist, skład i kolejność utworów oraz slot
- * wieczoru per utwór (D9 — liczony, nie zapisywany; override DJ-a wygrywa).
+ * wieczoru per utwór (liczony, nie zapisywany; override DJ-a wygrywa).
  * Pozycje trzymamy zwarte (0..n-1), żeby kolejność z frontu i eksport na Spotify
  * (M2.4) czytały to samo.
  */
@@ -99,7 +99,7 @@ public class PlaylistService {
         log.info("Usunięto playlistę {} (katalog i biblioteka bez zmian)", playlistId);
     }
 
-    /** Dokłada utwór na koniec setu; ten sam utwór może być na playliście raz (D17). */
+    /** Dokłada utwór na koniec setu; ten sam utwór może być na playliście raz. */
     @Transactional
     public PlaylistPlan addTrack(Long playlistId, String spotifyId) {
 
@@ -159,7 +159,7 @@ public class PlaylistService {
     }
 
     /**
-     * Wersja siedzi na agregacie (D29): zmiana wierszy {@code playlist_track} musi
+     * Wersja siedzi na agregacie: zmiana wierszy {@code playlist_track} musi
      * podbić {@code playlist.version}, a {@code @Version} na encji nadrzędnej sama
      * tego nie zrobi — stąd jawny {@code OPTIMISTIC_FORCE_INCREMENT}.
      */
@@ -168,7 +168,7 @@ public class PlaylistService {
     }
 
     /**
-     * Nieświeży klient (D29): kolejność albo nazwa przyszły z widoku sprzed cudzej
+     * Nieświeży klient: kolejność albo nazwa przyszły z widoku sprzed cudzej
      * zmiany. Brak wersji w żądaniu traktujemy jak niezgodność — kontrakt jej wymaga.
      */
     private void requireCurrentVersion(Playlist playlist, Integer expectedVersion) {
@@ -213,7 +213,7 @@ public class PlaylistService {
         return new PlannedTrack(playlistTrack.getPosition(), track, slot, override, metrics);
     }
 
-    /** Metryki z pliku (D24) — ostrzeżenia planera i falowe tryby układania (D34). */
+    /** Metryki z pliku — ostrzeżenia planera i falowe tryby układania. */
     private Map<String, ManualMetrics> metrics(List<PlaylistTrack> tracks) {
 
         Set<String> spotifyIds = tracks.stream()

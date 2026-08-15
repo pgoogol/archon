@@ -43,7 +43,7 @@ class CamelotKeyTest {
     }
 
     @Test
-    @DisplayName("brak trybu czyta jako dur — tak samo jak normalizacja importu (D24)")
+    @DisplayName("brak trybu czyta jako dur — tak samo jak normalizacja importu")
     void shouldTreatMissingModeAsMajor() {
         assertThat(CamelotKey.ofMusicalKey("C")).contains(new CamelotKey(8, false));
     }
@@ -70,7 +70,7 @@ class CamelotKeyTest {
     }
 
     @Test
-    @DisplayName("zgodne to ta sama tonacja, sąsiedzi ±1 i tonacja równoległa (D25)")
+    @DisplayName("zgodne to ta sama tonacja, sąsiedzi ±1 i tonacja równoległa")
     void shouldReturnFourCompatiblePositions() {
 
         Set<CamelotKey> compatible = new CamelotKey(8, true).compatible();

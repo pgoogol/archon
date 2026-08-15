@@ -4,7 +4,7 @@ import com.pgoogol.music.catalog.GenreFamily;
 import org.springframework.lang.Nullable;
 
 /**
- * Poprawny wiersz CSV z metrykami po walidacji (D24). Dopasowanie do katalogu
+ * Poprawny wiersz CSV z metrykami po walidacji. Dopasowanie do katalogu
  * idzie po {@code spotifyId}, a gdy go nie ma (albo nie ma takiego utworu) —
  * po {@code isrc}; przynajmniej jedno z pól jest niepuste.
  *

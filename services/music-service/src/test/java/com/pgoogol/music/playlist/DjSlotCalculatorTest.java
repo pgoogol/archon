@@ -46,7 +46,7 @@ class DjSlotCalculatorTest {
     @Test
     void calculate_whenOnlyEnergyKnown_usesEnergyAlone() {
 
-        // when + then — utwór bez BPM (kaskada D6 pusta), ale po fazie AI
+        // when + then — utwór bez BPM (kaskada BPM pusta), ale po fazie AI
         assertThat(calculator.calculate(null, "high", GenreFamily.LATIN)).contains(DjSlot.PEAK);
         assertThat(calculator.calculate(null, "low", GenreFamily.POP)).contains(DjSlot.WARMUP);
         assertThat(calculator.calculate(null, "medium", null)).contains(DjSlot.MIDDLE);
@@ -63,7 +63,7 @@ class DjSlotCalculatorTest {
     @Test
     void calculate_whenEnergyHighButGenreUnknown_placesTrackWithoutBlowingUp() {
 
-        // given — utwór zaraz po imporcie metryk (D24): BPM i energia są,
+        // given — utwór zaraz po imporcie metryk: BPM i energia są,
         // gatunek ustali dopiero LLM; wcześniej leciał tu NPE ze zbioru gatunków
 
         // when + then

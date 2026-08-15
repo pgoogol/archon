@@ -71,7 +71,7 @@ export function aRow(
   }
 }
 
-/** Metryki z pliku (D24) — same puste, test dopisuje tylko to, co bada. */
+/** Metryki z pliku — same puste, test dopisuje tylko to, co bada. */
 export function aMetrics(
   overrides: Partial<TrackMetricsResponse> = {},
 ): TrackMetricsResponse {

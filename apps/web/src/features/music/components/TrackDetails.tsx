@@ -1,5 +1,5 @@
 // Szuflada szczegółów utworu (M1.8, rozbudowa M3.1): okładka, link do Spotify,
-// fakty katalogu oraz edycja danych prywatnych DJ-a (D3) — gwiazdki, chipsy
+// fakty katalogu oraz edycja danych prywatnych DJ-a — gwiazdki, chipsy
 // tagów i slot z listy wartości enuma DjSlot zamiast wolnego tekstu.
 
 import { useEffect, useState } from 'react'
@@ -52,7 +52,7 @@ export default function TrackDetails({ spotifyId, onClose, onChanged }: Props) {
     }
   }, [spotifyId, reportError])
 
-  // Metryki są dodatkiem (D24) — ich brak albo błąd nie może zepsuć szuflady.
+  // Metryki są dodatkiem — ich brak albo błąd nie może zepsuć szuflady.
   useEffect(() => {
     let current = true
     api
@@ -67,7 +67,7 @@ export default function TrackDetails({ spotifyId, onClose, onChanged }: Props) {
   }, [spotifyId])
 
   /**
-   * Konflikt (D29): ktoś — albo Ty w drugiej karcie — zmienił ten wpis. Przeładowujemy
+   * Konflikt: ktoś — albo Ty w drugiej karcie — zmienił ten wpis. Przeładowujemy
    * rekord, ale ZOSTAWIAMY to, co DJ ma wpisane w polach: cichy zapis „ostatni wygrywa"
    * jest zły, ale skasowanie właśnie napisanej notatki jest jeszcze gorsze.
    */
@@ -174,7 +174,7 @@ export default function TrackDetails({ spotifyId, onClose, onChanged }: Props) {
                 {track.camelot && (
                   <>
                     {' '}
-                    <span className="badge" title="pozycja koła Camelot (D25)">
+                    <span className="badge" title="pozycja koła Camelot">
                       {track.camelot}
                     </span>{' '}
                     <button
@@ -265,7 +265,7 @@ export default function TrackDetails({ spotifyId, onClose, onChanged }: Props) {
             </div>
 
             <label className="field">
-              slot wieczoru (pusty = liczony z BPM i energii, D9)
+              slot wieczoru (pusty = liczony z BPM i energii)
               <select
                 value={slotOverride}
                 onChange={(event) => setSlotOverride(event.target.value)}
