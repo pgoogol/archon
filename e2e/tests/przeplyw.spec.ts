@@ -97,8 +97,20 @@ test.describe('przepływ DJ-a', () => {
     await closeDrawer(page)
 
     // --- set: nowy set i utwory z zaznaczenia
+    //
+    // Fraza jest debounce'owana, a `result-summary` pokazuje liczbę z OSTATNIEJ
+    // zakończonej odpowiedzi. „5 utworów" jest więc prawdą także wtedy, gdy
+    // wyszukiwanie „vivir" jeszcze nie wróciło — asercja na samym podsumowaniu
+    // przechodzi na nieaktualnym stanie, a `zaznacz stronę` łapie potem jeden
+    // wiersz zamiast pięciu. Czekamy na odpowiedź dla PUSTEJ frazy; tylko ona
+    // dowodzi, że lista się ustabilizowała.
+    const cleared = page.waitForResponse(
+      (response) =>
+        response.url().includes('/api/catalog/tracks') && !response.url().includes('search='),
+    )
     await page.getByTestId('search-input').fill('')
-    await expect(page.getByTestId('result-summary')).toContainText('5 utworów')
+    await cleared
+    await expect(page.getByTestId('result-summary')).toContainText('5 utworów · 1–5 na ekranie')
     await page.getByLabel('zaznacz stronę').check()
     await openTab(page, 'Sety')
     await page.getByTestId('playlist-name').fill('E2E — piątek')
