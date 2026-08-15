@@ -1,0 +1,591 @@
+package com.pgoogol.music.api;
+
+import com.pgoogol.music.TestcontainersConfiguration;
+import com.pgoogol.music.catalog.BpmSource;
+import com.pgoogol.music.catalog.GenreFamily;
+import com.pgoogol.music.catalog.ManualMetrics;
+import com.pgoogol.music.catalog.ManualMetricsRepository;
+import com.pgoogol.music.catalog.TempoClass;
+import com.pgoogol.music.catalog.TrackCatalog;
+import com.pgoogol.music.catalog.TrackCatalogRepository;
+import com.pgoogol.music.library.LibraryEntry;
+import com.pgoogol.music.library.LibraryEntryRepository;
+import com.pgoogol.music.library.LibrarySource;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.List;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@Import(TestcontainersConfiguration.class)
+@Tag("integration")
+class CatalogApiIntegrationTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private TrackCatalogRepository trackCatalogRepository;
+
+    @Autowired
+    private LibraryEntryRepository libraryEntryRepository;
+
+    @Autowired
+    private ManualMetricsRepository manualMetricsRepository;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+
+    @BeforeEach
+    void seedCatalog() {
+
+        trackCatalogRepository.save(latinTrack("sp-vivir", "Vivir Mi Vida", "Marc Anthony", 184));
+        trackCatalogRepository.save(latinTrack("sp-carnaval", "La Vida Es Un Carnaval", "Celia Cruz", 92));
+        TrackCatalog rock = new TrackCatalog("sp-bohemian", "Bohemian Rhapsody", "Queen");
+        rock.setGenreFamily(GenreFamily.ROCK);
+        rock.setBpm(72);
+        rock.setTempoClass(TempoClass.SLOW);
+        rock.setEnergy("medium");
+        // 8B — tonacja równoległa do 8A utworu sp-vivir
+        rock.setMusicalKey("C major");
+        trackCatalogRepository.save(rock);
+    }
+
+    @AfterEach
+    void cleanDatabase() {
+
+        manualMetricsRepository.deleteAll();
+        libraryEntryRepository.deleteAll();
+        trackCatalogRepository.deleteAll();
+    }
+
+    @Test
+    void getTrack_whenTrackExists_returnsFullRecord() throws Exception {
+
+        mockMvc.perform(get("/api/catalog/tracks/sp-vivir"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.title").value("Vivir Mi Vida"))
+            .andExpect(jsonPath("$.genreFamily").value("LATIN"))
+            .andExpect(jsonPath("$.bpm").value(184))
+            .andExpect(jsonPath("$.bpmSource").value("DEEZER"))
+            .andExpect(jsonPath("$.tempoClass").value("VERY_FAST"));
+    }
+
+    @Test
+    void getTrack_whenTrackMissing_returns404WithErrorCode() throws Exception {
+
+        mockMvc.perform(get("/api/catalog/tracks/sp-nieistnieje"))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.errorCode").value("TRACK_NOT_FOUND"));
+    }
+
+    @Test
+    void searchTracks_whenFullTextQuery_returnsMatchingTracksOnly() throws Exception {
+
+        mockMvc.perform(get("/api/catalog/tracks").param("search", "vida"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(2))
+            .andExpect(jsonPath("$.content[*].track.spotifyId").value(
+                org.hamcrest.Matchers.containsInAnyOrder("sp-vivir", "sp-carnaval")));
+    }
+
+    @Test
+    void searchTracks_whenGenreAndBpmRangeFilters_combinesThem() throws Exception {
+
+        mockMvc.perform(get("/api/catalog/tracks")
+                .param("genreFamily", "LATIN")
+                .param("bpmMin", "100")
+                .param("bpmMax", "200"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-vivir"));
+    }
+
+    @Test
+    void searchTracks_whenTempoClassAndEnergyFilters_matchRockTrack() throws Exception {
+
+        mockMvc.perform(get("/api/catalog/tracks")
+                .param("tempoClass", "SLOW")
+                .param("energy", "MEDIUM"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-bohemian"));
+    }
+
+    @Test
+    void searchTracks_whenPageSizeAboveLimit_capsAtMaximum() throws Exception {
+
+        mockMvc.perform(get("/api/catalog/tracks").param("size", "5000"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.size").value(500))
+            .andExpect(jsonPath("$.totalElements").value(3));
+    }
+
+    @Test
+    void searchTracks_whenLargePageRequested_returnsItWithoutCapping() throws Exception {
+
+        mockMvc.perform(get("/api/catalog/tracks").param("size", "200"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.size").value(200));
+    }
+
+    @Test
+    void searchTracks_whenSortedByBpmDescending_ordersAcrossWholeResult() throws Exception {
+
+        mockMvc.perform(get("/api/catalog/tracks")
+                .param("sort", "BPM")
+                .param("direction", "DESC"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-vivir"))
+            .andExpect(jsonPath("$.content[1].track.spotifyId").value("sp-carnaval"))
+            .andExpect(jsonPath("$.content[2].track.spotifyId").value("sp-bohemian"));
+    }
+
+    @Test
+    void searchTracks_whenSortedByTitleAscending_ordersAlphabetically() throws Exception {
+
+        mockMvc.perform(get("/api/catalog/tracks")
+                .param("sort", "TITLE")
+                .param("direction", "ASC"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content[0].track.title").value("Bohemian Rhapsody"))
+            .andExpect(jsonPath("$.content[1].track.title").value("La Vida Es Un Carnaval"))
+            .andExpect(jsonPath("$.content[2].track.title").value("Vivir Mi Vida"));
+    }
+
+    @Test
+    void searchTracks_whenSortedByFieldWithoutValue_keepsMissingDataLast() throws Exception {
+
+        trackCatalogRepository.save(new TrackCatalog("sp-szkielet", "Szkielet", "Nieznany"));
+
+        mockMvc.perform(get("/api/catalog/tracks")
+                .param("sort", "BPM")
+                .param("direction", "ASC"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(4))
+            .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-bohemian"))
+            .andExpect(jsonPath("$.content[3].track.spotifyId").value("sp-szkielet"));
+    }
+
+    @Test
+    void searchTracks_whenSortedByEnergy_ordersLowMediumHigh() throws Exception {
+
+        mockMvc.perform(get("/api/catalog/tracks")
+                .param("sort", "ENERGY")
+                .param("direction", "ASC"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-bohemian"))
+            .andExpect(jsonPath("$.content[1].track.energy").value("high"))
+            .andExpect(jsonPath("$.content[2].track.energy").value("high"));
+    }
+
+    @Test
+    void searchTracks_whenSortIsNotOnWhitelist_returns400WithErrorCode() throws Exception {
+
+        mockMvc.perform(get("/api/catalog/tracks").param("sort", "DROP TABLE"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.errorCode").value("INVALID_PARAMETER"));
+    }
+
+    @Test
+    void searchTracks_whenNoSortRequested_keepsRelevanceOrderFromM17() throws Exception {
+
+        mockMvc.perform(get("/api/catalog/tracks").param("search", "carnaval"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-carnaval"));
+    }
+
+    @Test
+    void searchTracks_whenInLibraryFilter_returnsOnlyTracksFromLibrary() throws Exception {
+
+        addToLibrary("sp-vivir", 5, "wesele");
+
+        mockMvc.perform(get("/api/catalog/tracks").param("inLibrary", "true"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-vivir"));
+    }
+
+    @Test
+    void searchTracks_whenInLibraryFalse_returnsOnlyTracksOutsideLibrary() throws Exception {
+
+        addToLibrary("sp-vivir", 5, "wesele");
+
+        mockMvc.perform(get("/api/catalog/tracks").param("inLibrary", "false"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(2))
+            .andExpect(jsonPath("$.content[*].track.spotifyId").value(
+                org.hamcrest.Matchers.containsInAnyOrder("sp-carnaval", "sp-bohemian")));
+    }
+
+    @Test
+    void searchTracks_whenRatingMinFilter_dropsWeakerAndUnratedTracks() throws Exception {
+
+        addToLibrary("sp-vivir", 5, "wesele");
+        addToLibrary("sp-carnaval", 2, "wesele");
+        addToLibrary("sp-bohemian", null, null);
+
+        mockMvc.perform(get("/api/catalog/tracks").param("ratingMin", "4"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-vivir"));
+    }
+
+    @Test
+    void searchTracks_whenTagFilter_matchesCustomTagOfLibraryEntry() throws Exception {
+
+        addToLibrary("sp-vivir", 5, "wesele");
+        addToLibrary("sp-carnaval", 3, "chill");
+
+        mockMvc.perform(get("/api/catalog/tracks").param("tag", "chill"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-carnaval"));
+    }
+
+    @Test
+    void searchTracks_whenLibraryFilterCombinedWithCatalogFilter_appliesBoth() throws Exception {
+
+        addToLibrary("sp-vivir", 5, "wesele");
+        addToLibrary("sp-bohemian", 5, "wesele");
+
+        mockMvc.perform(get("/api/catalog/tracks")
+                .param("inLibrary", "true")
+                .param("genreFamily", "LATIN"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-vivir"));
+    }
+
+    @Test
+    void searchTracks_whenLibraryFilterActive_leavesCatalogSortingUntouched() throws Exception {
+
+        addToLibrary("sp-vivir", 5, null);
+        addToLibrary("sp-carnaval", 3, null);
+
+        mockMvc.perform(get("/api/catalog/tracks")
+                .param("inLibrary", "true")
+                .param("sort", "BPM")
+                .param("direction", "DESC"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(2))
+            .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-vivir"))
+            .andExpect(jsonPath("$.content[1].track.spotifyId").value("sp-carnaval"));
+    }
+
+    @Test
+    void getTrack_computesCamelotFromMusicalKey() throws Exception {
+
+        mockMvc.perform(get("/api/catalog/tracks/sp-vivir"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.musicalKey").value("A minor"))
+            .andExpect(jsonPath("$.camelot").value("8A"));
+    }
+
+    @Test
+    void getTrack_whenKeyUnknown_leavesCamelotEmpty() throws Exception {
+
+        trackCatalogRepository.save(new TrackCatalog("sp-szkielet", "Szkielet", "Nieznany"));
+
+        mockMvc.perform(get("/api/catalog/tracks/sp-szkielet"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.camelot").doesNotExist());
+    }
+
+    @Test
+    void searchTracks_whenCamelotCompatible_returnsNeighboursAndRelativeKey() throws Exception {
+
+        saveTrackWithKey("sp-daleki", "Daleki", "Eb minor");
+
+        mockMvc.perform(get("/api/catalog/tracks").param("camelot", "8A"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(3))
+            .andExpect(jsonPath("$.content[*].track.spotifyId").value(
+                org.hamcrest.Matchers.containsInAnyOrder("sp-vivir", "sp-carnaval", "sp-bohemian")));
+    }
+
+    @Test
+    void searchTracks_whenCamelotExact_returnsOnlyThatPosition() throws Exception {
+
+        mockMvc.perform(get("/api/catalog/tracks")
+                .param("camelot", "8A")
+                .param("camelotCompatible", "false"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-vivir"));
+    }
+
+    @Test
+    void searchTracks_whenCamelotWrittenWithFlats_matchesSharpSpellingInCatalog() throws Exception {
+
+        saveTrackWithKey("sp-bemol", "Bemol", "Eb minor");
+
+        mockMvc.perform(get("/api/catalog/tracks")
+                .param("camelot", "2A")
+                .param("camelotCompatible", "false"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-bemol"))
+            .andExpect(jsonPath("$.content[0].track.camelot").value("2A"));
+    }
+
+    @Test
+    void searchTracks_whenCamelotOutsideWheel_returns400WithErrorCode() throws Exception {
+
+        mockMvc.perform(get("/api/catalog/tracks").param("camelot", "13Z"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.errorCode").value("INVALID_CAMELOT"));
+    }
+
+    @Test
+    void searchTracks_whenMetricFilter_keepsOnlyTracksWithMatchingMetrics() throws Exception {
+
+        saveMetrics("sp-vivir", "0.80", "0.05", "0.10");
+        saveMetrics("sp-carnaval", "0.20", "0.90", "0.10");
+
+        mockMvc.perform(get("/api/catalog/tracks").param("valenceMin", "0.5"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-vivir"));
+    }
+
+    @Test
+    void searchTracks_whenMetricFilter_dropsTracksWithoutMetricsAltogether() throws Exception {
+
+        saveMetrics("sp-vivir", "0.80", "0.95", "0.10");
+
+        mockMvc.perform(get("/api/catalog/tracks").param("instrumentalMin", "0.5"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-vivir"));
+    }
+
+    @Test
+    void searchTracks_whenLivenessMax_filtersOutConcertRecordings() throws Exception {
+
+        saveMetrics("sp-vivir", "0.80", "0.05", "0.90");
+        saveMetrics("sp-carnaval", "0.80", "0.05", "0.10");
+
+        mockMvc.perform(get("/api/catalog/tracks").param("livenessMax", "0.5"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-carnaval"));
+    }
+
+    @Test
+    void getMetricsCoverage_reportsHowManyTracksHaveMetrics() throws Exception {
+
+        saveMetrics("sp-vivir", "0.80", "0.05", "0.10");
+
+        mockMvc.perform(get("/api/catalog/metrics-coverage"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.withMetrics").value(1))
+            .andExpect(jsonPath("$.total").value(3));
+    }
+
+    @Test
+    void searchTracks_whenTrackInLibrary_returnsDjDataNextToCatalogRecord() throws Exception {
+
+        addToLibrary("sp-vivir", 5, "wesele");
+
+        mockMvc.perform(get("/api/catalog/tracks").param("search", "vivir"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-vivir"))
+            .andExpect(jsonPath("$.content[0].library.rating").value(5))
+            .andExpect(jsonPath("$.content[0].library.customTags[0]").value("wesele"))
+            .andExpect(jsonPath("$.content[0].library.source").value("FILE"));
+    }
+
+    @Test
+    void searchTracks_whenTrackOutsideLibrary_leavesDjDataEmpty() throws Exception {
+
+        mockMvc.perform(get("/api/catalog/tracks").param("search", "vivir"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-vivir"))
+            .andExpect(jsonPath("$.content[0].library").doesNotExist());
+    }
+
+    @Test
+    void searchTracks_whenSortedByRating_putsUnratedTracksLast() throws Exception {
+
+        addToLibrary("sp-carnaval", 3, null);
+        addToLibrary("sp-vivir", 5, null);
+
+        mockMvc.perform(get("/api/catalog/tracks")
+                .param("sort", "RATING")
+                .param("direction", "DESC"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-vivir"))
+            .andExpect(jsonPath("$.content[1].track.spotifyId").value("sp-carnaval"))
+            .andExpect(jsonPath("$.content[2].track.spotifyId").value("sp-bohemian"));
+    }
+
+    @Test
+    void searchTracks_whenYearRangeFilter_keepsOnlyTracksFromThoseYears() throws Exception {
+
+        saveTrackWithYear("sp-lata90", "Lata 90", 1994);
+        saveTrackWithYear("sp-wspolczesny", "Współczesny", 2020);
+
+        mockMvc.perform(get("/api/catalog/tracks")
+                .param("yearMin", "1990")
+                .param("yearMax", "1999"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-lata90"));
+    }
+
+    @Test
+    void searchTracks_whenDurationFilterInSeconds_dropsTooLongTracks() throws Exception {
+
+        saveTrackWithDuration("sp-krotki", "Krótki", 180_000);
+        saveTrackWithDuration("sp-epopeja", "Epopeja", 420_000);
+
+        mockMvc.perform(get("/api/catalog/tracks")
+                .param("durationMinSec", "60")
+                .param("durationMaxSec", "300"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-krotki"));
+    }
+
+    @Test
+    void searchTracks_whenPopularityAndExplicitFilters_combineThem() throws Exception {
+
+        savePopularTrack("sp-hit", "Hit", 80, false);
+        savePopularTrack("sp-wulgarny", "Wulgarny", 90, true);
+
+        mockMvc.perform(get("/api/catalog/tracks")
+                .param("popularityMin", "70")
+                .param("explicit", "false"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-hit"));
+    }
+
+    @Test
+    void searchTracks_whenBpmSourceFilter_separatesMeasurementFromEstimate() throws Exception {
+
+        TrackCatalog estimated = new TrackCatalog("sp-estymata", "Estymata", "Nieznany");
+        estimated.setBpm(120);
+        estimated.setBpmSource(BpmSource.LLM);
+        trackCatalogRepository.save(estimated);
+
+        mockMvc.perform(get("/api/catalog/tracks").param("bpmSource", "LLM"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-estymata"));
+    }
+
+    @Test
+    void searchTracks_whenMissingAny_returnsTracksMarkedForEnrichment() throws Exception {
+
+        mockMvc.perform(get("/api/catalog/tracks").param("missing", "ANY"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(3));
+    }
+
+    @Test
+    void searchTracks_whenMissingAudio_skipsTracksWithCompleteAudioFields() throws Exception {
+
+        TrackCatalog complete = new TrackCatalog("sp-komplet", "Komplet", "Nieznany");
+        complete.setBpm(120);
+        complete.setMusicalKey("A minor");
+        complete.setDanceability(new BigDecimal("0.700"));
+        complete.setTempoClass(TempoClass.MEDIUM);
+        trackCatalogRepository.save(complete);
+
+        mockMvc.perform(get("/api/catalog/tracks").param("missing", "AUDIO"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(3))
+            .andExpect(jsonPath("$.content[*].track.spotifyId").value(
+                org.hamcrest.Matchers.not(org.hamcrest.Matchers.hasItem("sp-komplet"))));
+    }
+
+    private void saveTrackWithYear(String spotifyId, String title, int year) {
+
+        TrackCatalog track = new TrackCatalog(spotifyId, title, "Nieznany");
+        track.setYear(year);
+        trackCatalogRepository.save(track);
+    }
+
+    private void saveTrackWithDuration(String spotifyId, String title, int durationMs) {
+
+        TrackCatalog track = new TrackCatalog(spotifyId, title, "Nieznany");
+        track.setDurationMs(durationMs);
+        trackCatalogRepository.save(track);
+    }
+
+    private void savePopularTrack(String spotifyId, String title, int popularity, boolean explicit) {
+
+        TrackCatalog track = new TrackCatalog(spotifyId, title, "Nieznany");
+        track.setPopularity(popularity);
+        track.setExplicit(explicit);
+        trackCatalogRepository.save(track);
+    }
+
+    private void saveTrackWithKey(String spotifyId, String title, String musicalKey) {
+
+        TrackCatalog track = new TrackCatalog(spotifyId, title, "Nieznany");
+        track.setMusicalKey(musicalKey);
+        trackCatalogRepository.save(track);
+    }
+
+    /**
+     * {@code ManualMetrics} dzieli klucz z utworem ({@code @MapsId}), więc utwór
+     * musi być encją zarządzaną — inaczej Hibernate uzna go za nowy i spróbuje
+     * wstawić drugi raz. Produkcyjny import robi to samo wewnątrz transakcji.
+     */
+    private void saveMetrics(String spotifyId, String valence, String instrumentalness,
+                             String liveness) {
+
+        new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+            ManualMetrics metrics = new ManualMetrics(
+                trackCatalogRepository.findById(spotifyId).orElseThrow());
+            metrics.setValence(new BigDecimal(valence));
+            metrics.setInstrumentalness(new BigDecimal(instrumentalness));
+            metrics.setLiveness(new BigDecimal(liveness));
+            metrics.setImportedAt(Instant.now());
+            manualMetricsRepository.save(metrics);
+        });
+    }
+
+    private void addToLibrary(String spotifyId, Integer rating, String tag) {
+
+        LibraryEntry entry = new LibraryEntry(
+            trackCatalogRepository.findById(spotifyId).orElseThrow(), LibrarySource.FILE);
+        entry.setRating(rating);
+        if (tag != null) {
+            entry.setCustomTags(List.of(tag));
+        }
+        libraryEntryRepository.save(entry);
+    }
+
+    private TrackCatalog latinTrack(String spotifyId, String title, String artist, int bpm) {
+
+        TrackCatalog track = new TrackCatalog(spotifyId, title, artist);
+        track.setGenreFamily(GenreFamily.LATIN);
+        track.setBpm(bpm);
+        track.setBpmSource(BpmSource.DEEZER);
+        track.setTempoClass(bpm > 160 ? TempoClass.VERY_FAST : TempoClass.SLOW);
+        track.setEnergy("high");
+        // 8A i 9A — sąsiedzi na kole Camelot, żeby filtr harmoniczny miał co dopasować
+        track.setMusicalKey("sp-vivir".equals(spotifyId) ? "A minor" : "E minor");
+        return track;
+    }
+}

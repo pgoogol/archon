@@ -1,0 +1,15 @@
+# Profil `local` — praca z Postgresem ze środowiska deweloperskiego:
+#   docker compose -f deploy/compose/docker-compose.yml up -d
+#
+# Baza `music` powstaje ze skryptu deploy/compose/postgres/init — jedna
+# instancja Postgresa, osobna baza dla każdego serwisu monorepo.
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/music
+    username: music
+    password: music
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true

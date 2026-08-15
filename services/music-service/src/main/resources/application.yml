@@ -1,0 +1,79 @@
+spring:
+  application:
+    name: music-service
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  servlet:
+    multipart:
+      # pełny eksport Exportify (~2500 wierszy) przekracza domyślny 1MB
+      max-file-size: 10MB
+      # metryki wgrywa się partiami po kilkanaście plików naraz
+      max-request-size: 100MB
+  batch:
+    job:
+      # joby startują wyłącznie przez EnrichmentService, nie przy starcie aplikacji
+      enabled: false
+    jdbc:
+      # tabele BATCH_* zarządza Flyway (migracja V3)
+      initialize-schema: never
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+# Warstwa AI: provider, model i wersja promptu wyłącznie tutaj — nigdy w kodzie
+llm:
+  provider: ${LLM_PROVIDER:openai}   # openai (i zgodne: OpenRouter/Groq/Mistral/lokalne) | anthropic
+  api-key: ${LLM_API_KEY:}
+  model: ${LLM_MODEL:}
+  base-url: ${LLM_BASE_URL:}         # puste = domyślny URL providera
+  prompt-version: v1
+  batch-size: 5
+  requests-per-second: 2
+  max-tokens: 2048
+  temperature: 0.2
+  # twardy sufit zlecenia — SELECTED miał limit od M1.6, MISSING nie miał
+  # żadnego, a pomyłka w LLM_MODEL przy 2500 utworach to realny rachunek
+  max-tracks-per-job: ${LLM_MAX_TRACKS_PER_JOB:500}
+  # stawki providera w USD za 1M tokenów; puste = nie znamy cennika i mówimy to
+  # wprost zamiast zgadywać (szacunek pokazujemy przed startem joba)
+  cost:
+    input-per-1m: ${LLM_COST_INPUT_PER_1M:}
+    output-per-1m: ${LLM_COST_OUTPUT_PER_1M:}
+
+# Automatyczne odświeżanie własnych playlist ze Spotify. Przebieg jest
+# ten sam co ręczny import trybu C, więc kosztuje tyle samo wywołań Spotify —
+# przy kilkudziesięciu playlistach potrafi trwać dłużej niż domyślny odstęp.
+# Odstęp liczy się od ZAKOŃCZENIA poprzedniego przebiegu (fixedDelay), więc
+# przebiegi się nie nakładają; przy dużej bibliotece rozważ dłuższy interwał.
+ingestion:
+  playlist-refresh:
+    enabled: ${PLAYLIST_REFRESH_ENABLED:true}
+    interval: ${PLAYLIST_REFRESH_INTERVAL:5m}
+    # nie zero: dajemy aplikacji wstać, zanim ruszy pierwszy przebieg
+    initial-delay: ${PLAYLIST_REFRESH_INITIAL_DELAY:10s}
+
+clients:
+  spotify:
+    base-url: https://api.spotify.com
+    auth-url: https://accounts.spotify.com
+    client-id: ${SPOTIFY_CLIENT_ID:}
+    client-secret: ${SPOTIFY_CLIENT_SECRET:}
+    requests-per-second: 8
+    # OAuth PKCE — adres musi być identyczny z wpisanym w dashboardzie Spotify
+    redirect-uri: ${SPOTIFY_REDIRECT_URI:http://127.0.0.1:8080/api/auth/spotify/callback}
+    scopes: playlist-read-private playlist-read-collaborative playlist-modify-private playlist-modify-public
+  musicbrainz:
+    # twardy limit 1 req/s jest w kodzie klienta — celowo nie w konfiguracji
+    base-url: https://musicbrainz.org
+    user-agent: ${MB_USER_AGENT:}
+  deezer:
+    base-url: https://api.deezer.com
+    requests-per-second: 10

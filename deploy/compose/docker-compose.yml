@@ -1,0 +1,100 @@
+# Środowisko lokalne — WYŁĄCZNIE development. Nic tutaj nie jest przygotowane
+# na produkcję: hasło bazy jest jawne i stałe, porty wystawione na hosta,
+# aplikacje bez replik i bez limitów zasobów.
+#
+# `docker compose -f deploy/compose/docker-compose.yml up -d` wstawia samą bazę
+# — tak wygląda praca nad kodem: serwis i front odpala się z IDE albo przez
+# `./mvnw spring-boot:run` i `pnpm --filter web dev`.
+#
+# Pełny zestaw w kontenerach:
+#   docker compose -f deploy/compose/docker-compose.yml --profile full up -d --build
+#   front http://localhost:5173 · API http://localhost:8080
+#
+# UWAGA: Spotify wymaga zgodności redirect URI znak w znak i nie przyjmie
+# adresu w sieci lokalnej po HTTP, więc konto łączy się raz z laptopa po
+# loopbacku. Telefon w LAN korzysta z konta już połączonego — tokeny żyją
+# server-side.
+
+name: archon
+
+services:
+
+  postgres:
+    # ta sama wersja co w testach integracyjnych — rozjazd major wersji między
+    # testami a środowiskiem lokalnym to błędy, których nie widać w CI
+    image: postgres:16-alpine
+    environment:
+      # rola administracyjna instancji; bazy serwisów zakłada skrypt z ./postgres/init.
+      # Bez POSTGRES_DB obraz zakłada bazę o nazwie użytkownika, czyli `postgres` —
+      # służy wyłącznie do połączenia administracyjnego, dane serwisów tam nie trafiają.
+      POSTGRES_USER: postgres
+      # hasło jawne świadomie: to środowisko deweloperskie i nie trzyma niczego,
+      # czego nie da się odtworzyć
+      POSTGRES_PASSWORD: qwerty
+    ports:
+      # port wystawiony na wszystkie interfejsy, nie tylko na loopback — baza
+      # jest osiągalna z całej sieci lokalnej, więc nie podnoś tego zestawu
+      # w sieci, której nie ufasz
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      # baza per serwis — skrypt wykonuje się przy inicjalizacji pustego wolumenu
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  music-service:
+    profiles: ["full"]
+    build:
+      # kontekst to katalog główny repo — moduł nie zbuduje się bez reaktora
+      context: ../..
+      dockerfile: services/music-service/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/music
+      SPRING_DATASOURCE_USERNAME: music
+      SPRING_DATASOURCE_PASSWORD: music
+      # sekrety wyłącznie ze środowiska — puste wartości domyślne, żeby
+      # zestaw wstawał bez .env i mówił wprost, czego mu brakuje
+      SPOTIFY_CLIENT_ID: ${SPOTIFY_CLIENT_ID:-}
+      SPOTIFY_CLIENT_SECRET: ${SPOTIFY_CLIENT_SECRET:-}
+      SPOTIFY_REDIRECT_URI: ${SPOTIFY_REDIRECT_URI:-http://127.0.0.1:8080/api/auth/spotify/callback}
+      LLM_PROVIDER: ${LLM_PROVIDER:-openai}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-}
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
+      LLM_MAX_TRACKS_PER_JOB: ${LLM_MAX_TRACKS_PER_JOB:-500}
+      MB_USER_AGENT: ${MB_USER_AGENT:-}
+      PLAYLIST_REFRESH_ENABLED: ${PLAYLIST_REFRESH_ENABLED:-true}
+      PLAYLIST_REFRESH_INTERVAL: ${PLAYLIST_REFRESH_INTERVAL:-5m}
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  web:
+    profiles: ["full"]
+    build:
+      context: ../..
+      dockerfile: apps/web/Dockerfile
+    depends_on:
+      music-service:
+        condition: service_healthy
+    environment:
+      # front woła adresy względne, a nginx przekazuje /api na serwis
+      API_HOST: music-service
+      API_PORT: "8080"
+    ports:
+      - "5173:80"
+
+volumes:
+  postgres-data:

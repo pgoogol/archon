@@ -22,7 +22,8 @@
   <description>Monorepo archon — reaktor Mavena</description>
 
   <modules>
-    <!-- moduły dochodzą w fazie 3 (import kodu) -->
+    <module>libs/java/logging-starter</module>
+    <module>services/music-service</module>
   </modules>
 
   <properties>
@@ -37,6 +38,8 @@
     <resilience4j.version>2.4.0</resilience4j.version>
     <commons-csv.version>1.14.1</commons-csv.version>
     <wiremock.version>3.13.2</wiremock.version>
+    <archunit.version>1.4.1</archunit.version>
+    <mapstruct.version>1.6.3</mapstruct.version>
 
     <!-- ==== wersje wtyczek ==== -->
     <!-- także wtyczki cyklu domyślnego: bez tego wchodzą wersje wbudowane
@@ -51,6 +54,16 @@
     <maven-install-plugin.version>3.1.4</maven-install-plugin.version>
     <maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
     <maven-site-plugin.version>3.21.0</maven-site-plugin.version>
+    <jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
+    <spotless-maven-plugin.version>2.46.1</spotless-maven-plugin.version>
+
+    <!-- Puste wartości domyślne: JaCoCo nadpisuje je swoim agentem przy `verify`,
+         a przy pominiętym JaCoCo `@{...}` i tak ma co podstawić. -->
+    <surefireArgLine/>
+    <failsafeArgLine/>
+
+    <!-- Nadpisywane przez -DskipITs; steruje też bramką pokrycia. -->
+    <skipITs>false</skipITs>
   </properties>
 
   <dependencyManagement>
@@ -98,6 +111,17 @@
         <version>${wiremock.version}</version>
         <scope>test</scope>
       </dependency>
+      <dependency>
+        <groupId>com.tngtech.archunit</groupId>
+        <artifactId>archunit-junit5</artifactId>
+        <version>${archunit.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.mapstruct</groupId>
+        <artifactId>mapstruct</artifactId>
+        <version>${mapstruct.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -112,7 +136,17 @@
             <release>${maven.compiler.release}</release>
             <compilerArgs>
               <arg>-parameters</arg>
+              <!-- niezmapowane pole docelowe to błąd kompilacji, nie ostrzeżenie:
+                   cichy null w odpowiedzi API jest gorszy niż czerwony build -->
+              <arg>-Amapstruct.unmappedTargetPolicy=ERROR</arg>
             </compilerArgs>
+            <annotationProcessorPaths>
+              <path>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct-processor</artifactId>
+                <version>${mapstruct.version}</version>
+              </path>
+            </annotationProcessorPaths>
           </configuration>
         </plugin>
         <plugin>
@@ -167,6 +201,16 @@
           <artifactId>maven-site-plugin</artifactId>
           <version>${maven-site-plugin.version}</version>
         </plugin>
+        <plugin>
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <version>${jacoco-maven-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>com.diffplug.spotless</groupId>
+          <artifactId>spotless-maven-plugin</artifactId>
+          <version>${spotless-maven-plugin.version}</version>
+        </plugin>
       </plugins>
     </pluginManagement>
 
@@ -190,6 +234,174 @@
                 </requireJavaVersion>
                 <!-- każda wtyczka musi mieć wersję z pluginManagement -->
                 <requirePluginVersions/>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!--
+        Podział testów po tagu JUnit, nie po nazwie klasy: nazwa kłamie
+        (LibraryDistributionsRepositoryTest to czysta logika bez bazy).
+        Kontenerowe niosą @Tag("integration") — `mvn test` chodzi bez Dockera,
+        `mvn verify` go wymaga.
+      -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <excludedGroups>integration</excludedGroups>
+          <!-- @{argLine} przepuszcza agenta JaCoCo; nadpisanie zgubiłoby pokrycie.
+               Komunikaty testów są po polsku — bez wymuszenia UTF-8 wychodzą jako "?" -->
+          <argLine>@{surefireArgLine} -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8</argLine>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <groups>integration</groups>
+          <includes>
+            <include>**/*Test.java</include>
+            <include>**/*Tests.java</include>
+          </includes>
+          <!--
+            Bez tego Failsafe bierze artefakt modułu, a ten jest już przepakowany
+            przez spring-boot-maven-plugin (klasy pod BOOT-INF/classes) — testy
+            integracyjne wywalają się wtedy na NoClassDefFoundError klas z main.
+          -->
+          <classesDirectory>${project.build.outputDirectory}</classesDirectory>
+          <argLine>@{failsafeArgLine} -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8</argLine>
+        </configuration>
+        <executions>
+          <execution>
+            <id>testy-integracyjne</id>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!--
+        Spotless celowo bez pełnego formattera (google-java-format i spółka):
+        przeformatowałyby cały kod i zgubiły pustą linię po klamrze otwierającej,
+        której wymagają reguły. Egzekwujemy to, co reguły faktycznie mówią.
+      -->
+      <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <configuration>
+          <java>
+            <includes>
+              <include>src/main/java/**/*.java</include>
+              <include>src/test/java/**/*.java</include>
+            </includes>
+            <removeUnusedImports/>
+            <trimTrailingWhitespace/>
+            <endWithNewline/>
+            <indent>
+              <spaces>true</spaces>
+              <spacesPerTab>4</spacesPerTab>
+            </indent>
+          </java>
+        </configuration>
+        <executions>
+          <execution>
+            <id>spotless-check</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>agent-testy-jednostkowe</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+            <configuration>
+              <propertyName>surefireArgLine</propertyName>
+            </configuration>
+          </execution>
+          <execution>
+            <id>agent-testy-integracyjne</id>
+            <goals>
+              <goal>prepare-agent-integration</goal>
+            </goals>
+            <configuration>
+              <propertyName>failsafeArgLine</propertyName>
+            </configuration>
+          </execution>
+          <!--
+            Pokrycie liczone z OBU przebiegów naraz. Sam jacoco.exec pokazywałby
+            warstwę serwisów jako martwą — ten kod jest badany głównie testami
+            integracyjnymi, nie jednostkowymi.
+          -->
+          <execution>
+            <id>scal-pomiary</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>merge</goal>
+            </goals>
+            <configuration>
+              <fileSets>
+                <fileSet>
+                  <directory>${project.build.directory}</directory>
+                  <includes>
+                    <include>jacoco.exec</include>
+                    <include>jacoco-it.exec</include>
+                  </includes>
+                </fileSet>
+              </fileSets>
+              <destFile>${project.build.directory}/jacoco-merged.exec</destFile>
+            </configuration>
+          </execution>
+          <execution>
+            <id>raport</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+            <configuration>
+              <dataFile>${project.build.directory}/jacoco-merged.exec</dataFile>
+            </configuration>
+          </execution>
+          <!--
+            Bramka celowo milczy przy -DskipITs: pokrycie policzone bez testów
+            integracyjnych nie mierzy tego, co reguła opisuje, więc odrzucanie
+            builda na jego podstawie byłoby fałszywym alarmem.
+          -->
+          <execution>
+            <id>bramka-pokrycia</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <configuration>
+              <skip>${skipITs}</skip>
+              <dataFile>${project.build.directory}/jacoco-merged.exec</dataFile>
+              <rules>
+                <rule>
+                  <element>CLASS</element>
+                  <includes>
+                    <include>*Service</include>
+                  </includes>
+                  <limits>
+                    <limit>
+                      <counter>LINE</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>0.80</minimum>
+                    </limit>
+                  </limits>
+                </rule>
               </rules>
             </configuration>
           </execution>
