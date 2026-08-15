@@ -24,11 +24,13 @@ services:
     # testami a środowiskiem lokalnym to błędy, których nie widać w CI
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: archon
-      POSTGRES_USER: archon
+      # rola administracyjna instancji; bazy serwisów zakłada skrypt z ./postgres/init.
+      # Bez POSTGRES_DB obraz zakłada bazę o nazwie użytkownika, czyli `postgres` —
+      # służy wyłącznie do połączenia administracyjnego, dane serwisów tam nie trafiają.
+      POSTGRES_USER: postgres
       # hasło jawne świadomie: to środowisko deweloperskie, baza słucha tylko
       # na loopbacku hosta i nie trzyma niczego, czego nie da się odtworzyć
-      POSTGRES_PASSWORD: archon
+      POSTGRES_PASSWORD: qwerty
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
@@ -36,7 +38,7 @@ services:
       # baza per serwis — skrypt wykonuje się przy inicjalizacji pustego wolumenu
       - ./postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U archon -d archon"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
       interval: 5s
       timeout: 3s
       retries: 10

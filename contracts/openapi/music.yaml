@@ -1,22 +1,18 @@
 openapi: 3.1.0
 
-# Kontrakt API music-service. Pisany ręcznie i to on jest źródłem prawdy:
-# zmiana idzie tutaj PRZED implementacją, a test kontraktowy w serwisie
-# porównuje specyfikację wygenerowaną z kodu z tym plikiem i wywala build
-# przy rozjeździe (.claude/rules/backend-api.md).
-#
-# Typy DTO frontu są generowane z tego pliku i nigdy nie są pisane ręcznie.
-
 info:
   title: music-view API
   version: 1.0.0
   description: |
-    Narzędzie DJ-a do zarządzania biblioteką muzyczną. Rozdział danych:
-    `track_catalog` trzyma fakty o utworze, `library_entry` prywatne dane DJ-a.
+    API narzędzia DJ-a do zarządzania biblioteką muzyczną: katalog utworów
+    i wyszukiwarka, prywatne dane DJ-a, import z plików i ze Spotify,
+    wzbogacanie metadanych oraz układanie setów.
 
 servers:
   - url: /
     description: aplikacja za proxy /api
+  - url: http://localhost:8080
+    description: serwis uruchomiony lokalnie
 
 tags:
   - name: catalog
