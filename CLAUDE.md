@@ -45,7 +45,7 @@ frontend w `apps/web`, kod dzielony w `libs/`.
 - `contracts/openapi/` jest źródłem prawdy. Typy DTO we froncie wyłącznie
   generowane, nigdy pisane ręcznie.
 - Dodanie domeny do frontu = nowy katalog w `src/features/` + jedna linia
-  w `src/features/registry.ts`. Jeśli wymaga zmiany w `shell/` — zgłoś to
+  w `src/registry/index.ts`. Jeśli wymaga zmiany w `shell/` — zgłoś to
   zamiast obchodzić.
 - Nie twórz README ani ADR-ów bez wyraźnej prośby.
 - Komunikaty commitów po polsku, w trybie rozkazującym.
