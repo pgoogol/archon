@@ -33,10 +33,11 @@ public class EnrichController {
     @PostMapping
     @ResponseStatus(HttpStatus.ACCEPTED)
     @Operation(summary = "Zlecenie wzbogacania (asynchroniczne)",
-        description = "scope: SINGLE/SELECTED (z spotifyIds, max 100), MISSING (wg braków) "
-            + "albo OUTDATED (utwory opisane starszym modelem/promptem — wyłącznie grupa AI); "
-            + "fields: podzbiór METADATA/AUDIO/AI. Zlecenie ponad llm.max-tracks-per-job "
-            + "kończy się 400 ENRICH_TOO_MANY_TRACKS — sprawdź wcześniej /api/enrich/estimate.")
+        description = """
+            scope: SINGLE/SELECTED (z spotifyIds, max 100), MISSING (wg braków) \
+            albo OUTDATED (utwory opisane starszym modelem/promptem — wyłącznie grupa AI); \
+            fields: podzbiór METADATA/AUDIO/AI. Zlecenie ponad llm.max-tracks-per-job \
+            kończy się 400 ENRICH_TOO_MANY_TRACKS — sprawdź wcześniej /api/enrich/estimate.""")
     public Map<String, Long> startEnrichment(@Valid @RequestBody EnrichRequest request) {
 
         long executionId = enrichmentService.start(
@@ -46,9 +47,10 @@ public class EnrichController {
 
     @PostMapping("/estimate")
     @Operation(summary = "Ile utworów obejmie zlecenie i ile będzie kosztowało",
-        description = "Nie uruchamia niczego. Koszt liczony tylko dla grupy AI — metadane "
-            + "i cechy audio jadą z darmowych źródeł. Pusty koszt oznacza brak stawek "
-            + "w konfiguracji (llm.cost.input-per-1m / llm.cost.output-per-1m), nie zero.")
+        description = """
+            Nie uruchamia niczego. Koszt liczony tylko dla grupy AI — metadane \
+            i cechy audio jadą z darmowych źródeł. Pusty koszt oznacza brak stawek \
+            w konfiguracji (llm.cost.input-per-1m / llm.cost.output-per-1m), nie zero.""")
     public EnrichmentEstimateResponse estimate(@Valid @RequestBody EnrichRequest request) {
 
         EnrichmentEstimate estimate = enrichmentService.estimate(
@@ -75,8 +77,9 @@ public class EnrichController {
 
     @GetMapping("/jobs/{executionId}/failures")
     @Operation(summary = "Utwory pominięte przez job razem z powodem",
-        description = "Job nie przerywa się na pierwszym błędzie — przechodzi przez całą listę "
-            + "i pomija to, co padło. Ta lista mówi, co dokładnie odpadło i dlaczego.")
+        description = """
+            Job nie przerywa się na pierwszym błędzie — przechodzi przez całą listę \
+            i pomija to, co padło. Ta lista mówi, co dokładnie odpadło i dlaczego.""")
     public List<EnrichFailureResponse> jobFailures(@PathVariable long executionId,
                                                    @RequestParam(defaultValue = "200") int limit) {
 

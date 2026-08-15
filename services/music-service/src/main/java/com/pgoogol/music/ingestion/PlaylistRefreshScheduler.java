@@ -85,8 +85,9 @@ public class PlaylistRefreshScheduler {
             MyPlaylistsIngestReport report = ingestionService.ingestMyPlaylists();
             lastRun.set(PlaylistRefreshStatus.refreshed(
                 startedAt, report.imported().size(), report.failed().size()));
-            log.info("Automatyczne odświeżanie playlist: {} odświeżonych, {} nieudanych "
-                    + "(następne za {})",
+            log.info("""
+                Automatyczne odświeżanie playlist: {} odświeżonych, {} nieudanych \
+                (następne za {})""",
                 report.imported().size(), report.failed().size(), properties.interval());
         } catch (RuntimeException ex) {
             lastRun.set(PlaylistRefreshStatus.failed(startedAt, reason(ex)));

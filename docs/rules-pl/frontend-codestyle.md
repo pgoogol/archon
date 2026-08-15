@@ -19,6 +19,12 @@ paths:
 
 Trzymaj test obok pliku, który testuje, nigdy w osobnym drzewie `__tests__`.
 
+## Komentarze
+
+- **Nigdy nie odwołuj się do decyzji projektowej** (`(D19)`, `(M4.2/D26)`)
+  z kodu ani z komentarza. Napisz to, co decyzja mówi — czytelnik nie ma
+  otwartego `docs/` obok pliku.
+
 ## TypeScript
 
 - `strict: true` w każdym `tsconfig.json`. Nigdy nie wyłączaj flagi ze `strict`.

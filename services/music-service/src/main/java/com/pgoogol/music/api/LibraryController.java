@@ -47,10 +47,11 @@ public class LibraryController {
 
     @GetMapping("/overview")
     @Operation(summary = "Przegląd biblioteki — rozkłady i pokrycie",
-        description = "Rozkłady gatunków, tempa, energii, źródeł BPM i ocen, histogram BPM, "
-            + "najczęstsi wykonawcy oraz przyrost biblioteki po miesiącach. Wszystko liczone "
-            + "w bazie jednym wywołaniem. Udział bpm_source mówi, ile biblioteki stoi "
-            + "na faktach, a ile na estymacie LLM — wskaźnik jakości tempa.")
+        description = """
+            Rozkłady gatunków, tempa, energii, źródeł BPM i ocen, histogram BPM, \
+            najczęstsi wykonawcy oraz przyrost biblioteki po miesiącach. Wszystko liczone \
+            w bazie jednym wywołaniem. Udział bpm_source mówi, ile biblioteki stoi \
+            na faktach, a ile na estymacie LLM — wskaźnik jakości tempa.""")
     public LibraryOverviewResponse getOverview() {
         return mapper.toResponse(libraryService.overview());
     }
@@ -79,9 +80,10 @@ public class LibraryController {
 
     @PatchMapping("/tracks/{spotifyId}")
     @Operation(summary = "Aktualizacja danych prywatnych DJ-a",
-        description = "null = bez zmian; pusty string / pusta lista / rating 0 = wyczyszczenie "
-            + "pola. Pole version jest wymagane — niezgodna wersja kończy się 409 "
-            + "RESOURCE_MODIFIED, żeby cudza notatka nie zniknęła po cichu.")
+        description = """
+            null = bez zmian; pusty string / pusta lista / rating 0 = wyczyszczenie \
+            pola. Pole version jest wymagane — niezgodna wersja kończy się 409 \
+            RESOURCE_MODIFIED, żeby cudza notatka nie zniknęła po cichu.""")
     public LibraryEntryResponse updateTrack(@PathVariable String spotifyId,
                                             @Valid @RequestBody UpdateLibraryEntryRequest request) {
 

@@ -175,8 +175,9 @@ public class PlaylistService {
 
         if (Objects.isNull(expectedVersion) || playlist.getVersion() != expectedVersion) {
             throw new ConflictException("RESOURCE_MODIFIED",
-                ("Set zmienił się w innym miejscu (wersja %d, przysłano %s) — "
-                    + "odśwież i spróbuj ponownie")
+                ("""
+                    Set zmienił się w innym miejscu (wersja %d, przysłano %s) — \
+                    odśwież i spróbuj ponownie""")
                     .formatted(playlist.getVersion(), expectedVersion));
         }
     }

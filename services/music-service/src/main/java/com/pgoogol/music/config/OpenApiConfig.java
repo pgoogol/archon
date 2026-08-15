@@ -1,4 +1,4 @@
-package com.pgoogol.music.api;
+package com.pgoogol.music.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;

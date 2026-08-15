@@ -66,8 +66,9 @@ public class CatalogController {
 
     @GetMapping("/tracks/{spotifyId}/metrics")
     @Operation(summary = "Metryki utworu wgrane ręcznie z CSV",
-        description = "Surowe wartości z pliku: cechy w skali 0..1, BPM bez korekty half-time. "
-            + "204, gdy utwór nie dostał jeszcze metryk.")
+        description = """
+            Surowe wartości z pliku: cechy w skali 0..1, BPM bez korekty half-time. \
+            204, gdy utwór nie dostał jeszcze metryk.""")
     public ResponseEntity<TrackMetricsResponse> getTrackMetrics(@PathVariable String spotifyId) {
 
         return catalogService.findMetrics(spotifyId)
@@ -78,8 +79,9 @@ public class CatalogController {
 
     @GetMapping("/metrics-coverage")
     @Operation(summary = "Ile utworów katalogu ma metryki z pliku",
-        description = "Kontekst dla filtrów valenceMin/valenceMax/instrumentalMin/livenessMax — "
-            + "działają wyłącznie na utworach z metrykami, więc UI musi pokazać pokrycie.")
+        description = """
+            Kontekst dla filtrów valenceMin/valenceMax/instrumentalMin/livenessMax — \
+            działają wyłącznie na utworach z metrykami, więc UI musi pokazać pokrycie.""")
     public MetricsCoverageResponse getMetricsCoverage() {
 
         CatalogService.MetricsCoverage coverage = catalogService.metricsCoverage();
@@ -88,23 +90,25 @@ public class CatalogController {
 
     @GetMapping("/tracks")
     @Operation(summary = "Wyszukiwarka katalogu",
-        description = "Pełnotekstowo (tsvector) + fuzzy (pg_trgm) po tytule/wykonawcy; "
-            + "filtry utworu: genreFamily, yearMin/yearMax, durationMinSec/durationMaxSec, "
-            + "popularityMin, explicit; "
-            + "filtry brzmienia: bpmMin/bpmMax, tempoClass, energy oraz harmonia: "
-            + "camelot (np. 8A) + camelotCompatible (true = także sąsiedzi na kole "
-            + "i tonacja równoległa); "
-            + "filtry biblioteki DJ-a: inLibrary (true = tylko z biblioteki, "
-            + "false = tylko spoza), ratingMin, tag; "
-            + "filtry metryk: valenceMin/valenceMax, instrumentalMin, livenessMax — "
-            + "odsiewają utwory bez metryk, por. /api/catalog/metrics-coverage; "
-            + "filtry kompletności danych: bpmSource (MANUAL/ACOUSTICBRAINZ/DEEZER/LLM, "
-            + "kryterium jakości tempa) i missing (METADATA/AUDIO/AI/ANY); "
-            + "sortowanie: sort (RELEVANCE domyślnie, TITLE, ARTIST, ALBUM, YEAR, BPM, "
-            + "POPULARITY, DURATION, DANCEABILITY, ENERGY, RATING, ADDED_AT) "
-            + "+ direction (ASC/DESC), braki zawsze na końcu; "
-            + "paginacja (max " + MAX_PAGE_SIZE + "). "
-            + "Wiersz to katalog + dane DJ-a (library = null dla utworu spoza biblioteki).")
+        description = """
+            Pełnotekstowo (tsvector) + fuzzy (pg_trgm) po tytule/wykonawcy; \
+            filtry utworu: genreFamily, yearMin/yearMax, durationMinSec/durationMaxSec, \
+            popularityMin, explicit; \
+            filtry brzmienia: bpmMin/bpmMax, tempoClass, energy oraz harmonia: \
+            camelot (np. 8A) + camelotCompatible (true = także sąsiedzi na kole \
+            i tonacja równoległa); \
+            filtry biblioteki DJ-a: inLibrary (true = tylko z biblioteki, \
+            false = tylko spoza), ratingMin, tag; \
+            filtry metryk: valenceMin/valenceMax, instrumentalMin, livenessMax — \
+            odsiewają utwory bez metryk, por. /api/catalog/metrics-coverage; \
+            filtry kompletności danych: bpmSource (MANUAL/ACOUSTICBRAINZ/DEEZER/LLM, \
+            kryterium jakości tempa) i missing (METADATA/AUDIO/AI/ANY); \
+            sortowanie: sort (RELEVANCE domyślnie, TITLE, ARTIST, ALBUM, YEAR, BPM, \
+            POPULARITY, DURATION, DANCEABILITY, ENERGY, RATING, ADDED_AT) \
+            + direction (ASC/DESC), braki zawsze na końcu; \
+            paginacja (max\s""" + MAX_PAGE_SIZE + """
+                ). \
+                Wiersz to katalog + dane DJ-a (library = null dla utworu spoza biblioteki).""")
     public PageResponse<CatalogRowResponse> searchTracks(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) GenreFamily genreFamily,

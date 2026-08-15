@@ -19,6 +19,12 @@ paths:
 
 Keep a test next to the file it tests, never in a separate `__tests__` tree.
 
+## Comments
+
+- **Never reference a decision record** (`(D19)`, `(M4.2/D26)`) from code or
+  comments. Write what the decision says instead — the reader has no `docs/`
+  open next to the file.
+
 ## TypeScript
 
 - `strict: true` in every `tsconfig.json`. Never disable a flag from `strict`.

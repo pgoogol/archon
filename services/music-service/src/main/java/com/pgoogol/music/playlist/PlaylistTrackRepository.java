@@ -13,8 +13,9 @@ public interface PlaylistTrackRepository extends JpaRepository<PlaylistTrack, Lo
     List<PlaylistTrack> findAllByPlaylistIdOrderByPositionAsc(Long playlistId);
 
     /** Lista utworów playlisty z dociągniętym katalogiem (join — bez N+1). */
-    @Query("select pt from PlaylistTrack pt join fetch pt.track "
-        + "where pt.playlist.id = :playlistId order by pt.position")
+    @Query("""
+        select pt from PlaylistTrack pt join fetch pt.track \
+        where pt.playlist.id = :playlistId order by pt.position""")
     List<PlaylistTrack> findAllWithTrackByPlaylistId(@Param("playlistId") Long playlistId);
 
     Optional<PlaylistTrack> findByPlaylistIdAndTrackSpotifyId(Long playlistId, String spotifyId);

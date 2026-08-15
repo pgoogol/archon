@@ -17,6 +17,21 @@ paths:
   dla blokującego I/O.
 - **Nie używaj `var`** — zawsze deklaruj jawny typ zmiennej lokalnej.
 - Używaj text blocków dla wielolinijkowego SQL-a, JSON-a i HTML-a.
+- **Nigdy nie sklejaj długiego łańcucha z literałów przez `+`.** Łańcuch, który
+  nie mieści się w linii, idzie do text blocka. Gdy tekst ma zostać jedną linią
+  (komunikaty logów, opisy `@Operation`, fragmenty SQL-a), kończ każdą linię
+  znakiem `\` — kontynuacja zjada łamanie, więc treść zostaje co do bajta ta sama
+  co przy konkatenacji. Spację na końcu linii chroń przez `\s`, inaczej zniknie
+  jako biały znak nieistotny.
+  ```java
+  // ŹLE
+  String sql = "select … from track_catalog t "
+      + "where t.bpm is null";
+  // DOBRZE
+  String sql = """
+      select … from track_catalog t \
+      where t.bpm is null""";
+  ```
 - Jackson to **Jackson 3** (`tools.jackson.*`). Nigdy nie importuj
   `com.fasterxml.jackson.databind` ani `com.fasterxml.jackson.core` — adnotacje
   z `com.fasterxml.jackson.annotation` zostają, bo Jackson 3 zachował ten pakiet.
@@ -41,6 +56,11 @@ paths:
 - Maksymalna długość klasy: **300 linii** — dłuższą rozbij po odpowiedzialnościach.
 - Nigdy nie zwracaj `null` z metody publicznej — użyj `Optional<T>` albo rzuć
   typowany wyjątek.
+- **Nigdy nie odwołuj się do decyzji projektowej z kodu, komentarza ani
+  konfiguracji.** Czytelnik bez `docs/` pod ręką nie rozwiąże `(D19)`, więc pisz
+  to, co decyzja mówi: nie „kryterium (D19)", tylko „kryterium: pomiar czy
+  estymata". Jedyny wyjątek to zastosowana migracja Flyway — jej suma kontrolna
+  obejmuje także komentarze, więc edycja wywala walidację na istniejących bazach.
 - Żadnych statycznych klas narzędziowych — używaj beanów Springa. Wyjątek:
   fixtures testowe (Object Mother).
 - Preferuj `List.of()`, `Map.of()`, `Set.of()` dla kolekcji niemodyfikowalnych.

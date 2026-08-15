@@ -109,8 +109,9 @@ public class MetricsIngestionService {
         if (fromFile.isEmpty() || fromKey.isEmpty() || fromFile.equals(fromKey)) {
             return;
         }
-        log.warn("Wiersz {}: Camelot z pliku ({}) nie zgadza się z tonacją utworu {} ({} → {}) "
-                + "— sprawdź, czy wiersz opisuje to nagranie",
+        log.warn("""
+            Wiersz {}: Camelot z pliku ({}) nie zgadza się z tonacją utworu {} ({} → {}) \
+            — sprawdź, czy wiersz opisuje to nagranie""",
             line, fromFile.orElseThrow().label(), track.getSpotifyId(),
             track.getMusicalKey(), fromKey.orElseThrow().label());
     }

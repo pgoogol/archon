@@ -22,8 +22,9 @@ final class CatalogSearchSql {
     private static final String AUDIO_MISSING =
         "t.bpm is null or t.musical_key is null or t.danceability is null or t.tempo_class is null";
     private static final String AI_MISSING =
-        "t.style is null or t.genre_family is null or t.lyrics_theme is null "
-            + "or t.description_pl is null or t.energy is null";
+        """
+            t.style is null or t.genre_family is null or t.lyrics_theme is null \
+            or t.description_pl is null or t.energy is null""";
 
     /**
      * Katalog z dołączoną biblioteką DJ-a (M3.2) i metrykami z pliku (M4.1).

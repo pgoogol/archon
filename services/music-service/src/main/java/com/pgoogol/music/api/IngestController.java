@@ -58,9 +58,10 @@ public class IngestController {
 
     @PostMapping(value = "/file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Import CSV do biblioteki",
-        description = "Eksport z Exportify, z analizatora playlist albo plik własny — "
-            + "utwór rozpoznajemy po kolumnie z URI, linkiem lub samym Spotify Track Id, "
-            + "a tytuł i wykonawcę po nagłówkach w kilku wariantach nazw.")
+        description = """
+            Eksport z Exportify, z analizatora playlist albo plik własny — \
+            utwór rozpoznajemy po kolumnie z URI, linkiem lub samym Spotify Track Id, \
+            a tytuł i wykonawcę po nagłówkach w kilku wariantach nazw.""")
     public IngestFileResponse ingestFile(@RequestParam("file") MultipartFile file) {
 
         if (file.isEmpty()) {
@@ -75,12 +76,13 @@ public class IngestController {
 
     @PostMapping(value = "/metrics", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Import metryk utworów z CSV",
-        description = "Uzupełnia BPM, tonację, Camelot i cechy audio dla utworów, "
-            + "które są już w katalogu — dopasowanie po Spotify Track Id, "
-            + "a gdy go brak, po ISRC. Utwory spoza katalogu trafiają do raportu "
-            + "jako pominięte; ponowny import nadpisuje metryki. Pole `file` można "
-            + "podać wiele razy — każdy plik idzie osobno, a plik odrzucony w całości "
-            + "wraca w raporcie z powodem, nie przerywając pozostałych.")
+        description = """
+            Uzupełnia BPM, tonację, Camelot i cechy audio dla utworów, \
+            które są już w katalogu — dopasowanie po Spotify Track Id, \
+            a gdy go brak, po ISRC. Utwory spoza katalogu trafiają do raportu \
+            jako pominięte; ponowny import nadpisuje metryki. Pole `file` można \
+            podać wiele razy — każdy plik idzie osobno, a plik odrzucony w całości \
+            wraca w raporcie z powodem, nie przerywając pozostałych.""")
     public IngestMetricsResponse ingestMetrics(@RequestParam("file") List<MultipartFile> files) {
 
         if (files.stream().allMatch(MultipartFile::isEmpty)) {
@@ -95,9 +97,10 @@ public class IngestController {
 
     @PostMapping("/playlist")
     @Operation(summary = "Import playlisty ze Spotify po linku",
-        description = "Utwory trafiają do katalogu i biblioteki (dedup po spotify_id), "
-            + "playlista odtwarzana lokalnie wraz z kolejnością. Ponowny import "
-            + "aktualizuje nazwę i kolejność, nie duplikuje wpisów.")
+        description = """
+            Utwory trafiają do katalogu i biblioteki (dedup po spotify_id), \
+            playlista odtwarzana lokalnie wraz z kolejnością. Ponowny import \
+            aktualizuje nazwę i kolejność, nie duplikuje wpisów.""")
     public IngestPlaylistResponse ingestPlaylist(@Valid @RequestBody IngestPlaylistRequest request) {
 
         return mapper.toResponse(playlistIngestionService.ingest(request.url()));
@@ -105,10 +108,11 @@ public class IngestController {
 
     @PostMapping("/my-playlists")
     @Operation(summary = "Import wszystkich własnych playlist połączonego konta (tryb C)",
-        description = "Wymaga połączonego konta Spotify (GET /api/auth/spotify/login). "
-            + "Playlisty obserwowane, ale cudze, są pomijane — importuj je po linku. "
-            + "Playlista, która padła, nie przerywa przebiegu: wraca w `failed` "
-            + "z powodem i wystarczy powtórzyć ją osobno.")
+        description = """
+            Wymaga połączonego konta Spotify (GET /api/auth/spotify/login). \
+            Playlisty obserwowane, ale cudze, są pomijane — importuj je po linku. \
+            Playlista, która padła, nie przerywa przebiegu: wraca w `failed` \
+            z powodem i wystarczy powtórzyć ją osobno.""")
     public IngestMyPlaylistsResponse ingestMyPlaylists() {
 
         return mapper.toResponse(myPlaylistsIngestionService.ingestMyPlaylists());
@@ -116,9 +120,10 @@ public class IngestController {
 
     @GetMapping("/my-playlists/refresh-status")
     @Operation(summary = "Stan automatycznego odświeżania playlist",
-        description = "Kiedy poszedł ostatni przebieg w tle i czym się skończył. "
-            + "SKIPPED_NOT_CONNECTED to normalny stan świeżej instalacji, nie awaria — "
-            + "bez połączonego konta Spotify nie ma czego odświeżać.")
+        description = """
+            Kiedy poszedł ostatni przebieg w tle i czym się skończył. \
+            SKIPPED_NOT_CONNECTED to normalny stan świeżej instalacji, nie awaria — \
+            bez połączonego konta Spotify nie ma czego odświeżać.""")
     public PlaylistRefreshStatusResponse refreshStatus() {
 
         PlaylistRefreshStatus status = playlistRefreshScheduler.status();

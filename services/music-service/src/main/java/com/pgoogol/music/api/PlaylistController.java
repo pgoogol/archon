@@ -51,8 +51,9 @@ public class PlaylistController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Playlista ze składem setu i slotami wieczoru",
-        description = "djSlot = override DJ-a, a gdy go nie ma — wyliczenie z bpm/energy/"
-            + "genre_family; null oznacza utwór jeszcze niewzbogacony.")
+        description = """
+            djSlot = override DJ-a, a gdy go nie ma — wyliczenie z bpm/energy/\
+            genre_family; null oznacza utwór jeszcze niewzbogacony.""")
     public PlaylistResponse get(@PathVariable Long id) {
         return mapper.toResponse(playlistService.get(id));
     }
@@ -105,9 +106,10 @@ public class PlaylistController {
 
     @PostMapping("/{id}/export-to-spotify")
     @Operation(summary = "Eksport setu na konto Spotify",
-        description = "Pierwszy eksport zakłada prywatną playlistę na koncie właściciela, "
-            + "kolejne nadpisują jej zawartość — kolejność na Spotify odpowiada setowi. "
-            + "Wymaga połączonego konta (GET /api/auth/spotify/login).")
+        description = """
+            Pierwszy eksport zakłada prywatną playlistę na koncie właściciela, \
+            kolejne nadpisują jej zawartość — kolejność na Spotify odpowiada setowi. \
+            Wymaga połączonego konta (GET /api/auth/spotify/login).""")
     public PlaylistExportResponse exportToSpotify(@PathVariable Long id) {
         return mapper.toResponse(playlistExportService.export(id));
     }

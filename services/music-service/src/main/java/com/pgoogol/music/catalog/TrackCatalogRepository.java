@@ -22,8 +22,9 @@ public interface TrackCatalogRepository extends JpaRepository<TrackCatalog, Stri
     String METADATA_MISSING = "t.isrc is null or t.year is null or t.durationMs is null";
     String AUDIO_MISSING =
         "t.bpm is null or t.musicalKey is null or t.danceability is null or t.tempoClass is null";
-    String AI_MISSING = "t.style is null or t.genreFamily is null or t.lyricsTheme is null "
-        + "or t.descriptionPl is null or t.energy is null";
+    String AI_MISSING = """
+        t.style is null or t.genreFamily is null or t.lyricsTheme is null \
+        or t.descriptionPl is null or t.energy is null""";
 
     @Query("select t from TrackCatalog t where " + METADATA_MISSING)
     List<TrackCatalog> findMetadataMissing();

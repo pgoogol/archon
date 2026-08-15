@@ -135,8 +135,9 @@ public class LibraryService {
 
         if (entry.getVersion() != expectedVersion) {
             throw new ConflictException("RESOURCE_MODIFIED",
-                ("Wpis zmienił się w innym miejscu (wersja %d, przysłano %d) — "
-                    + "odśwież i spróbuj ponownie")
+                ("""
+                    Wpis zmienił się w innym miejscu (wersja %d, przysłano %d) — \
+                    odśwież i spróbuj ponownie""")
                     .formatted(entry.getVersion(), expectedVersion));
         }
     }

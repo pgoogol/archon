@@ -34,8 +34,9 @@ public class SpotifyAuthController {
 
     @GetMapping("/login")
     @Operation(summary = "Start logowania — przekierowanie na ekran zgody Spotify",
-        description = "Otwórz ten adres w przeglądarce; po zatwierdzeniu zgód Spotify wróci "
-            + "na /api/auth/spotify/callback i konto zostanie zapisane.")
+        description = """
+            Otwórz ten adres w przeglądarce; po zatwierdzeniu zgód Spotify wróci \
+            na /api/auth/spotify/callback i konto zostanie zapisane.""")
     public ResponseEntity<Void> login() {
 
         return ResponseEntity.status(HttpStatus.FOUND)

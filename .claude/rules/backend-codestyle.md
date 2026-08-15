@@ -17,6 +17,21 @@ paths:
   blocking I/O.
 - **Do not use `var`** — always declare the explicit type of a local variable.
 - Use text blocks for multi-line SQL, JSON and HTML.
+- **Never build a long string by concatenating literals with `+`.** A string too
+  long for one line goes into a text block. When the text must stay a single line
+  (log messages, `@Operation` descriptions, SQL fragments), end each line with `\`
+  — the continuation eats the line break, so the content stays byte for byte what
+  concatenation produced. Use `\s` to protect a trailing space that would
+  otherwise be stripped as incidental white space.
+  ```java
+  // WRONG
+  String sql = "select … from track_catalog t "
+      + "where t.bpm is null";
+  // CORRECT
+  String sql = """
+      select … from track_catalog t \
+      where t.bpm is null""";
+  ```
 - Jackson is **Jackson 3** (`tools.jackson.*`). Never import
   `com.fasterxml.jackson.databind` or `com.fasterxml.jackson.core` — annotations
   from `com.fasterxml.jackson.annotation` stay, because Jackson 3 kept that package.
@@ -41,6 +56,11 @@ paths:
 - Maximum class length: **300 lines** — split by responsibility.
 - Never return `null` from a public method — use `Optional<T>` or throw a typed
   exception.
+- **Never reference a decision record from code, comments or configuration.**
+  A reader without `docs/` in front of them cannot resolve `(D19)`, so write what
+  the decision says: not "criterion (D19)" but "criterion: measured or estimated".
+  The one exception is an applied Flyway migration — its checksum covers comments
+  too, so editing one breaks validation on every existing database.
 - No static utility classes — use Spring beans. Exception: test fixtures
   (Object Mother).
 - Prefer `List.of()`, `Map.of()`, `Set.of()` for immutable collections.

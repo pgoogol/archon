@@ -40,9 +40,14 @@ paths:
       dto/
       domain/
     api/                 ← kontrolery REST, DTO żądań i odpowiedzi, mappery
+    config/              ← konfiguracja Springa przecinająca domeny (np. OpenAPI)
     common/              ← dzielone wewnątrz tego serwisu (np. rate limiting)
     shared/exception/    ← hierarchia wyjątków serwisu
   ```
+
+  `config/` nie jest pakietem warstwowym w przebraniu: trzyma wyłącznie
+  konfigurację, która nie należy do żadnej domeny. Konfiguracja należąca do
+  domeny zostaje przy niej — `EnrichmentJobConfig` mieszka w `enrichment/`.
 
 - Trzymaj kod domenowy w module, do którego należy. Nie rozsypuj go po `common/`.
 - **Serwis nigdy nie zależy od innego serwisu.** Jedyne zależności dozwolone

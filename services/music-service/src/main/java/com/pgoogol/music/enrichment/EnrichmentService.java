@@ -86,8 +86,9 @@ public class EnrichmentService {
                 .ifPresent(version -> parameters.addLong("outdatedVersion", version.longValue()));
         }
         JobExecution execution = launch(parameters.toJobParameters());
-        log.info("Wystartowano job wzbogacania: executionId={}, scope={}, fields={}, utwory={}, "
-                + "szacunek kosztu={}",
+        log.info("""
+            Wystartowano job wzbogacania: executionId={}, scope={}, fields={}, utwory={}, \
+            szacunek kosztu={}""",
             execution.getId(), scope, fields, estimate.trackCount(),
             Optional.ofNullable(estimate.estimatedCost())
                 .map(cost -> "$" + cost)
@@ -179,9 +180,10 @@ public class EnrichmentService {
             .map(value -> ", szacunek kosztu $" + value)
             .orElse("");
         throw new ValidationException("ENRICH_TOO_MANY_TRACKS",
-            ("Zakres %s wysyła do modelu %d utworów przy limicie %d%s — odznacz grupę AI "
-                + "(metadane i audio nie mają sufitu), zawęź zlecenie albo podnieś "
-                + "llm.max-tracks-per-job w konfiguracji")
+            ("""
+                Zakres %s wysyła do modelu %d utworów przy limicie %d%s — odznacz grupę AI \
+                (metadane i audio nie mają sufitu), zawęź zlecenie albo podnieś \
+                llm.max-tracks-per-job w konfiguracji""")
                 .formatted(scope, estimate.aiTracks(), estimate.limit(), cost));
     }
 
@@ -239,9 +241,10 @@ public class EnrichmentService {
                     // BATCH_JOB_EXECUTION_PARAMS.PARAMETER_VALUE: lista id-ków jedzie
                     // w parametrze joba, żeby restart dokończył dokładnie ten zakres
                     throw new ValidationException("ENRICH_TOO_MANY_TRACKS",
-                        ("Zakres SELECTED przenosi listę utworów w parametrze joba, a ten mieści "
-                            + "najwyżej %d pozycji — dla większych partii użyj zakresu MISSING, "
-                            + "który nie ma sufitu poza kosztem grupy AI")
+                        ("""
+                            Zakres SELECTED przenosi listę utworów w parametrze joba, a ten mieści \
+                            najwyżej %d pozycji — dla większych partii użyj zakresu MISSING, \
+                            który nie ma sufitu poza kosztem grupy AI""")
                             .formatted(MAX_SELECTED_TRACKS));
                 }
             }

@@ -78,8 +78,9 @@ class LlmSmokeTest {
             System.out.printf("Koszt: $%.6f łącznie, $%.6f / utwór → wpisz do PLAN.md (ryzyka)%n",
                 cost, cost / trackCount);
         } else {
-            System.out.println("Podaj LLM_COST_INPUT_PER_1M i LLM_COST_OUTPUT_PER_1M, "
-                + "aby wyliczyć koszt na utwór.");
+            System.out.println("""
+                Podaj LLM_COST_INPUT_PER_1M i LLM_COST_OUTPUT_PER_1M, \
+                aby wyliczyć koszt na utwór.""");
         }
     }
 

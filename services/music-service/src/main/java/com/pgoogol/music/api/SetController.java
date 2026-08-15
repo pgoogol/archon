@@ -43,13 +43,14 @@ public class SetController {
 
     @PostMapping("/propose")
     @Operation(summary = "Propozycja setu na zadany czas",
-        description = "Układa set z utworów spełniających te same filtry co wyszukiwarka: "
-            + "kształt wieczoru wg profilu curve (STANDARD 25/30/30/15, WEDDING 30/30/25/15, "
-            + "CLUB 15/25/45/15, EVEN 25/25/25/25 — udziały faz wieczoru), "
-            + "utwór raz w secie, ten sam wykonawca nie częściej niż raz na 30 minut, "
-            + "kary za skok BPM, zderzenie tonacji i brak oceny. "
-            + "NICZEGO NIE ZAPISUJE — playlistę zakłada DJ przez /api/playlists. "
-            + "Ten sam seed daje tę samą propozycję.")
+        description = """
+            Układa set z utworów spełniających te same filtry co wyszukiwarka: \
+            kształt wieczoru wg profilu curve (STANDARD 25/30/30/15, WEDDING 30/30/25/15, \
+            CLUB 15/25/45/15, EVEN 25/25/25/25 — udziały faz wieczoru), \
+            utwór raz w secie, ten sam wykonawca nie częściej niż raz na 30 minut, \
+            kary za skok BPM, zderzenie tonacji i brak oceny. \
+            NICZEGO NIE ZAPISUJE — playlistę zakłada DJ przez /api/playlists. \
+            Ten sam seed daje tę samą propozycję.""")
     public SetProposalResponse propose(@Valid @RequestBody SetProposalRequest request) {
 
         SetProposal proposal = setProposalService.propose(
@@ -65,11 +66,12 @@ public class SetController {
 
     @PostMapping("/{playlistId}/fill")
     @Operation(summary = "Uzupełnij gotowy set do zadanego czasu",
-        description = "Dokłada dalszy ciąg do setu, który już stoi: utwory z setu zajmują "
-            + "początek wieczoru (liczą się do czasu, blokują powtórkę utworu i odstęp "
-            + "wykonawcy), a wynikiem jest sama końcówka. targetMinutes to długość CAŁEGO "
-            + "wieczoru, nie tego, co dochodzi. NICZEGO NIE ZAPISUJE — utwory dopisuje "
-            + "DJ przez /api/playlists/{id}/tracks. Ten sam seed daje ten sam dalszy ciąg.")
+        description = """
+            Dokłada dalszy ciąg do setu, który już stoi: utwory z setu zajmują \
+            początek wieczoru (liczą się do czasu, blokują powtórkę utworu i odstęp \
+            wykonawcy), a wynikiem jest sama końcówka. targetMinutes to długość CAŁEGO \
+            wieczoru, nie tego, co dochodzi. NICZEGO NIE ZAPISUJE — utwory dopisuje \
+            DJ przez /api/playlists/{id}/tracks. Ten sam seed daje ten sam dalszy ciąg.""")
     public SetFillResponse fill(@PathVariable Long playlistId,
                                 @Valid @RequestBody SetFillRequest request) {
 
@@ -90,11 +92,12 @@ public class SetController {
 
     @PostMapping("/{playlistId}/suggest")
     @Operation(summary = "Dobierz utwór na wskazane miejsce w secie",
-        description = "Kandydaci na jedną lukę w gotowym secie, uszeregowani od najlepiej "
-            + "pasującego: kara za przejście liczona od utworu przed luką i do utworu za nią, "
-            + "utwór już w secie odpada, wykonawca nie wraca przed upływem 30 minut. "
-            + "Bez losowania — ta sama luka daje tę samą odpowiedź. "
-            + "position: 0 przed pierwszym utworem, brak wartości = na koniec.")
+        description = """
+            Kandydaci na jedną lukę w gotowym secie, uszeregowani od najlepiej \
+            pasującego: kara za przejście liczona od utworu przed luką i do utworu za nią, \
+            utwór już w secie odpada, wykonawca nie wraca przed upływem 30 minut. \
+            Bez losowania — ta sama luka daje tę samą odpowiedź. \
+            position: 0 przed pierwszym utworem, brak wartości = na koniec.""")
     public SetSuggestionResponse suggest(@PathVariable Long playlistId,
                                          @Valid @RequestBody SetSuggestionRequest request) {
 

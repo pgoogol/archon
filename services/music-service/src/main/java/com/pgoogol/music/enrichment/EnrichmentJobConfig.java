@@ -57,8 +57,9 @@ public class EnrichmentJobConfig {
     private static final String AUDIO_MISSING_SQL =
         "(bpm is null or musical_key is null or danceability is null or tempo_class is null)";
     private static final String AI_MISSING_SQL =
-        "(style is null or genre_family is null or lyrics_theme is null "
-            + "or description_pl is null or energy is null)";
+        """
+            (style is null or genre_family is null or lyrics_theme is null \
+            or description_pl is null or energy is null)""";
 
     @Bean
     public Job enrichmentJob(JobRepository jobRepository, Step enrichmentStep) {
