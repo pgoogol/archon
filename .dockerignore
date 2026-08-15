@@ -1,6 +1,20 @@
-target/
-frontend/node_modules/
-frontend/dist/
+# Kontekstem builda obu obrazów jest katalog główny repo, więc lista musi
+# obejmować cały monorepo — inaczej do kontekstu wjeżdżają target/ i node_modules
+# każdego modułu i build zwalnia o rzędy wielkości.
+
 .git/
+.github/
+
+**/target/
+**/node_modules/
+**/dist/
+**/.turbo/
+
+# sekrety nigdy nie wchodzą do obrazu (D14) — .env.example zostaje w repo
 .env
+.env.*
+!.env.example
+
 docs/
+e2e/
+**/*.md

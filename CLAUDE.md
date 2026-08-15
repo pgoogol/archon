@@ -19,15 +19,14 @@ frontend w `apps/web`, kod dzielony w `libs/`.
 
 | Cel | Komenda |
 |---|---|
-| Pełny build Javy | `./mvnw -T 1C verify` |
+| Pełny build Javy | `./mvnw -T 1C verify` (bez integracyjnych: `-DskipITs`) |
 | Jeden moduł + zależności | `./mvnw -pl services/music-service -am verify` |
-| Build bez testów integracyjnych | `./mvnw -T 1C verify -DskipITs` |
 | Testy integracyjne na gotowej bazie | `TEST_POSTGRES_CONTAINER=false SPRING_DATASOURCE_URL=… ./mvnw verify` |
-| Serwis lokalnie | `./mvnw -pl services/music-service spring-boot:run -Dspring-boot.run.profiles=local` |
+| Serwis lokalnie | `./mvnw -pl libs/java/logging-starter -am -DskipTests install` (po zmianie startera), potem `./mvnw -pl services/music-service spring-boot:run -Dspring-boot.run.profiles=local` |
 | Front — build / testy / lint | `pnpm build` · `pnpm test` · `pnpm lint` |
 | Front — tryb dev | `pnpm --filter web dev` |
-| Środowisko lokalne | `docker compose -f deploy/compose/docker-compose.yml up -d` |
-| Zatrzymanie środowiska | `docker compose -f deploy/compose/docker-compose.yml down` (z `-v` czyści dane) |
+| Środowisko lokalne | `docker compose -f deploy/compose/docker-compose.yml up -d` (`down -v` czyści dane) |
+| Wszystko w kontenerach | `docker compose -f deploy/compose/docker-compose.yml --profile full up -d --build` |
 | E2E | `pnpm --filter e2e test` |
 
 ## Nienegocjowalne
