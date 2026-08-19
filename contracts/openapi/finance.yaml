@@ -1,0 +1,684 @@
+openapi: 3.1.0
+
+info:
+  title: finance-service API
+  version: 1.0.0
+  description: |
+    Finanse osobiste: konta i salda, kategorie, transakcje, waluty i kursy.
+
+    Wszystkie kwoty to liczby całkowite w jednostkach podrzędnych waluty
+    (pola z sufiksem `Minor`). Liczba miejsc po przecinku zależy od waluty
+    i przychodzi w polu `minorUnit` — PLN i EUR mają 2, JPY ma 0. Formatowanie
+    należy do klienta; serwis nigdy nie zwraca kwoty jako liczby zmiennoprzecinkowej.
+
+    Transakcja trzyma kurs użyty w chwili jej powstania (`fxRate`, `fxRateDate`)
+    oraz gotową kwotę w walucie bazowej (`baseAmountMinor`). Dzięki temu
+    zeszłoroczne podsumowanie nie zmienia się po dopisaniu nowych kursów.
+
+servers:
+  - url: /
+    description: aplikacja za proxy /api
+  - url: http://localhost:8081
+    description: serwis uruchomiony lokalnie
+
+tags:
+  - name: currencies
+    description: Waluty i kursy wymiany
+  - name: accounts
+    description: Konta i salda
+  - name: categories
+    description: Drzewo kategorii
+  - name: transactions
+    description: Wydatki, przychody i transfery
+
+paths:
+
+  /api/finance/currencies:
+    get:
+      tags: [currencies]
+      operationId: listCurrencies
+      summary: Słownik walut wraz z liczbą miejsc po przecinku
+      responses:
+        '200':
+          description: Waluty posortowane po kodzie
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/CurrencyResponse' }
+    post:
+      tags: [currencies]
+      operationId: addCurrency
+      summary: Dodanie waluty do słownika
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CurrencyRequest' }
+      responses:
+        '201':
+          description: Waluta dodana
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CurrencyResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /api/finance/exchange-rates:
+    get:
+      tags: [currencies]
+      operationId: listExchangeRates
+      summary: Kursy waluty w zakresie dat
+      parameters:
+        - name: code
+          in: query
+          required: true
+          description: Kod waluty, np. `EUR`
+          schema: { type: string, minLength: 3, maxLength: 3 }
+        - { $ref: '#/components/parameters/From' }
+        - { $ref: '#/components/parameters/To' }
+      responses:
+        '200':
+          description: Kursy rosnąco po dacie
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/ExchangeRateResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    post:
+      tags: [currencies]
+      operationId: addExchangeRate
+      summary: Ręczny wpis kursu
+      description: >-
+        Zapisany kurs dostaje źródło `MANUAL`. Ponowny wpis na tę samą datę
+        nadpisuje poprzedni.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ExchangeRateRequest' }
+      responses:
+        '201':
+          description: Kurs zapisany
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExchangeRateResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/finance/exchange-rates/sync:
+    post:
+      tags: [currencies]
+      operationId: syncExchangeRates
+      summary: Pobranie kursów z NBP za zakres dat
+      description: >-
+        Tabela A NBP. Waluta bazowa jest pomijana — jej kurs z definicji wynosi 1.
+        Dni bez publikacji (weekendy, święta) po prostu nie mają wpisu.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SyncExchangeRatesRequest' }
+      responses:
+        '200':
+          description: Podsumowanie synchronizacji
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SyncExchangeRatesResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '502': { $ref: '#/components/responses/BadGateway' }
+
+  /api/finance/accounts:
+    get:
+      tags: [accounts]
+      operationId: listAccounts
+      summary: Lista kont
+      parameters:
+        - { $ref: '#/components/parameters/IncludeArchived' }
+      responses:
+        '200':
+          description: Konta posortowane po nazwie
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/AccountResponse' }
+    post:
+      tags: [accounts]
+      operationId: createAccount
+      summary: Nowe konto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AccountRequest' }
+      responses:
+        '201':
+          description: Konto utworzone
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AccountResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/finance/accounts/{id}:
+    put:
+      tags: [accounts]
+      operationId: updateAccount
+      summary: Zmiana danych konta
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AccountRequest' }
+      responses:
+        '200':
+          description: Konto po zmianie
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AccountResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [accounts]
+      operationId: archiveAccount
+      summary: Archiwizacja konta
+      description: >-
+        Konto nie znika — historia transakcji musi zostać. Zarchiwizowane konto
+        przestaje się pojawiać na listach wyboru.
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+      responses:
+        '204':
+          description: Konto zarchiwizowane
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/finance/accounts/{id}/balance:
+    get:
+      tags: [accounts]
+      operationId: getAccountBalance
+      summary: Saldo konta w jego walucie i w walucie bazowej
+      description: >-
+        Saldo liczy się zapytaniem, nie jest przechowywane. Wartość w walucie
+        bazowej przelicza się kursem **bieżącym** — to stan majątku na dziś,
+        w odróżnieniu od transakcji, które trzymają kurs historyczny.
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+      responses:
+        '200':
+          description: Saldo konta
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AccountBalanceResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/finance/categories:
+    get:
+      tags: [categories]
+      operationId: listCategories
+      summary: Drzewo kategorii
+      description: Zwraca korzenie; podkategorie siedzą w polu `children`.
+      parameters:
+        - name: direction
+          in: query
+          description: Ogranicza drzewo do kategorii wydatkowych albo przychodowych
+          schema: { $ref: '#/components/schemas/CategoryDirection' }
+        - { $ref: '#/components/parameters/IncludeArchived' }
+      responses:
+        '200':
+          description: Kategorie najwyższego poziomu z podkategoriami
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/CategoryResponse' }
+    post:
+      tags: [categories]
+      operationId: createCategory
+      summary: Nowa kategoria lub podkategoria
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CategoryRequest' }
+      responses:
+        '201':
+          description: Kategoria utworzona
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CategoryResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /api/finance/categories/{id}:
+    put:
+      tags: [categories]
+      operationId: updateCategory
+      summary: Zmiana kategorii
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CategoryRequest' }
+      responses:
+        '200':
+          description: Kategoria po zmianie
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CategoryResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+    delete:
+      tags: [categories]
+      operationId: archiveCategory
+      summary: Archiwizacja kategorii
+      description: >-
+        Kategoria zostaje w bazie razem z podkategoriami — inaczej historyczne
+        transakcje straciłyby przypisanie.
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+      responses:
+        '204':
+          description: Kategoria zarchiwizowana
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/finance/transactions:
+    get:
+      tags: [transactions]
+      operationId: searchTransactions
+      summary: Transakcje z filtrami i stronicowaniem
+      parameters:
+        - { $ref: '#/components/parameters/From' }
+        - { $ref: '#/components/parameters/To' }
+        - name: accountId
+          in: query
+          description: Konto źródłowe albo docelowe transferu
+          schema: { type: integer, format: int64 }
+        - name: categoryId
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: type
+          in: query
+          schema: { $ref: '#/components/schemas/TransactionType' }
+        - name: currency
+          in: query
+          schema: { type: string, minLength: 3, maxLength: 3 }
+        - name: page
+          in: query
+          schema: { type: integer, format: int32, default: 0 }
+        - name: size
+          in: query
+          description: Maksymalnie 100 — większa wartość jest przycinana
+          schema: { type: integer, format: int32, default: 20 }
+      responses:
+        '200':
+          description: Strona transakcji, najnowsze pierwsze
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TransactionPageResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+    post:
+      tags: [transactions]
+      operationId: createTransaction
+      summary: Nowa transakcja
+      description: >-
+        Kwota jest zawsze dodatnia — kierunek wynika z pola `type`.
+        Kurs i kwota w walucie bazowej wyliczają się przy zapisie i już się
+        nie zmieniają.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TransactionRequest' }
+      responses:
+        '201':
+          description: Transakcja zapisana
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TransactionResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/finance/transactions/{id}:
+    get:
+      tags: [transactions]
+      operationId: getTransaction
+      summary: Pojedyncza transakcja
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+      responses:
+        '200':
+          description: Transakcja
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TransactionResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [transactions]
+      operationId: updateTransaction
+      summary: Zmiana transakcji
+      description: >-
+        Kurs jest wyznaczany od nowa dla daty księgowania po zmianie — inaczej
+        przesunięcie daty zostawiłoby kwotę bazową policzoną dla starej.
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TransactionRequest' }
+      responses:
+        '200':
+          description: Transakcja po zmianie
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TransactionResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [transactions]
+      operationId: deleteTransaction
+      summary: Usunięcie transakcji
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+      responses:
+        '204':
+          description: Transakcja usunięta
+        '404': { $ref: '#/components/responses/NotFound' }
+
+components:
+
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    From:
+      name: from
+      in: query
+      description: Początek zakresu dat, włącznie
+      schema: { type: string, format: date }
+    To:
+      name: to
+      in: query
+      description: Koniec zakresu dat, włącznie
+      schema: { type: string, format: date }
+    IncludeArchived:
+      name: includeArchived
+      in: query
+      description: Domyślnie zarchiwizowane pozycje są pomijane
+      schema: { type: boolean, default: false }
+
+  responses:
+    BadRequest:
+      description: Błąd walidacji
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    NotFound:
+      description: Zasób nie istnieje
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Conflict:
+      description: Konflikt z istniejącym stanem
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    BadGateway:
+      description: Zewnętrzne API niedostępne
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  schemas:
+
+    ErrorResponse:
+      type: object
+      properties:
+        errorCode:
+          type: string
+          examples: [ACCOUNT_NOT_FOUND]
+        message: { type: string }
+        timestamp: { type: string, format: date-time }
+        traceId: { type: [string, 'null'] }
+      required: [errorCode, message, timestamp]
+
+    AccountType:
+      type: string
+      enum: [BANK, CASH, CARD]
+
+    CategoryDirection:
+      type: string
+      enum: [EXPENSE, INCOME]
+
+    TransactionType:
+      type: string
+      enum: [EXPENSE, INCOME, TRANSFER]
+
+    RateSource:
+      type: string
+      enum: [NBP, MANUAL]
+
+    CurrencyResponse:
+      type: object
+      description: Waluta słownikowa; `minorUnit` decyduje o formatowaniu kwot.
+      properties:
+        code: { type: string, examples: [PLN] }
+        name: { type: string }
+        minorUnit:
+          type: integer
+          format: int32
+          description: Liczba miejsc po przecinku — PLN 2, JPY 0, TND 3
+      required: [code, name, minorUnit]
+
+    CurrencyRequest:
+      type: object
+      properties:
+        code: { type: string, minLength: 3, maxLength: 3 }
+        name: { type: string, maxLength: 50 }
+        minorUnit: { type: integer, format: int32, minimum: 0, maximum: 4 }
+      required: [code, name, minorUnit]
+
+    ExchangeRateResponse:
+      type: object
+      properties:
+        code: { type: string }
+        rateDate: { type: string, format: date }
+        rate:
+          type: string
+          description: Ile waluty bazowej za jednostkę tej waluty; dziesiętnie, jako tekst
+          examples: ['4.32150000']
+        source: { $ref: '#/components/schemas/RateSource' }
+      required: [code, rateDate, rate, source]
+
+    ExchangeRateRequest:
+      type: object
+      properties:
+        code: { type: string, minLength: 3, maxLength: 3 }
+        rateDate: { type: string, format: date }
+        rate: { type: string, examples: ['4.32150000'] }
+      required: [code, rateDate, rate]
+
+    SyncExchangeRatesRequest:
+      type: object
+      properties:
+        from: { type: string, format: date }
+        to: { type: string, format: date }
+        codes:
+          type: array
+          description: Puste = wszystkie waluty ze słownika poza bazową
+          items: { type: string, minLength: 3, maxLength: 3 }
+      required: [from, to]
+
+    SyncExchangeRatesResponse:
+      type: object
+      properties:
+        from: { type: string, format: date }
+        to: { type: string, format: date }
+        savedCount:
+          type: integer
+          format: int32
+          description: Liczba zapisanych kursów; dni bez publikacji NBP nie mają wpisu
+        codes:
+          type: array
+          items: { type: string }
+      required: [from, to, savedCount, codes]
+
+    AccountRequest:
+      type: object
+      properties:
+        name: { type: string, maxLength: 100 }
+        type: { $ref: '#/components/schemas/AccountType' }
+        currency: { type: string, minLength: 3, maxLength: 3 }
+        iban: { type: [string, 'null'], maxLength: 34 }
+        openingBalanceMinor:
+          type: integer
+          format: int64
+          description: Saldo otwarcia w jednostkach podrzędnych waluty konta
+        openingBalanceOn: { type: string, format: date }
+      required: [name, type, currency, openingBalanceMinor, openingBalanceOn]
+
+    AccountResponse:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        type: { $ref: '#/components/schemas/AccountType' }
+        currency:
+          type: string
+          description: Skalę tej waluty klient bierze ze słownika `/currencies`
+        iban: { type: [string, 'null'] }
+        openingBalanceMinor: { type: integer, format: int64 }
+        openingBalanceOn: { type: string, format: date }
+        archived: { type: boolean }
+      required: [id, name, type, currency, openingBalanceMinor, openingBalanceOn, archived]
+
+    AccountBalanceResponse:
+      type: object
+      properties:
+        accountId: { type: integer, format: int64 }
+        currency: { type: string }
+        minorUnit: { type: integer, format: int32 }
+        balanceMinor:
+          type: integer
+          format: int64
+          description: Saldo w walucie konta; ujemne jest dopuszczalne
+        baseCurrency: { type: string }
+        baseBalanceMinor:
+          type: integer
+          format: int64
+          description: Saldo przeliczone kursem bieżącym na walutę bazową
+        fxRate: { type: string }
+        fxRateDate: { type: string, format: date }
+      required: [accountId, currency, minorUnit, balanceMinor, baseCurrency, baseBalanceMinor, fxRate, fxRateDate]
+
+    CategoryRequest:
+      type: object
+      properties:
+        parentId: { type: [integer, 'null'], format: int64 }
+        name: { type: string, maxLength: 100 }
+        direction: { $ref: '#/components/schemas/CategoryDirection' }
+      required: [name, direction]
+
+    CategoryResponse:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        parentId: { type: [integer, 'null'], format: int64 }
+        name: { type: string }
+        direction: { $ref: '#/components/schemas/CategoryDirection' }
+        archived: { type: boolean }
+        children:
+          type: array
+          items: { $ref: '#/components/schemas/CategoryResponse' }
+      required: [id, name, direction, archived, children]
+
+    TransactionRequest:
+      type: object
+      description: >-
+        `TRANSFER` wymaga `toAccountId` i nie przyjmuje `categoryId`;
+        `EXPENSE` i `INCOME` odwrotnie. `toAmountMinor` jest wymagane, gdy konta
+        transferu mają różne waluty.
+      properties:
+        type: { $ref: '#/components/schemas/TransactionType' }
+        bookedOn: { type: string, format: date }
+        amountMinor:
+          type: integer
+          format: int64
+          minimum: 1
+          description: Zawsze dodatnia — kierunek wynika z `type`
+        currency: { type: string, minLength: 3, maxLength: 3 }
+        originalAmountMinor: { type: [integer, 'null'], format: int64 }
+        originalCurrency: { type: [string, 'null'], minLength: 3, maxLength: 3 }
+        accountId: { type: integer, format: int64 }
+        toAccountId: { type: [integer, 'null'], format: int64 }
+        toAmountMinor: { type: [integer, 'null'], format: int64 }
+        categoryId: { type: [integer, 'null'], format: int64 }
+        description: { type: [string, 'null'], maxLength: 255 }
+        counterparty: { type: [string, 'null'], maxLength: 255 }
+      required: [type, bookedOn, amountMinor, currency, accountId]
+
+    TransactionResponse:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        type: { $ref: '#/components/schemas/TransactionType' }
+        bookedOn: { type: string, format: date }
+        amountMinor: { type: integer, format: int64 }
+        currency: { type: string }
+        baseAmountMinor: { type: integer, format: int64 }
+        baseCurrency: { type: string }
+        fxRate: { type: string }
+        fxRateDate:
+          type: string
+          format: date
+          description: >-
+            Data faktycznie użytego kursu — bywa wcześniejsza niż `bookedOn`,
+            bo NBP nie publikuje tabel w weekendy i święta
+        originalAmountMinor: { type: [integer, 'null'], format: int64 }
+        originalCurrency: { type: [string, 'null'] }
+        accountId: { type: integer, format: int64 }
+        accountName: { type: string }
+        toAccountId: { type: [integer, 'null'], format: int64 }
+        toAccountName: { type: [string, 'null'] }
+        toAmountMinor: { type: [integer, 'null'], format: int64 }
+        categoryId: { type: [integer, 'null'], format: int64 }
+        categoryName: { type: [string, 'null'] }
+        description: { type: [string, 'null'] }
+        counterparty: { type: [string, 'null'] }
+        createdAt: { type: string, format: date-time }
+      required:
+        - id
+        - type
+        - bookedOn
+        - amountMinor
+        - currency
+        - baseAmountMinor
+        - baseCurrency
+        - fxRate
+        - fxRateDate
+        - accountId
+        - accountName
+        - createdAt
+
+    TransactionPageResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/TransactionResponse' }
+        page: { type: integer, format: int32 }
+        size: { type: integer, format: int32 }
+        totalElements: { type: integer, format: int64 }
+        totalPages: { type: integer, format: int32 }
+      required: [content, page, size, totalElements, totalPages]

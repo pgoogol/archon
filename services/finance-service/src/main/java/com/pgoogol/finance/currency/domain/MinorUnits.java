@@ -1,0 +1,36 @@
+package com.pgoogol.finance.currency.domain;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
+/**
+ * Skala waluty, czyli liczba miejsc po przecinku. Istnieje, bo mnożenie przez 100
+ * jest błędem: PLN i EUR mają 2 miejsca, JPY 0, TND 3. Wartość pochodzi
+ * z {@code currency.minor_unit}, nigdy ze stałej w kodzie.
+ *
+ * <p>Kwota w jednostkach podrzędnych jest liczbą całkowitą — nigdzie w tym module
+ * kwota nie przechodzi przez {@code double} ani {@code float}.</p>
+ */
+public record MinorUnits(int scale) {
+
+    public MinorUnits {
+
+        if (scale < 0 || scale > 4) {
+            throw new IllegalArgumentException("Skala waluty poza zakresem 0..4: " + scale);
+        }
+    }
+
+    /** Kwota podrzędna → dziesiętna: {@code (1234, scale=2)} daje {@code 12.34}. */
+    public BigDecimal toDecimal(long amountMinor) {
+        return BigDecimal.valueOf(amountMinor, scale);
+    }
+
+    /**
+     * Kwota dziesiętna → podrzędna, z zaokrągleniem połówek w górę.
+     * Zaokrąglenie jest tu nieuniknione: przeliczenie kursem prawie nigdy nie
+     * wychodzi równo na groszach.
+     */
+    public long toMinor(BigDecimal amount) {
+        return amount.setScale(scale, RoundingMode.HALF_UP).unscaledValue().longValueExact();
+    }
+}

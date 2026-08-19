@@ -1,0 +1,19 @@
+# Profil `local` — praca z Postgresem ze środowiska deweloperskiego:
+#   docker compose -f deploy/compose/docker-compose.yml up -d
+#
+# Baza `finance` powstaje ze skryptu deploy/compose/postgres/init — jedna
+# instancja Postgresa, osobna baza dla każdego serwisu monorepo. Na środowisku
+# postawionym wcześniej trzeba ją dołożyć bez kasowania danych:
+#   docker compose -f deploy/compose/docker-compose.yml exec -T postgres \
+#     psql -U postgres -c "create user finance with password 'finance'" \
+#                      -c "create database finance owner finance"
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/finance
+    username: finance
+    password: finance
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true

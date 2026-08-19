@@ -24,6 +24,7 @@
   <modules>
     <module>libs/java/logging-starter</module>
     <module>services/music-service</module>
+    <module>services/finance-service</module>
   </modules>
 
   <properties>

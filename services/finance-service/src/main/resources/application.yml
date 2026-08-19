@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: finance-service
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        # encje nie noszą nazwy schematu w adnotacjach — trzyma ją konfiguracja,
+        # jedno miejsce zamiast powtórki przy każdej tabeli
+        default_schema: finance
+  flyway:
+    # schemat zakłada Flyway; tam też ląduje jego tabela historii
+    schemas: finance
+  datasource:
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 3000
+      max-lifetime: 1800000
+      leak-detection-threshold: 5000
+
+server:
+  # 8080 zajmuje music-service — dwa serwisy monorepo chodzą obok siebie lokalnie
+  port: 8081
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+
+finance:
+  # Waluta bazowa całego modułu: w niej liczą się wszystkie zestawienia zbiorcze.
+  # Zmiana po wprowadzeniu danych wymaga przeliczenia base_amount_minor każdej
+  # transakcji, więc traktuj ją jak decyzję jednorazową.
+  base-currency: PLN
+
+clients:
+  nbp:
+    base-url: https://api.nbp.pl
+    # NBP nie publikuje twardego limitu; trzymamy się wartości, która nie
+    # obciąża publicznego API przy synchronizacji wielu walut naraz
+    requests-per-second: 5
+    # tabela A — kursy średnie walut wymienialnych
+    table: a

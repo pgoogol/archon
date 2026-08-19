@@ -81,6 +81,27 @@ services:
       retries: 12
       start_period: 40s
 
+  finance-service:
+    profiles: ["full"]
+    build:
+      context: ../..
+      dockerfile: services/finance-service/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/finance
+      SPRING_DATASOURCE_USERNAME: finance
+      SPRING_DATASOURCE_PASSWORD: finance
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
   web:
     profiles: ["full"]
     build:
@@ -89,10 +110,16 @@ services:
     depends_on:
       music-service:
         condition: service_healthy
+      finance-service:
+        condition: service_healthy
     environment:
-      # front woła adresy względne, a nginx przekazuje /api na serwis
+      # Front woła adresy względne, a nginx rozdziela je między serwisy po
+      # prefiksie ścieżki: /api/finance idzie do finance-service, cała reszta
+      # /api do music-service. Front nie wie o żadnym z tych adresów.
       API_HOST: music-service
       API_PORT: "8080"
+      FINANCE_API_HOST: finance-service
+      FINANCE_API_PORT: "8081"
     ports:
       - "5173:80"
 
