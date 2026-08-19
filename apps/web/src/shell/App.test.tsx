@@ -41,6 +41,18 @@ describe('powłoka', () => {
     })
   })
 
+  it('podpis nad ekranem bierze z manifestu, a nie z własnego napisu', async () => {
+
+    render(<App />)
+    await screen.findByRole('heading', { name: feature.title })
+
+    // powłoka nie zna hasła żadnej domeny — gdyby je miała wpisane na sztywno,
+    // wisiałoby nad ekranami wszystkich pozostałych domen
+    if (feature.subtitle) {
+      expect(screen.getByText(feature.subtitle)).toBeInTheDocument()
+    }
+  })
+
   it('przełączenie zakładką zapisuje w adresie domenę razem z ekranem', async () => {
 
     const user = userEvent.setup()

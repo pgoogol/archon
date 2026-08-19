@@ -20,6 +20,11 @@ export interface FeatureManifest {
   id: string
   /** Nazwa pokazywana w nawigacji górnego poziomu. */
   title: string
+  /**
+   * Podpis pod nazwą domeny. Powłoka go tylko renderuje — treść należy do domeny,
+   * bo inaczej hasło jednej domeny wisiałoby nad ekranami wszystkich pozostałych.
+   */
+  subtitle?: string
   /** Prefiks adresu wszystkich tras domeny, np. `/music`. */
   basePath: string
   routes: FeatureRoute[]

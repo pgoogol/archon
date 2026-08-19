@@ -56,7 +56,7 @@ function AppShell() {
       <header className="app-header">
         <div className="brand">
           <h1>{feature.title}</h1>
-          <span className="subtitle">konsola DJ-a — Sabor Latino</span>
+          {feature.subtitle && <span className="subtitle">{feature.subtitle}</span>}
         </div>
 
         {features.length > 1 && (
