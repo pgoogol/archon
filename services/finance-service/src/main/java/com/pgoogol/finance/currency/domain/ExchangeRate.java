@@ -1,5 +1,6 @@
 package com.pgoogol.finance.currency.domain;
 
+import com.pgoogol.finance.common.ExceptionMessageConstants;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
@@ -81,7 +82,8 @@ public class ExchangeRate {
         Objects.requireNonNull(rate, "rate");
         if (rate.signum() <= 0) {
 
-            throw new IllegalArgumentException("Kurs musi być dodatni: " + rate);
+            throw new IllegalArgumentException(
+                ExceptionMessageConstants.RATE_MUST_BE_POSITIVE.formatted(rate));
         }
         this.rate = rate;
     }

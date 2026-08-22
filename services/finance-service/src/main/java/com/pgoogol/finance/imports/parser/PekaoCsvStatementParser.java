@@ -1,5 +1,6 @@
 package com.pgoogol.finance.imports.parser;
 
+import com.pgoogol.finance.common.ExceptionMessageConstants;
 import com.pgoogol.finance.imports.statement.AmountParser;
 import com.pgoogol.finance.imports.statement.ParsedStatement;
 import com.pgoogol.finance.imports.statement.RawRow;
@@ -29,13 +30,13 @@ import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 /**
- * Wyciąg z polskiego banku w formacie CSV — układ „lista operacji" z mBanku.
+ * Wyciąg z Banku Pekao S.A. w formacie CSV — eksport „Historia operacji".
  *
  * <p>Cztery rzeczy, które wysypują naiwny parser i dlatego mają tu osobną
  * obsługę:</p>
  * <ul>
  *   <li><b>windows-1250</b> — plik nie jest w UTF-8, a polskie znaki odczytane
- *       jako UTF-8 zamieniają się w krzaki dopiero widoczne w opisie transakcji;</li>
+ *       jako UTF-8 zamieniają się w krzaki widoczne dopiero w opisie operacji;</li>
  *   <li><b>separator średnik, przecinek dziesiętny, spacja jako separator
  *       tysięcy</b> — również spacja niełamliwa, patrz {@link AmountParser};</li>
  *   <li><b>nagłówek i stopka poza tabelą</b> — okres oraz salda otwarcia
@@ -46,11 +47,16 @@ import java.util.stream.IntStream;
  * </ul>
  *
  * <p>Kolumny rozpoznajemy po nazwach nagłówka, nie po pozycji — bank potrafi
- * dołożyć kolumnę w środku między jednym eksportem a drugim.</p>
+ * dołożyć kolumnę w środku między jednym eksportem a drugim. Z tego samego
+ * powodu każda nazwa ma kilka wariantów: Pekao pisze raz „Data księgowania",
+ * raz „Data transakcji", zależnie od kanału eksportu.</p>
+ *
+ * <p><b>Dołożenie kolejnego banku to nowy bean {@link StatementParser}</b>
+ * i nic więcej — reszta modułu nie wie, ile ich jest ani który zadziałał.</p>
  */
 @Component
 @RequiredArgsConstructor
-public class MbankCsvStatementParser implements StatementParser {
+public class PekaoCsvStatementParser implements StatementParser {
 
     /** Kodowanie eksportu. Odczyt jako UTF-8 daje krzaki, nie wyjątek. */
     static final Charset ENCODING = Charset.forName("windows-1250");
@@ -62,33 +68,44 @@ public class MbankCsvStatementParser implements StatementParser {
         .setIgnoreEmptyLines(true)
         .get();
 
-    private static final List<String> DATE_COLUMNS =
-        List.of("data operacji", "data księgowania", "data transakcji");
-    private static final List<String> DESCRIPTION_COLUMNS =
-        List.of("opis operacji", "tytuł", "tytuł operacji");
-    private static final List<String> COUNTERPARTY_COLUMNS =
-        List.of("kontrahent", "nadawca/odbiorca", "odbiorca/nadawca");
-    private static final List<String> REFERENCE_COLUMNS =
-        List.of("numer referencyjny", "nr referencyjny", "identyfikator operacji");
-    private static final List<String> AMOUNT_COLUMNS =
-        List.of("kwota", "kwota operacji");
-    private static final List<String> ORIGINAL_COLUMNS =
-        List.of("kwota oryginalna", "kwota w walucie", "kwota w walucie operacji");
+    private static final List<String> DATE_COLUMNS = List.of(
+        "data księgowania", "data ksiegowania", "data operacji", "data transakcji", "data waluty");
+    private static final List<String> DESCRIPTION_COLUMNS = List.of(
+        "tytułem", "tytulem", "opis operacji", "tytuł operacji", "szczegóły operacji");
+    private static final List<String> COUNTERPARTY_COLUMNS = List.of(
+        "nadawca / odbiorca", "nadawca/odbiorca", "odbiorca / nadawca", "kontrahent");
+    private static final List<String> REFERENCE_COLUMNS = List.of(
+        "numer referencyjny", "nr referencyjny", "identyfikator operacji");
+    private static final List<String> AMOUNT_COLUMNS = List.of(
+        "kwota operacji", "kwota");
+    /** Pekao trzyma walutę w osobnej kolumnie, nie doklejoną do kwoty. */
+    private static final List<String> CURRENCY_COLUMNS = List.of(
+        "waluta", "waluta operacji");
+    private static final List<String> ORIGINAL_COLUMNS = List.of(
+        "kwota w walucie operacji", "kwota oryginalna", "kwota w walucie");
 
-    private static final List<String> PERIOD_LABELS = List.of("za okres:", "za okres");
+    private static final List<String> PERIOD_LABELS = List.of("za okres:", "za okres", "okres");
     private static final List<String> OPENING_LABELS =
-        List.of("saldo początkowe", "saldo poczatkowe");
+        List.of("saldo początkowe", "saldo poczatkowe", "saldo otwarcia");
     private static final List<String> CLOSING_LABELS =
-        List.of("saldo końcowe", "saldo koncowe");
+        List.of("saldo końcowe", "saldo koncowe", "saldo zamknięcia");
 
     private static final List<DateTimeFormatter> DATE_FORMATS = List.of(
         DateTimeFormatter.ISO_LOCAL_DATE,
         DateTimeFormatter.ofPattern("dd.MM.yyyy"),
         DateTimeFormatter.ofPattern("dd-MM-yyyy"));
 
-    /** „-10,50 EUR" — kwota oryginalna niesie własną walutę w tej samej komórce. */
-    private static final Pattern ORIGINAL_WITH_CURRENCY =
+    /** „-10,50 EUR" — kwota z doklejonym kodem waluty w tej samej komórce. */
+    private static final Pattern AMOUNT_WITH_CURRENCY =
         Pattern.compile("^(?<amount>.+?)\\s*(?<currency>[A-Za-z]{3})$");
+
+    private static final String DATE = "date";
+    private static final String DESCRIPTION = "description";
+    private static final String COUNTERPARTY = "counterparty";
+    private static final String REFERENCE = "reference";
+    private static final String AMOUNT = "amount";
+    private static final String CURRENCY = "currency";
+    private static final String ORIGINAL = "original";
 
     private final AmountParser amountParser;
 
@@ -96,7 +113,8 @@ public class MbankCsvStatementParser implements StatementParser {
     public boolean supports(SourceFile file) {
 
         String text = file.text(ENCODING);
-        return records(text).stream().anyMatch(this::isHeaderRow);
+        List<CSVRecord> records = records(text);
+        return records.stream().anyMatch(this::isHeaderRow);
     }
 
     @Override
@@ -165,25 +183,28 @@ public class MbankCsvStatementParser implements StatementParser {
 
             return false;
         }
-        return record.get(0).startsWith("#") && !isHeaderRow(record);
+        String first = record.get(0);
+        return first.startsWith("#") && !isHeaderRow(record);
     }
 
     private Map<String, Integer> findColumns(List<CSVRecord> records) {
 
-        CSVRecord header = records.stream()
-            .filter(this::isHeaderRow)
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException(
-                "Plik nie zawiera nagłówka tabeli operacji"));
+        List<CSVRecord> headers = records.stream().filter(this::isHeaderRow).toList();
+        if (headers.isEmpty()) {
 
+            throw new IllegalArgumentException(
+                ExceptionMessageConstants.STATEMENT_NO_TABLE_HEADER);
+        }
+        CSVRecord header = headers.getFirst();
         List<String> cells = normalizedCells(header);
         Map<String, Integer> columns = new HashMap<>();
-        putColumn(columns, "date", cells, DATE_COLUMNS);
-        putColumn(columns, "description", cells, DESCRIPTION_COLUMNS);
-        putColumn(columns, "counterparty", cells, COUNTERPARTY_COLUMNS);
-        putColumn(columns, "reference", cells, REFERENCE_COLUMNS);
-        putColumn(columns, "amount", cells, AMOUNT_COLUMNS);
-        putColumn(columns, "original", cells, ORIGINAL_COLUMNS);
+        putColumn(columns, DATE, cells, DATE_COLUMNS);
+        putColumn(columns, DESCRIPTION, cells, DESCRIPTION_COLUMNS);
+        putColumn(columns, COUNTERPARTY, cells, COUNTERPARTY_COLUMNS);
+        putColumn(columns, REFERENCE, cells, REFERENCE_COLUMNS);
+        putColumn(columns, AMOUNT, cells, AMOUNT_COLUMNS);
+        putColumn(columns, CURRENCY, cells, CURRENCY_COLUMNS);
+        putColumn(columns, ORIGINAL, cells, ORIGINAL_COLUMNS);
         return Map.copyOf(columns);
     }
 
@@ -204,9 +225,7 @@ public class MbankCsvStatementParser implements StatementParser {
      */
     private StatementMetadata readMetadata(List<CSVRecord> records, int minorUnit) {
 
-        List<CSVRecord> metadataRows = records.stream()
-            .filter(this::isMetadataRow)
-            .toList();
+        List<CSVRecord> metadataRows = records.stream().filter(this::isMetadataRow).toList();
         CSVRecord period = findLabelled(metadataRows, PERIOD_LABELS);
         CSVRecord opening = findLabelled(metadataRows, OPENING_LABELS);
         CSVRecord closing = findLabelled(metadataRows, CLOSING_LABELS);
@@ -219,10 +238,14 @@ public class MbankCsvStatementParser implements StatementParser {
 
     private CSVRecord findLabelled(List<CSVRecord> metadataRows, List<String> labels) {
 
-        return metadataRows.stream()
+        List<CSVRecord> matching = metadataRows.stream()
             .filter(record -> labels.contains(normalize(record.get(0))))
-            .findFirst()
-            .orElse(null);
+            .toList();
+        if (matching.isEmpty()) {
+
+            return null;
+        }
+        return matching.getFirst();
     }
 
     private LocalDate dateFrom(CSVRecord record, int index) {
@@ -231,7 +254,8 @@ public class MbankCsvStatementParser implements StatementParser {
 
             return null;
         }
-        return parseDateOrNull(cell(record, index));
+        String raw = cell(record, index);
+        return parseDateOrNull(raw);
     }
 
     private Long balanceFrom(CSVRecord record, int minorUnit) {
@@ -240,74 +264,82 @@ public class MbankCsvStatementParser implements StatementParser {
 
             return null;
         }
-        return amountParser.parseOptional(cell(record, 1), minorUnit);
+        String raw = cell(record, 1);
+        return amountParser.parseOptional(raw, minorUnit);
     }
 
     private boolean hasDate(CSVRecord record, Map<String, Integer> columns) {
 
-        String raw = cell(record, columns.get("date"));
-        return Objects.nonNull(parseDateOrNull(raw));
+        String raw = cell(record, columns.get(DATE));
+        LocalDate parsed = parseDateOrNull(raw);
+        return Objects.nonNull(parsed);
     }
 
     private RawRow toRawRow(CSVRecord record, Map<String, Integer> columns,
                             int ordinal, int minorUnit) {
 
-        LocalDate bookedOn = parseDateOrNull(cell(record, columns.get("date")));
-        String amountCell = cell(record, columns.get("amount"));
+        String dateCell = cell(record, columns.get(DATE));
+        LocalDate bookedOn = parseDateOrNull(dateCell);
+        String amountCell = cell(record, columns.get(AMOUNT));
         long amountMinor = amountParser.parse(amountCell, minorUnit);
-        String currency = currencyOf(amountCell);
+        String currency = currencyOf(record, columns, amountCell);
+        MoneyInForeignCurrency original = readOriginal(record, columns, minorUnit);
 
-        OriginalAmount original = readOriginal(record, columns, minorUnit);
-        return new RawRow(
-            ordinal,
-            bookedOn,
-            amountMinor,
-            currency,
-            original.amountMinor(),
-            original.currency(),
-            trimToNull(cell(record, columns.get("description"))),
-            trimToNull(cell(record, columns.get("counterparty"))),
-            trimToNull(cell(record, columns.get("reference"))));
+        String description = trimToNull(cell(record, columns.get(DESCRIPTION)));
+        String counterparty = trimToNull(cell(record, columns.get(COUNTERPARTY)));
+        String reference = trimToNull(cell(record, columns.get(REFERENCE)));
+        return new RawRow(ordinal, bookedOn, amountMinor, currency, original.amountMinor(),
+            original.currency(), description, counterparty, reference);
     }
 
     /**
      * Kwota oryginalna niesie walutę w tej samej komórce („-10,50 EUR"), więc
      * rozdzielamy je, zanim którakolwiek trafi do wiersza.
      */
-    private OriginalAmount readOriginal(CSVRecord record, Map<String, Integer> columns,
-                                        int minorUnit) {
+    private MoneyInForeignCurrency readOriginal(CSVRecord record, Map<String, Integer> columns,
+                                                int minorUnit) {
 
-        String raw = cell(record, columns.get("original"));
+        String raw = cell(record, columns.get(ORIGINAL));
         if (Objects.isNull(raw) || raw.isBlank()) {
 
-            return new OriginalAmount(null, null);
+            return new MoneyInForeignCurrency(null, null);
         }
-        Matcher matcher = ORIGINAL_WITH_CURRENCY.matcher(raw.trim());
+        String trimmed = raw.trim();
+        Matcher matcher = AMOUNT_WITH_CURRENCY.matcher(trimmed);
         if (!matcher.matches()) {
 
             throw new IllegalArgumentException(
-                "Kwota oryginalna bez kodu waluty: " + raw);
+                ExceptionMessageConstants.ORIGINAL_AMOUNT_WITHOUT_CURRENCY.formatted(raw));
         }
-        String currency = matcher.group("currency").toUpperCase(Locale.ROOT);
+        String code = matcher.group("currency");
+        String currency = code.toUpperCase(Locale.ROOT);
         // liczba miejsc po przecinku waluty oryginalnej bywa inna niż waluty
         // konta, ale wyciąg jej nie podaje — bierzemy skalę konta i zaznaczamy
         // to jako świadome przybliżenie w podglądzie
         long amountMinor = amountParser.parse(matcher.group("amount"), minorUnit);
-        return new OriginalAmount(amountMinor, currency);
+        return new MoneyInForeignCurrency(amountMinor, currency);
     }
 
     /**
-     * Kod waluty doklejony do kwoty („-45,00 PLN"). Gdy go nie ma, walutę
-     * wiersza ustala konto — parser nie zgaduje.
+     * Walutę wiersza bierzemy z osobnej kolumny, a gdy jej nie ma — z kodu
+     * doklejonego do kwoty. Gdy nie ma ani jednego, ustala ją konto: parser
+     * nie zgaduje.
      */
-    private String currencyOf(String amountCell) {
+    private String currencyOf(CSVRecord record, Map<String, Integer> columns, String amountCell) {
 
-        Matcher matcher = ORIGINAL_WITH_CURRENCY.matcher(amountCell.trim());
+        String fromColumn = trimToNull(cell(record, columns.get(CURRENCY)));
+        if (Objects.nonNull(fromColumn)) {
+
+            return fromColumn.toUpperCase(Locale.ROOT);
+        }
+        String trimmed = amountCell.trim();
+        Matcher matcher = AMOUNT_WITH_CURRENCY.matcher(trimmed);
         if (!matcher.matches()) {
 
             return null;
         }
-        return matcher.group("currency").toUpperCase(Locale.ROOT);
+        String code = matcher.group("currency");
+        return code.toUpperCase(Locale.ROOT);
     }
 
     private LocalDate parseDateOrNull(String raw) {
@@ -372,7 +404,8 @@ public class MbankCsvStatementParser implements StatementParser {
 
             withoutHash = withoutHash.substring(1);
         }
-        return withoutHash.trim().toLowerCase(Locale.ROOT);
+        String trimmed = withoutHash.trim();
+        return trimmed.toLowerCase(Locale.ROOT);
     }
 
     private boolean containsAny(List<String> cells, List<String> candidates) {
@@ -388,7 +421,7 @@ public class MbankCsvStatementParser implements StatementParser {
             .orElse(-1);
     }
 
-    private record OriginalAmount(Long amountMinor, String currency) {
+    private record MoneyInForeignCurrency(Long amountMinor, String currency) {
 
     }
 

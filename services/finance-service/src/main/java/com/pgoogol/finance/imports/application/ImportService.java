@@ -281,9 +281,10 @@ public class ImportService {
      */
     private List<ImportRow> toRows(ImportBatch batch, Account account, ParsedStatement statement) {
 
+        List<RawRow> rawRows = statement.rows();
         Map<String, Integer> seenInFile = new HashMap<>();
-        List<ImportRow> rows = new ArrayList<>(statement.rows().size());
-        statement.rows().forEach(raw -> rows.add(toRow(batch, account, raw, seenInFile)));
+        List<ImportRow> rows = new ArrayList<>(rawRows.size());
+        rawRows.forEach(raw -> rows.add(toRow(batch, account, raw, seenInFile)));
         return List.copyOf(rows);
     }
 

@@ -1,5 +1,6 @@
 package com.pgoogol.finance.imports.statement;
 
+import com.pgoogol.finance.common.ExceptionMessageConstants;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -56,7 +57,8 @@ public class DedupKey {
 
             return "";
         }
-        String collapsed = SPACES.matcher(description.trim()).replaceAll(" ");
+        String trimmed = description.trim();
+        String collapsed = SPACES.matcher(trimmed).replaceAll(" ");
         return collapsed.toUpperCase(Locale.ROOT);
     }
 
@@ -74,7 +76,7 @@ public class DedupKey {
             return MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException ex) {
 
-            throw new IllegalStateException("Brak algorytmu SHA-256", ex);
+            throw new IllegalStateException(ExceptionMessageConstants.SHA_256_MISSING, ex);
         }
     }
 }

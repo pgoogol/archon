@@ -1,5 +1,6 @@
 package com.pgoogol.finance.imports.statement;
 
+import com.pgoogol.finance.common.ExceptionMessageConstants;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
@@ -24,9 +25,8 @@ public record ParsedStatement(
         if (Objects.nonNull(periodFrom) && Objects.nonNull(periodTo)
                 && periodFrom.isAfter(periodTo)) {
 
-            throw new IllegalArgumentException(
-                "Początek okresu wyciągu jest późniejszy niż koniec: %s > %s"
-                    .formatted(periodFrom, periodTo));
+            throw new IllegalArgumentException(ExceptionMessageConstants
+                .STATEMENT_PERIOD_REVERSED.formatted(periodFrom, periodTo));
         }
     }
 

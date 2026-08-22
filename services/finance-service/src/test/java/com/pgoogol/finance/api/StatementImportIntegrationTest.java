@@ -306,16 +306,16 @@ class StatementImportIntegrationTest {
         return objectMapper.readTree(response).get("id").asLong();
     }
 
-    /** Wyciąg w formacie mBanku, w kodowaniu windows-1250 — tak jak z banku. */
+    /** Wyciąg w formacie Pekao, w kodowaniu windows-1250 — tak jak z banku. */
     private byte[] statement(String... rows) {
 
         String header = """
-            mBank S.A. Bankowość Detaliczna;;;;;
+            Bank Pekao S.A.;;;;;
             ;;;;;
             #Za okres:;2026-01-01;2026-03-31;;;
             #Saldo początkowe;0,00;;;;
             ;;;;;
-            #Data operacji;#Opis operacji;#Kontrahent;#Numer referencyjny;#Kwota;#Kwota oryginalna
+            #Data księgowania;#Tytułem;#Nadawca / Odbiorca;#Numer referencyjny;#Kwota operacji;#Kwota w walucie operacji
             """;
         String body = String.join("\n", rows);
         String footer = """

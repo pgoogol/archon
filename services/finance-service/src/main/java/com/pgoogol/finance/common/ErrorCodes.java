@@ -46,6 +46,12 @@ public class ErrorCodes {
     public static final String STATEMENT_EMPTY = "STATEMENT_EMPTY";
     public static final String FILE_TOO_LARGE = "FILE_TOO_LARGE";
 
+    public static final String RECURRING_RULE_NOT_FOUND = "RECURRING_RULE_NOT_FOUND";
+    public static final String OCCURRENCE_NOT_FOUND = "OCCURRENCE_NOT_FOUND";
+    public static final String OCCURRENCE_ALREADY_SETTLED = "OCCURRENCE_ALREADY_SETTLED";
+    public static final String RULE_TYPE_NOT_FLOW = "RULE_TYPE_NOT_FLOW";
+    public static final String RULE_INACTIVE = "RULE_INACTIVE";
+
     public static final String NBP_RATE_LIMITED = "NBP_RATE_LIMITED";
     public static final String NBP_UNAVAILABLE = "NBP_UNAVAILABLE";
 

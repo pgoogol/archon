@@ -1,5 +1,6 @@
 package com.pgoogol.finance.currency.domain;
 
+import com.pgoogol.finance.common.ExceptionMessageConstants;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Objects;
@@ -20,7 +21,8 @@ public record FxRate(BigDecimal rate, LocalDate rateDate) {
         Objects.requireNonNull(rateDate, "rateDate");
         if (rate.signum() <= 0) {
 
-            throw new IllegalArgumentException("Kurs musi być dodatni: " + rate);
+            throw new IllegalArgumentException(
+                ExceptionMessageConstants.RATE_MUST_BE_POSITIVE.formatted(rate));
         }
     }
 

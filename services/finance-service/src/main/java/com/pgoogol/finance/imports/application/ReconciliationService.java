@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Porównanie salda zamknięcia z wyciągu z saldem wyliczonym z transakcji.
@@ -35,8 +36,8 @@ public class ReconciliationService {
             return Reconciliation.notAvailable();
         }
         long accountId = batch.getAccount().getId();
-        long computed = accountRepository.findBalanceMinorAsOf(accountId, periodTo)
-            .orElse(0L);
+        Optional<Long> found = accountRepository.findBalanceMinorAsOf(accountId, periodTo);
+        long computed = found.orElse(0L);
         return Reconciliation.of(statementClosing, computed);
     }
 

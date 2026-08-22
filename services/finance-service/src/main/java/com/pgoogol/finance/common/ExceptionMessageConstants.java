@@ -82,4 +82,39 @@ public class ExceptionMessageConstants {
     public static final String STATEMENT_FILE_EMPTY = "Przesłany plik wyciągu jest pusty";
     public static final String IMPORT_ROW_ASSIGNED_TWICE =
         "Wiersz %d dostał dwie różne kategorie w jednym żądaniu";
+
+    // Naruszenia niezmienników modelu. Nie wychodzą na API jako errorCode, ale
+    // wychodzą do logów i do wiadomości wyjątku, więc obowiązuje ich ta sama
+    // zasada: jedno miejsce, nie literał w kodzie.
+    public static final String AMOUNT_MUST_BE_POSITIVE = "Kwota musi być dodatnia: %d";
+    public static final String RATE_MUST_BE_POSITIVE = "Kurs musi być dodatni: %s";
+    public static final String MINOR_UNIT_OUT_OF_RANGE = "Skala waluty poza zakresem 0..4: %d";
+    public static final String SHA_256_MISSING = "Brak algorytmu SHA-256";
+    public static final String SOURCE_FILE_EMPTY = "Plik wyciągu jest pusty";
+    public static final String STATEMENT_PERIOD_REVERSED =
+        "Początek okresu wyciągu jest późniejszy niż koniec: %s > %s";
+    public static final String ROW_AMOUNT_ZERO = "Wiersz wyciągu na zero nie jest operacją";
+    public static final String ROW_ORDINAL_NEGATIVE = "Pozycja wiersza nie może być ujemna: %d";
+    public static final String ROW_ORIGINAL_INCOMPLETE =
+        "Kwota oryginalna i jej waluta występują razem albo wcale";
+    public static final String AMOUNT_EMPTY = "Pusta kwota";
+    public static final String AMOUNT_NOT_A_NUMBER = "Nie jest kwotą: %s";
+    public static final String STATEMENT_NO_TABLE_HEADER =
+        "Plik nie zawiera nagłówka tabeli operacji";
+    public static final String ORIGINAL_AMOUNT_WITHOUT_CURRENCY =
+        "Kwota oryginalna bez kodu waluty: %s";
+    public static final String DAY_OF_MONTH_OUT_OF_RANGE =
+        "Dzień miesiąca poza zakresem 1..31: %d";
+
+    public static final String RECURRING_RULE_NOT_FOUND = "Reguła cykliczna %d nie istnieje";
+    public static final String OCCURRENCE_NOT_FOUND = "Pozycja terminarza %d nie istnieje";
+    public static final String OCCURRENCE_ALREADY_SETTLED =
+        "Pozycja terminarza %d jest już rozliczona (%s)";
+    public static final String RULE_CURRENCY_MISMATCH =
+        "Reguła jest w walucie konta — konto %s prowadzi %s, podano %s";
+    public static final String RULE_TYPE_NOT_FLOW =
+        "Reguła cykliczna opisuje wydatek albo przychód, nie %s";
+    public static final String RULE_INACTIVE = "Reguła %d jest nieaktywna";
+    public static final String OCCURRENCE_PAID_FROM_OTHER_CURRENCY =
+        "Konto płatności prowadzi walutę %s, a pozycja terminarza jest w %s";
 }

@@ -1,5 +1,6 @@
 package com.pgoogol.finance.imports.statement;
 
+import com.pgoogol.finance.common.ExceptionMessageConstants;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -21,7 +22,7 @@ public record SourceFile(String name, byte[] content) {
         Objects.requireNonNull(content, "content");
         if (content.length == 0) {
 
-            throw new IllegalArgumentException("Plik wyciągu jest pusty");
+            throw new IllegalArgumentException(ExceptionMessageConstants.SOURCE_FILE_EMPTY);
         }
     }
 
@@ -48,7 +49,7 @@ public record SourceFile(String name, byte[] content) {
 
             // SHA-256 jest obowiązkowy w każdej implementacji Javy — brak tego
             // algorytmu oznacza zepsute środowisko, nie sytuację do obsłużenia
-            throw new IllegalStateException("Brak algorytmu SHA-256", ex);
+            throw new IllegalStateException(ExceptionMessageConstants.SHA_256_MISSING, ex);
         }
     }
 }

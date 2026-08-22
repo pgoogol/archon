@@ -1,5 +1,6 @@
 package com.pgoogol.finance.imports.statement;
 
+import com.pgoogol.finance.common.ExceptionMessageConstants;
 import java.time.LocalDate;
 import java.util.Objects;
 
@@ -32,16 +33,17 @@ public record RawRow(
         Objects.requireNonNull(bookedOn, "bookedOn");
         if (ordinal < 0) {
 
-            throw new IllegalArgumentException("Pozycja wiersza nie może być ujemna: " + ordinal);
+            throw new IllegalArgumentException(
+                ExceptionMessageConstants.ROW_ORDINAL_NEGATIVE.formatted(ordinal));
         }
         if (amountMinor == 0) {
 
-            throw new IllegalArgumentException("Wiersz wyciągu na zero nie jest operacją");
+            throw new IllegalArgumentException(ExceptionMessageConstants.ROW_AMOUNT_ZERO);
         }
         if (Objects.isNull(originalAmountMinor) != Objects.isNull(originalCurrency)) {
 
             throw new IllegalArgumentException(
-                "Kwota oryginalna i jej waluta występują razem albo wcale");
+                ExceptionMessageConstants.ROW_ORIGINAL_INCOMPLETE);
         }
     }
 

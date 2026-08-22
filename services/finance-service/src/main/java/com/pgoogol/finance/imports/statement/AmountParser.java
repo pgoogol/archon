@@ -1,6 +1,8 @@
 package com.pgoogol.finance.imports.statement;
 
+import com.pgoogol.finance.common.ExceptionMessageConstants;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -37,11 +39,12 @@ public class AmountParser {
         String cleaned = clean(raw);
         if (cleaned.isEmpty()) {
 
-            throw new IllegalArgumentException("Pusta kwota");
+            throw new IllegalArgumentException(ExceptionMessageConstants.AMOUNT_EMPTY);
         }
         BigDecimal amount = toDecimal(cleaned, raw);
         BigDecimal scaled = amount.setScale(minorUnit, RoundingMode.HALF_UP);
-        return scaled.unscaledValue().longValueExact();
+        BigInteger unscaled = scaled.unscaledValue();
+        return unscaled.longValueExact();
     }
 
     /** Kwota, gdy kolumna bywa pusta — brak wartości nie jest błędem. */
@@ -80,7 +83,8 @@ public class AmountParser {
             return new BigDecimal(normalized);
         } catch (NumberFormatException ex) {
 
-            throw new IllegalArgumentException("Nie jest kwotą: " + raw, ex);
+            throw new IllegalArgumentException(
+                ExceptionMessageConstants.AMOUNT_NOT_A_NUMBER.formatted(raw), ex);
         }
     }
 }

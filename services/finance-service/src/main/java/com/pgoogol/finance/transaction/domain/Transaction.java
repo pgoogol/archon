@@ -2,6 +2,7 @@ package com.pgoogol.finance.transaction.domain;
 
 import com.pgoogol.finance.account.domain.Account;
 import com.pgoogol.finance.category.domain.Category;
+import com.pgoogol.finance.common.ExceptionMessageConstants;
 import com.pgoogol.finance.currency.domain.FxRate;
 import com.pgoogol.finance.imports.domain.ImportRow;
 import jakarta.persistence.Column;
@@ -173,7 +174,8 @@ public class Transaction {
 
         if (amountMinor <= 0) {
 
-            throw new IllegalArgumentException("Kwota musi być dodatnia: " + amountMinor);
+            throw new IllegalArgumentException(
+                ExceptionMessageConstants.AMOUNT_MUST_BE_POSITIVE.formatted(amountMinor));
         }
         this.amountMinor = amountMinor;
     }

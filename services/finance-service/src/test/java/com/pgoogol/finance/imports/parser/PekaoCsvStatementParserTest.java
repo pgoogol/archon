@@ -20,21 +20,21 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * z testowanych rzeczy, więc musi być widoczne w kodzie, a nie ukryte
  * w binariach repozytorium.
  */
-class MbankCsvStatementParserTest {
+class PekaoCsvStatementParserTest {
 
     private static final Charset WINDOWS_1250 = Charset.forName("windows-1250");
 
     /** Spacja niełamliwa w kwocie — dokładnie to, co wychodzi z eksportu. */
     private static final String WYCIAG = """
-        mBank S.A. Bankowość Detaliczna;;;;;;
-        Lista operacji;;;;;;
+        Bank Pekao S.A.;;;;;;
+        Historia operacji;;;;;;
         ;;;;;;
         #Za okres:;2026-01-01;2026-01-31;;;;
         #Waluta;PLN;;;;;
         #Saldo początkowe;1 234,56;;;;;
         ;;;;;;
-        #Data operacji;#Opis operacji;#Kontrahent;#Numer referencyjny;#Kwota;\
-        #Kwota oryginalna;#Saldo po operacji
+        #Data księgowania;#Tytułem;#Nadawca / Odbiorca;#Numer referencyjny;#Kwota operacji;\
+        #Kwota w walucie operacji;#Saldo po operacji
         2026-01-05;"ZAKUP PRZY UŻYCIU KARTY";"Żabka Kraków";"REF-001";-45,00;;1 189,56
         2026-01-07;"PŁATNOŚĆ KARTĄ";"Amazon EU";"REF-002";-1 234,56;-289,90 EUR;-44,99
         2026-01-10;"PRZELEW PRZYCHODZĄCY";"Pracodawca";"REF-003";+5 000,00;;4 955,01
@@ -42,8 +42,8 @@ class MbankCsvStatementParserTest {
         #Saldo końcowe;4 955,01;;;;;
         """;
 
-    private final MbankCsvStatementParser parser =
-        new MbankCsvStatementParser(new AmountParser());
+    private final PekaoCsvStatementParser parser =
+        new PekaoCsvStatementParser(new AmountParser());
 
     @Test
     @DisplayName("supports gdy plik ma nagłówek tabeli operacji, rozpoznaje format")
@@ -172,7 +172,7 @@ class MbankCsvStatementParserTest {
 
         // given
         String zepsuty = """
-            #Data operacji;#Opis operacji;#Kwota;#Kwota oryginalna
+            #Data księgowania;#Tytułem;#Kwota operacji;#Kwota w walucie operacji
             2026-01-07;"PŁATNOŚĆ";-100,00;-25,00
             """;
         SourceFile file = new SourceFile("zepsuty.csv", zepsuty.getBytes(WINDOWS_1250));
@@ -189,7 +189,7 @@ class MbankCsvStatementParserTest {
 
         // given: JPY ma minor_unit = 0
         String jenowy = """
-            #Data operacji;#Opis operacji;#Kwota
+            #Data księgowania;#Tytułem;#Kwota operacji
             2026-01-07;"SUSHI";-1200
             """;
         SourceFile file = new SourceFile("jpy.csv", jenowy.getBytes(WINDOWS_1250));
@@ -207,7 +207,7 @@ class MbankCsvStatementParserTest {
 
         // given: nie każdy eksport używa ISO
         String zKropkami = """
-            #Data operacji;#Opis operacji;#Kwota
+            #Data księgowania;#Tytułem;#Kwota operacji
             07.01.2026;"SKLEP";-100,00
             07-01-2026;"SKLEP";-200,00
             """;
@@ -227,7 +227,7 @@ class MbankCsvStatementParserTest {
 
         // given: minimalny plik — sama data, opis i kwota
         String minimalny = """
-            #Data operacji;#Opis operacji;#Kwota
+            #Data księgowania;#Tytułem;#Kwota operacji
             2026-01-07;"SKLEP";-100,00
             """;
         SourceFile file = new SourceFile("minimalny.csv", minimalny.getBytes(WINDOWS_1250));
@@ -247,7 +247,7 @@ class MbankCsvStatementParserTest {
 
         // given
         String bezNaglowka = """
-            #Data operacji;#Opis operacji;#Kwota
+            #Data księgowania;#Tytułem;#Kwota operacji
             2026-01-07;"SKLEP";-100,00
             """;
         SourceFile file = new SourceFile("bez.csv", bezNaglowka.getBytes(WINDOWS_1250));
@@ -268,7 +268,7 @@ class MbankCsvStatementParserTest {
 
         // given: podsumowanie wewnątrz tabeli nie jest operacją
         String zPodsumowaniem = """
-            #Data operacji;#Opis operacji;#Kwota
+            #Data księgowania;#Tytułem;#Kwota operacji
             2026-01-07;"SKLEP";-100,00
             ;"RAZEM";-100,00
             """;
@@ -287,7 +287,7 @@ class MbankCsvStatementParserTest {
 
         // given: wyciąg konta walutowego potrafi dokleić kod do każdej kwoty
         String zWaluta = """
-            #Data operacji;#Opis operacji;#Kwota
+            #Data księgowania;#Tytułem;#Kwota operacji
             2026-01-07;"SKLEP";-100,00 EUR
             """;
         SourceFile file = new SourceFile("waluta.csv", zWaluta.getBytes(WINDOWS_1250));
@@ -305,7 +305,7 @@ class MbankCsvStatementParserTest {
 
         // given: kolumna jest, ale w tym wierszu stoją w niej same spacje
         String zPusta = """
-            #Data operacji;#Opis operacji;#Kwota;#Kwota oryginalna
+            #Data księgowania;#Tytułem;#Kwota operacji;#Kwota w walucie operacji
             2026-01-07;"SKLEP";-100,00;"   "
             """;
         SourceFile file = new SourceFile("pusta.csv", zPusta.getBytes(WINDOWS_1250));
@@ -323,7 +323,7 @@ class MbankCsvStatementParserTest {
 
         // given: bank potrafi uciąć końcowe puste kolumny
         String krotki = """
-            #Data operacji;#Opis operacji;#Kwota;#Kwota oryginalna
+            #Data księgowania;#Tytułem;#Kwota operacji;#Kwota w walucie operacji
             2026-01-07;"SKLEP";-100,00
             """;
         SourceFile file = new SourceFile("krotki.csv", krotki.getBytes(WINDOWS_1250));
@@ -342,7 +342,7 @@ class MbankCsvStatementParserTest {
 
         // given: sam nagłówek daty to za mało — to mógłby być dowolny raport
         String bezKwoty = """
-            #Data operacji;#Opis operacji
+            #Data księgowania;#Tytułem
             2026-01-07;"SKLEP"
             """;
         SourceFile file = new SourceFile("bez-kwoty.csv", bezKwoty.getBytes(WINDOWS_1250));
