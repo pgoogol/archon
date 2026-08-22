@@ -1,5 +1,6 @@
 package com.pgoogol.music.playlist;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -22,16 +23,13 @@ import java.util.stream.IntStream;
  * psułoby przejście, które DJ przed chwilą ułożył.</p>
  */
 @Component
+@RequiredArgsConstructor
 public class SetSuggester {
 
     public static final int DEFAULT_LIMIT = 5;
     public static final int MAX_LIMIT = 20;
 
     private final SetRules rules;
-
-    public SetSuggester(SetRules rules) {
-        this.rules = rules;
-    }
 
     /**
      * @param set      obecny skład setu w kolejności grania

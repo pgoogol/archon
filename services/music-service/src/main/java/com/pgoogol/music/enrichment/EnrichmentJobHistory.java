@@ -1,5 +1,6 @@
 package com.pgoogol.music.enrichment;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -20,6 +21,7 @@ import java.util.Optional;
  * zarządzamy — to nie jest sięganie do cudzych wnętrzności.</p>
  */
 @Repository
+@RequiredArgsConstructor
 public class EnrichmentJobHistory {
 
     private static final String RECENT = """
@@ -50,10 +52,6 @@ public class EnrichmentJobHistory {
         """;
 
     private final JdbcTemplate jdbcTemplate;
-
-    public EnrichmentJobHistory(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     public List<EnrichmentJobStatus> recent(String jobName, int limit) {
         return jdbcTemplate.query(RECENT, this::toStatus, jobName, limit);

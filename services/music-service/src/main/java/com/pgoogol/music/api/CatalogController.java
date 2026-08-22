@@ -19,6 +19,7 @@ import com.pgoogol.music.common.ValidationException;
 import com.pgoogol.music.library.LibrarySearchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +35,7 @@ import java.util.Objects;
 @RestController
 @RequestMapping("/api/catalog")
 @Tag(name = "Catalog", description = "Katalog utworów — dane deterministyczne")
+@RequiredArgsConstructor
 public class CatalogController {
 
     static final int DEFAULT_PAGE_SIZE = 20;
@@ -48,15 +50,6 @@ public class CatalogController {
     private final CatalogService catalogService;
     private final LibrarySearchService librarySearchService;
     private final CatalogApiMapper mapper;
-
-    public CatalogController(CatalogService catalogService,
-                             LibrarySearchService librarySearchService,
-                             CatalogApiMapper mapper) {
-
-        this.catalogService = catalogService;
-        this.librarySearchService = librarySearchService;
-        this.mapper = mapper;
-    }
 
     @GetMapping("/tracks/{spotifyId}")
     @Operation(summary = "Pełny rekord utworu z katalogu")

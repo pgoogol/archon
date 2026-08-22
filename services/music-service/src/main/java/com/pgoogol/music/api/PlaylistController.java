@@ -8,6 +8,7 @@ import com.pgoogol.music.playlist.PlaylistService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,20 +26,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/playlists")
 @Tag(name = "Playlists", description = "Playlisty i planowanie setów")
+@RequiredArgsConstructor
 public class PlaylistController {
 
     private final PlaylistService playlistService;
     private final PlaylistExportService playlistExportService;
     private final PlaylistApiMapper mapper;
-
-    public PlaylistController(PlaylistService playlistService,
-                              PlaylistExportService playlistExportService,
-                              PlaylistApiMapper mapper) {
-
-        this.playlistService = playlistService;
-        this.playlistExportService = playlistExportService;
-        this.mapper = mapper;
-    }
 
     @GetMapping
     @Operation(summary = "Lista playlist z liczbą utworów")

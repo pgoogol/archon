@@ -7,6 +7,7 @@ import com.pgoogol.music.catalog.ManualMetricsRepository;
 import com.pgoogol.music.catalog.TrackCatalog;
 import com.pgoogol.music.catalog.TrackCatalogRepository;
 import com.pgoogol.music.enrichment.metrics.ManualMetricsApplier;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
@@ -36,6 +37,7 @@ import java.util.stream.Collectors;
  * wszystkich jego wydań w katalogu.</p>
  */
 @Service
+@RequiredArgsConstructor
 public class MetricsIngestionService {
 
     private static final Logger log = LoggerFactory.getLogger(MetricsIngestionService.class);
@@ -44,17 +46,6 @@ public class MetricsIngestionService {
     private final TrackCatalogRepository trackCatalogRepository;
     private final ManualMetricsRepository manualMetricsRepository;
     private final ManualMetricsApplier applier;
-
-    public MetricsIngestionService(MetricsCsvParser parser,
-                                   TrackCatalogRepository trackCatalogRepository,
-                                   ManualMetricsRepository manualMetricsRepository,
-                                   ManualMetricsApplier applier) {
-
-        this.parser = parser;
-        this.trackCatalogRepository = trackCatalogRepository;
-        this.manualMetricsRepository = manualMetricsRepository;
-        this.applier = applier;
-    }
 
     @Transactional
     public MetricsIngestReport ingest(InputStream csv, @Nullable String source) {

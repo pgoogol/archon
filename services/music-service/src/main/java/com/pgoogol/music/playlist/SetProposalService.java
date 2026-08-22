@@ -8,6 +8,7 @@ import com.pgoogol.music.catalog.TrackCatalog;
 import com.pgoogol.music.common.ValidationException;
 import com.pgoogol.music.library.LibraryEntryRepository;
 import com.pgoogol.music.library.TrackDjData;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
  * a skład setu zmienia DJ istniejącą drogą.
  */
 @Service
+@RequiredArgsConstructor
 public class SetProposalService {
 
     /** Sufit puli: biblioteka jednego DJ-a ma rząd 2500 utworów. */
@@ -46,23 +48,6 @@ public class SetProposalService {
     private final SetSuggester setSuggester;
     private final SetRules setRules;
     private final PlaylistService playlistService;
-
-    public SetProposalService(CatalogService catalogService,
-                              LibraryEntryRepository libraryEntryRepository,
-                              DjSlotCalculator djSlotCalculator,
-                              SetGenerator setGenerator,
-                              SetSuggester setSuggester,
-                              SetRules setRules,
-                              PlaylistService playlistService) {
-
-        this.catalogService = catalogService;
-        this.libraryEntryRepository = libraryEntryRepository;
-        this.djSlotCalculator = djSlotCalculator;
-        this.setGenerator = setGenerator;
-        this.setSuggester = setSuggester;
-        this.setRules = setRules;
-        this.playlistService = playlistService;
-    }
 
     @Transactional(readOnly = true)
     public SetProposal propose(CatalogSearchCriteria criteria, int targetMinutes, SetCurve curve,

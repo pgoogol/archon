@@ -4,6 +4,7 @@ import com.pgoogol.music.common.NotFoundException;
 import com.pgoogol.music.common.ValidationException;
 import com.pgoogol.music.enrichment.spotify.SpotifyAccountService;
 import com.pgoogol.music.enrichment.spotify.SpotifyPlaylistClient;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import java.util.Objects;
  * odpowiada setowi w music-view.
  */
 @Service
+@RequiredArgsConstructor
 public class PlaylistExportService {
 
     private static final String DESCRIPTION = "Set zaplanowany w music-view";
@@ -30,17 +32,6 @@ public class PlaylistExportService {
     private final PlaylistTrackRepository playlistTrackRepository;
     private final SpotifyPlaylistClient playlistClient;
     private final SpotifyAccountService accountService;
-
-    public PlaylistExportService(PlaylistRepository playlistRepository,
-                                 PlaylistTrackRepository playlistTrackRepository,
-                                 SpotifyPlaylistClient playlistClient,
-                                 SpotifyAccountService accountService) {
-
-        this.playlistRepository = playlistRepository;
-        this.playlistTrackRepository = playlistTrackRepository;
-        this.playlistClient = playlistClient;
-        this.accountService = accountService;
-    }
 
     @Transactional
     public PlaylistExport export(Long playlistId) {

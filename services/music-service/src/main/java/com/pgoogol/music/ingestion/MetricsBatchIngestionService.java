@@ -1,6 +1,7 @@
 package com.pgoogol.music.ingestion;
 
 import com.pgoogol.music.common.AppException;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -21,16 +22,12 @@ import java.util.Objects;
  * przy ponownym wgraniu tego samego pliku.</p>
  */
 @Service
+@RequiredArgsConstructor
 public class MetricsBatchIngestionService {
 
     private static final Logger log = LoggerFactory.getLogger(MetricsBatchIngestionService.class);
 
     private final MetricsIngestionService metricsIngestionService;
-
-    public MetricsBatchIngestionService(MetricsIngestionService metricsIngestionService) {
-
-        this.metricsIngestionService = metricsIngestionService;
-    }
 
     public List<MetricsFileReport> ingestAll(List<NamedCsv> files) {
 

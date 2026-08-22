@@ -18,6 +18,7 @@ import com.pgoogol.music.playlist.SetSuggestions;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,16 +31,11 @@ import java.util.Objects;
 @RestController
 @RequestMapping("/api/sets")
 @Tag(name = "Sets", description = "Generator setu i domykanie gotowego setu")
+@RequiredArgsConstructor
 public class SetController {
 
     private final SetProposalService setProposalService;
     private final CatalogApiMapper catalogApiMapper;
-
-    public SetController(SetProposalService setProposalService, CatalogApiMapper catalogApiMapper) {
-
-        this.setProposalService = setProposalService;
-        this.catalogApiMapper = catalogApiMapper;
-    }
 
     @PostMapping("/propose")
     @Operation(summary = "Propozycja setu na zadany czas",

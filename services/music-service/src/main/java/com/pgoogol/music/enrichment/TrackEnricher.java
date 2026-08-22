@@ -16,6 +16,7 @@ import com.pgoogol.music.enrichment.metrics.ManualMetricsApplier;
 import com.pgoogol.music.enrichment.musicbrainz.MusicBrainzClient;
 import com.pgoogol.music.enrichment.spotify.SpotifyClient;
 import com.pgoogol.music.enrichment.spotify.SpotifyTrackMetadata;
+import lombok.RequiredArgsConstructor;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
  * wywołania Spotify i LLM idą batchem. Mutuje encje; zapis należy do writera.
  */
 @Component
+@RequiredArgsConstructor
 public class TrackEnricher {
 
 
@@ -47,25 +49,6 @@ public class TrackEnricher {
     private final TempoClassifier tempoClassifier;
     private final HalfTimeCorrector halfTimeCorrector;
     private final LlmProperties llmProperties;
-
-    public TrackEnricher(SpotifyClient spotifyClient, MusicBrainzClient musicBrainzClient,
-                         AudioFeaturesRepository audioFeaturesRepository,
-                         ManualMetricsRepository manualMetricsRepository,
-                         ManualMetricsApplier manualMetricsApplier, BpmResolver bpmResolver,
-                         TrackAnalysisService trackAnalysisService, TempoClassifier tempoClassifier,
-                         HalfTimeCorrector halfTimeCorrector, LlmProperties llmProperties) {
-
-        this.spotifyClient = spotifyClient;
-        this.musicBrainzClient = musicBrainzClient;
-        this.audioFeaturesRepository = audioFeaturesRepository;
-        this.manualMetricsRepository = manualMetricsRepository;
-        this.manualMetricsApplier = manualMetricsApplier;
-        this.bpmResolver = bpmResolver;
-        this.trackAnalysisService = trackAnalysisService;
-        this.tempoClassifier = tempoClassifier;
-        this.halfTimeCorrector = halfTimeCorrector;
-        this.llmProperties = llmProperties;
-    }
 
     public void enrich(List<TrackCatalog> tracks, Set<FieldGroup> fields) {
 

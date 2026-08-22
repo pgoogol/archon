@@ -4,6 +4,7 @@ import com.pgoogol.music.common.ValidationException;
 import com.pgoogol.music.enrichment.spotify.SpotifyAccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,17 +21,11 @@ import java.util.Objects;
 @RestController
 @RequestMapping("/api/auth/spotify")
 @Tag(name = "Auth Spotify", description = "Połączenie konta właściciela (OAuth PKCE)")
+@RequiredArgsConstructor
 public class SpotifyAuthController {
 
     private final SpotifyAccountService accountService;
     private final SpotifyAccountApiMapper mapper;
-
-    public SpotifyAuthController(SpotifyAccountService accountService,
-                                 SpotifyAccountApiMapper mapper) {
-
-        this.accountService = accountService;
-        this.mapper = mapper;
-    }
 
     @GetMapping("/login")
     @Operation(summary = "Start logowania — przekierowanie na ekran zgody Spotify",

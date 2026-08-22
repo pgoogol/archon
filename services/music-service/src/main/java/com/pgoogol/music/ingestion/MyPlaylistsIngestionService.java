@@ -6,6 +6,7 @@ import com.pgoogol.music.enrichment.spotify.SpotifyAccountService;
 import com.pgoogol.music.enrichment.spotify.SpotifyPlaylist;
 import com.pgoogol.music.enrichment.spotify.SpotifyPlaylistClient;
 import com.pgoogol.music.library.LibrarySource;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ import java.util.Objects;
  * importu jest bezpieczne, więc nieudane playlisty wystarczy powtórzyć.
  */
 @Service
+@RequiredArgsConstructor
 public class MyPlaylistsIngestionService {
 
     private static final Logger log = LoggerFactory.getLogger(MyPlaylistsIngestionService.class);
@@ -29,15 +31,6 @@ public class MyPlaylistsIngestionService {
     private final SpotifyAccountService accountService;
     private final SpotifyPlaylistClient playlistClient;
     private final PlaylistIngestionService playlistIngestionService;
-
-    public MyPlaylistsIngestionService(SpotifyAccountService accountService,
-                                       SpotifyPlaylistClient playlistClient,
-                                       PlaylistIngestionService playlistIngestionService) {
-
-        this.accountService = accountService;
-        this.playlistClient = playlistClient;
-        this.playlistIngestionService = playlistIngestionService;
-    }
 
     public MyPlaylistsIngestReport ingestMyPlaylists() {
 

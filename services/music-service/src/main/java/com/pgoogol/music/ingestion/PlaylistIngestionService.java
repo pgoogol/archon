@@ -14,6 +14,7 @@ import com.pgoogol.music.playlist.Playlist;
 import com.pgoogol.music.playlist.PlaylistRepository;
 import com.pgoogol.music.playlist.PlaylistTrack;
 import com.pgoogol.music.playlist.PlaylistTrackRepository;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,7 @@ import java.util.stream.IntStream;
  * nazwę i kolejność, nie tworzy duplikatów.
  */
 @Service
+@RequiredArgsConstructor
 public class PlaylistIngestionService {
 
     private static final Logger log = LoggerFactory.getLogger(PlaylistIngestionService.class);
@@ -47,23 +49,6 @@ public class PlaylistIngestionService {
     private final LibraryEntryRepository libraryEntryRepository;
     private final PlaylistRepository playlistRepository;
     private final PlaylistTrackRepository playlistTrackRepository;
-
-    public PlaylistIngestionService(SpotifyPlaylistUrlParser urlParser,
-                                    SpotifyPlaylistClient playlistClient,
-                                    SpotifyAccountService accountService,
-                                    TrackCatalogRepository trackCatalogRepository,
-                                    LibraryEntryRepository libraryEntryRepository,
-                                    PlaylistRepository playlistRepository,
-                                    PlaylistTrackRepository playlistTrackRepository) {
-
-        this.urlParser = urlParser;
-        this.playlistClient = playlistClient;
-        this.accountService = accountService;
-        this.trackCatalogRepository = trackCatalogRepository;
-        this.libraryEntryRepository = libraryEntryRepository;
-        this.playlistRepository = playlistRepository;
-        this.playlistTrackRepository = playlistTrackRepository;
-    }
 
     /**
      * Import playlisty spod linku. Playlista połączonego konta trafia do

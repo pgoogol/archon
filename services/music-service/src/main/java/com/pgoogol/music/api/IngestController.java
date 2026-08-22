@@ -12,6 +12,7 @@ import com.pgoogol.music.ingestion.PlaylistRefreshStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,6 +30,7 @@ import java.util.Objects;
 @RestController
 @RequestMapping("/api/ingest")
 @Tag(name = "Ingestion", description = "Import utworów do biblioteki")
+@RequiredArgsConstructor
 public class IngestController {
 
     private final FileIngestionService fileIngestionService;
@@ -38,23 +40,6 @@ public class IngestController {
     private final PlaylistRefreshScheduler playlistRefreshScheduler;
     private final PlaylistRefreshProperties playlistRefreshProperties;
     private final IngestApiMapper mapper;
-
-    public IngestController(FileIngestionService fileIngestionService,
-                            PlaylistIngestionService playlistIngestionService,
-                            MyPlaylistsIngestionService myPlaylistsIngestionService,
-                            MetricsBatchIngestionService metricsBatchIngestionService,
-                            PlaylistRefreshScheduler playlistRefreshScheduler,
-                            PlaylistRefreshProperties playlistRefreshProperties,
-                            IngestApiMapper mapper) {
-
-        this.playlistRefreshScheduler = playlistRefreshScheduler;
-        this.playlistRefreshProperties = playlistRefreshProperties;
-        this.fileIngestionService = fileIngestionService;
-        this.playlistIngestionService = playlistIngestionService;
-        this.myPlaylistsIngestionService = myPlaylistsIngestionService;
-        this.metricsBatchIngestionService = metricsBatchIngestionService;
-        this.mapper = mapper;
-    }
 
     @PostMapping(value = "/file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Import CSV do biblioteki",

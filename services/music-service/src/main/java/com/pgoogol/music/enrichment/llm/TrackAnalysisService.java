@@ -1,6 +1,7 @@
 package com.pgoogol.music.enrichment.llm;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.RequiredArgsConstructor;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -30,6 +31,7 @@ import java.util.stream.IntStream;
  * przechodzą korektę half-time. Zapis do katalogu należy do joba (M1.6).
  */
 @Service
+@RequiredArgsConstructor
 public class TrackAnalysisService {
 
     private static final Logger log = LoggerFactory.getLogger(TrackAnalysisService.class);
@@ -39,17 +41,6 @@ public class TrackAnalysisService {
     private final ObjectMapper objectMapper;
     private final HalfTimeCorrector halfTimeCorrector;
     private final LlmProperties properties;
-
-    public TrackAnalysisService(LlmClient llmClient, TrackAnalysisPrompt prompt,
-                                ObjectMapper objectMapper, HalfTimeCorrector halfTimeCorrector,
-                                LlmProperties properties) {
-
-        this.llmClient = llmClient;
-        this.prompt = prompt;
-        this.objectMapper = objectMapper;
-        this.halfTimeCorrector = halfTimeCorrector;
-        this.properties = properties;
-    }
 
     public TrackAnalysisResult analyze(List<TrackCatalog> tracks, boolean estimateMissingBpm) {
 
