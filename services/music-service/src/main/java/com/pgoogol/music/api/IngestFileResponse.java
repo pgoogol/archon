@@ -3,7 +3,7 @@ package com.pgoogol.music.api;
 import java.util.List;
 
 /**
- * Raport z importu pliku CSV — kontrakt {@code POST /api/ingest/file}.
+ * Raport z importu pliku CSV — kontrakt {@code POST /music/api/v1/ingest/file}.
  */
 public record IngestFileResponse(int imported, int alreadyExisted, List<FailedRowResponse> failed) {
 

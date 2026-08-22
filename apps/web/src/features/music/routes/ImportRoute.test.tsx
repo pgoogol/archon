@@ -56,8 +56,8 @@ beforeEach(() => {
   myPlaylistsResponse = myPlaylists
   globalThis.fetch = vi.fn().mockImplementation((url: string) => {
     const address = String(url)
-    if (address.includes('/api/auth/spotify/status')) return Promise.resolve(jsonResponse(connectedAccount))
-    if (address.includes('/api/ingest/metrics')) return Promise.resolve(jsonResponse(metricsResponse))
+    if (address.includes('/music/api/v1/auth/spotify/status')) return Promise.resolve(jsonResponse(connectedAccount))
+    if (address.includes('/music/api/v1/ingest/metrics')) return Promise.resolve(jsonResponse(metricsResponse))
     return Promise.resolve(jsonResponse(myPlaylistsResponse))
   }) as unknown as typeof fetch
 })

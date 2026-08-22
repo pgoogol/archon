@@ -4,11 +4,11 @@ import java.math.BigDecimal;
 
 /**
  * Szacunek zlecenia wzbogacania (M5.1) — kontrakt
- * {@code POST /api/enrich/estimate}. Nic nie uruchamia.
+ * {@code POST /music/api/v1/enrich/estimate}. Nic nie uruchamia.
  *
  * @param aiTracks      utwory, za które realnie zapłacimy (tylko grupa AI)
  * @param estimatedCost {@code null} = brak stawek w konfiguracji, nie zero
- * @param withinLimit   {@code false} oznacza, że {@code POST /api/enrich}
+ * @param withinLimit   {@code false} oznacza, że {@code POST /music/api/v1/enrich}
  *                      odrzuci to zlecenie
  */
 public record EnrichmentEstimateResponse(

@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/api/catalog/tracks": {
+    "/music/api/v1/catalog/tracks": {
         parameters: {
             query?: never;
             header?: never;
@@ -21,7 +21,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/catalog/tracks/{spotifyId}": {
+    "/music/api/v1/catalog/tracks/{spotifyId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -38,7 +38,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/catalog/tracks/{spotifyId}/metrics": {
+    "/music/api/v1/catalog/tracks/{spotifyId}/metrics": {
         parameters: {
             query?: never;
             header?: never;
@@ -55,7 +55,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/catalog/metrics-coverage": {
+    "/music/api/v1/catalog/metrics-coverage": {
         parameters: {
             query?: never;
             header?: never;
@@ -72,7 +72,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/library/tracks": {
+    "/music/api/v1/library/tracks": {
         parameters: {
             query?: never;
             header?: never;
@@ -90,7 +90,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/library/tracks/{spotifyId}": {
+    "/music/api/v1/library/tracks/{spotifyId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -112,7 +112,7 @@ export interface paths {
         patch: operations["updateLibraryTrack"];
         trace?: never;
     };
-    "/api/library/overview": {
+    "/music/api/v1/library/overview": {
         parameters: {
             query?: never;
             header?: never;
@@ -129,7 +129,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/library/tags": {
+    "/music/api/v1/library/tags": {
         parameters: {
             query?: never;
             header?: never;
@@ -146,7 +146,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/playlists": {
+    "/music/api/v1/playlists": {
         parameters: {
             query?: never;
             header?: never;
@@ -162,7 +162,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/playlists/{id}": {
+    "/music/api/v1/playlists/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -178,7 +178,7 @@ export interface paths {
         patch: operations["renamePlaylist"];
         trace?: never;
     };
-    "/api/playlists/{id}/tracks": {
+    "/music/api/v1/playlists/{id}/tracks": {
         parameters: {
             query?: never;
             header?: never;
@@ -196,7 +196,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/playlists/{id}/tracks/{spotifyId}": {
+    "/music/api/v1/playlists/{id}/tracks/{spotifyId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -213,7 +213,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/playlists/{id}/export-to-spotify": {
+    "/music/api/v1/playlists/{id}/export-to-spotify": {
         parameters: {
             query?: never;
             header?: never;
@@ -230,7 +230,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/sets/propose": {
+    "/music/api/v1/sets/propose": {
         parameters: {
             query?: never;
             header?: never;
@@ -247,7 +247,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/sets/{playlistId}/fill": {
+    "/music/api/v1/sets/{playlistId}/fill": {
         parameters: {
             query?: never;
             header?: never;
@@ -264,7 +264,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/sets/{playlistId}/suggest": {
+    "/music/api/v1/sets/{playlistId}/suggest": {
         parameters: {
             query?: never;
             header?: never;
@@ -281,7 +281,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/enrich": {
+    "/music/api/v1/enrich": {
         parameters: {
             query?: never;
             header?: never;
@@ -298,7 +298,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/enrich/estimate": {
+    "/music/api/v1/enrich/estimate": {
         parameters: {
             query?: never;
             header?: never;
@@ -315,7 +315,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/enrich/jobs": {
+    "/music/api/v1/enrich/jobs": {
         parameters: {
             query?: never;
             header?: never;
@@ -331,7 +331,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/enrich/jobs/{executionId}": {
+    "/music/api/v1/enrich/jobs/{executionId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -347,7 +347,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/enrich/jobs/{executionId}/failures": {
+    "/music/api/v1/enrich/jobs/{executionId}/failures": {
         parameters: {
             query?: never;
             header?: never;
@@ -364,7 +364,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/enrich/jobs/{executionId}/restart": {
+    "/music/api/v1/enrich/jobs/{executionId}/restart": {
         parameters: {
             query?: never;
             header?: never;
@@ -381,7 +381,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/enrich/missing-count": {
+    "/music/api/v1/enrich/missing-count": {
         parameters: {
             query?: never;
             header?: never;
@@ -398,7 +398,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/ingest/file": {
+    "/music/api/v1/ingest/file": {
         parameters: {
             query?: never;
             header?: never;
@@ -415,7 +415,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/ingest/metrics": {
+    "/music/api/v1/ingest/metrics": {
         parameters: {
             query?: never;
             header?: never;
@@ -432,7 +432,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/ingest/playlist": {
+    "/music/api/v1/ingest/playlist": {
         parameters: {
             query?: never;
             header?: never;
@@ -449,7 +449,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/ingest/my-playlists": {
+    "/music/api/v1/ingest/my-playlists": {
         parameters: {
             query?: never;
             header?: never;
@@ -469,7 +469,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/ingest/my-playlists/refresh-status": {
+    "/music/api/v1/ingest/my-playlists/refresh-status": {
         parameters: {
             query?: never;
             header?: never;
@@ -486,7 +486,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/spotify/login": {
+    "/music/api/v1/auth/spotify/login": {
         parameters: {
             query?: never;
             header?: never;
@@ -503,7 +503,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/spotify/callback": {
+    "/music/api/v1/auth/spotify/callback": {
         parameters: {
             query?: never;
             header?: never;
@@ -520,7 +520,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/spotify/status": {
+    "/music/api/v1/auth/spotify/status": {
         parameters: {
             query?: never;
             header?: never;

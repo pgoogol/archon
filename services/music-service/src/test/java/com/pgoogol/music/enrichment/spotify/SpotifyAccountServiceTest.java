@@ -25,7 +25,7 @@ class SpotifyAccountServiceTest {
 
     private final SpotifyProperties properties = new SpotifyProperties(
         "https://api.spotify.com", "https://accounts.spotify.com", "client-abc", "secret", 8,
-        "http://127.0.0.1:8080/api/auth/spotify/callback", "playlist-read-private");
+        "http://127.0.0.1:8080/music/api/v1/auth/spotify/callback", "playlist-read-private");
 
     @Mock
     private SpotifyOAuthClient oauthClient;

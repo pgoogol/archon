@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Playlista z pełnym składem setu — kontrakt {@code GET /api/playlists/{id}}.
+ * Playlista z pełnym składem setu — kontrakt {@code GET /music/api/v1/playlists/{id}}.
  * {@code djSlot} to slot obowiązujący (override DJ-a albo wyliczenie wg faz wieczoru),
  * {@code djSlotOverride} pokazuje, czy wartość jest ręczna.
  */

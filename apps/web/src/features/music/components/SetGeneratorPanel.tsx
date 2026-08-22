@@ -1,6 +1,6 @@
 // Generator setu (M4.2): propozycja do obejrzenia, nie zapis. Playlistę
 // zakłada dopiero „Utwórz set z propozycji" — istniejącą drogą przez
-// POST /api/playlists, więc generator zostaje bezstanowy.
+// POST /music/api/v1/playlists, więc generator zostaje bezstanowy.
 
 import { useState } from 'react'
 import {

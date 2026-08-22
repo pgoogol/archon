@@ -26,7 +26,7 @@ describe('OverviewRoute', () => {
     expect(within(headline).getByText('6,1')).toBeInTheDocument()
     expect(within(headline).getByText('640')).toBeInTheDocument()
     expect(fetchMock).toHaveBeenCalledTimes(1)
-    expect(String(fetchMock.mock.calls[0][0])).toContain('/api/library/overview')
+    expect(String(fetchMock.mock.calls[0][0])).toContain('/music/api/v1/library/overview')
   })
 
   it('liczby nagłówkowe mówią o utworach, nie o playlistach ani setach', async () => {

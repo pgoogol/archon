@@ -32,7 +32,7 @@ let searchResponse = aPage(rows)
 function lastRequestUrl(): string {
 
   const catalogCalls = fetchMock.mock.calls.filter((call) =>
-    String(call[0]).includes('/api/catalog/tracks'),
+    String(call[0]).includes('/music/api/v1/catalog/tracks'),
   )
   return String(catalogCalls.at(-1)?.[0])
 }

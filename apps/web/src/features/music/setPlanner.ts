@@ -1,5 +1,5 @@
 // Logika planowania setu (M3.1) — czyste funkcje liczone po stronie frontu na
-// danych zwróconych przez /api/playlists/{id}. Sloty liczy backend;
+// danych zwróconych przez /music/api/v1/playlists/{id}. Sloty liczy backend;
 // tutaj tylko podsumowania i ostrzeżenia dla DJ-a układającego kolejność.
 
 import type { PlaylistTrackResponse } from '@/features/music/api'
@@ -355,7 +355,7 @@ function arrangeByHarmony(tracks: readonly PlaylistTrackResponse[]): string[] {
 
 /**
  * Propozycja kolejności setu w wybranym trybie. Zwraca listę `spotifyId`
- * gotową do `PUT /api/playlists/{id}/tracks` — układanie liczy front,
+ * gotową do `PUT /music/api/v1/playlists/{id}/tracks` — układanie liczy front,
  * backend dostaje gotową permutację składu.
  */
 export function arrangeBy(
@@ -409,7 +409,7 @@ export function insertLastAt(
  * Propozycja kolejności setu wg slotów wieczoru: rozgrzewka → środek → szczyt →
  * zamknięcie, wewnątrz fazy rosnąco po BPM. Przerwy trafiają przed zamknięcie,
  * a utwory bez slotu (niewzbogacone) na sam koniec — DJ decyduje, co z nimi.
- * Zwraca listę `spotifyId` gotową do PUT /api/playlists/{id}/tracks.
+ * Zwraca listę `spotifyId` gotową do PUT /music/api/v1/playlists/{id}/tracks.
  */
 export function arrangeBySlot(tracks: readonly PlaylistTrackResponse[]): string[] {
 

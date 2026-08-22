@@ -29,7 +29,7 @@ import java.util.Locale;
 import java.util.Objects;
 
 @RestController
-@RequestMapping("/api/sets")
+@RequestMapping("/music/api/v1/sets")
 @Tag(name = "Sets", description = "Generator setu i domykanie gotowego setu")
 @RequiredArgsConstructor
 public class SetController {
@@ -45,7 +45,7 @@ public class SetController {
             CLUB 15/25/45/15, EVEN 25/25/25/25 — udziały faz wieczoru), \
             utwór raz w secie, ten sam wykonawca nie częściej niż raz na 30 minut, \
             kary za skok BPM, zderzenie tonacji i brak oceny. \
-            NICZEGO NIE ZAPISUJE — playlistę zakłada DJ przez /api/playlists. \
+            NICZEGO NIE ZAPISUJE — playlistę zakłada DJ przez /music/api/v1/playlists. \
             Ten sam seed daje tę samą propozycję.""")
     public SetProposalResponse propose(@Valid @RequestBody SetProposalRequest request) {
 
@@ -67,7 +67,7 @@ public class SetController {
             początek wieczoru (liczą się do czasu, blokują powtórkę utworu i odstęp \
             wykonawcy), a wynikiem jest sama końcówka. targetMinutes to długość CAŁEGO \
             wieczoru, nie tego, co dochodzi. NICZEGO NIE ZAPISUJE — utwory dopisuje \
-            DJ przez /api/playlists/{id}/tracks. Ten sam seed daje ten sam dalszy ciąg.""")
+            DJ przez /music/api/v1/playlists/{id}/tracks. Ten sam seed daje ten sam dalszy ciąg.""")
     public SetFillResponse fill(@PathVariable Long playlistId,
                                 @Valid @RequestBody SetFillRequest request) {
 

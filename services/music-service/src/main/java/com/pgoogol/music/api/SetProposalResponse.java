@@ -3,9 +3,9 @@ package com.pgoogol.music.api;
 import java.util.List;
 
 /**
- * Propozycja setu (M4.2) — kontrakt {@code POST /api/sets/propose}. Nic nie
+ * Propozycja setu (M4.2) — kontrakt {@code POST /music/api/v1/sets/propose}. Nic nie
  * zostało zapisane: to materiał do obejrzenia, a set zakłada DJ przez
- * {@code POST /api/playlists} i {@code POST /api/playlists/{id}/tracks}.
+ * {@code POST /music/api/v1/playlists} i {@code POST /music/api/v1/playlists/{id}/tracks}.
  *
  * @param seed  ziarno użyte przy losowaniu — podaj je z powrotem, żeby dostać
  *              tę samą propozycję

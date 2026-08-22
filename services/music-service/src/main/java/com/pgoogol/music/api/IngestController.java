@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Objects;
 
 @RestController
-@RequestMapping("/api/ingest")
+@RequestMapping("/music/api/v1/ingest")
 @Tag(name = "Ingestion", description = "Import utworów do biblioteki")
 @RequiredArgsConstructor
 public class IngestController {
@@ -94,7 +94,7 @@ public class IngestController {
     @PostMapping("/my-playlists")
     @Operation(summary = "Import wszystkich własnych playlist połączonego konta (tryb C)",
         description = """
-            Wymaga połączonego konta Spotify (GET /api/auth/spotify/login). \
+            Wymaga połączonego konta Spotify (GET /music/api/v1/auth/spotify/login). \
             Playlisty obserwowane, ale cudze, są pomijane — importuj je po linku. \
             Playlista, która padła, nie przerywa przebiegu: wraca w `failed` \
             z powodem i wystarczy powtórzyć ją osobno.""")

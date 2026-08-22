@@ -92,7 +92,7 @@ class RealApiSmokeTest {
         SpotifyProperties properties = new SpotifyProperties(
             "https://api.spotify.com", "https://accounts.spotify.com",
             System.getenv("SPOTIFY_CLIENT_ID"), System.getenv("SPOTIFY_CLIENT_SECRET"), 5,
-            "http://127.0.0.1:8080/api/auth/spotify/callback", "playlist-read-private");
+            "http://127.0.0.1:8080/music/api/v1/auth/spotify/callback", "playlist-read-private");
         SpotifyClient spotify = new SpotifyClient(RestClient.builder(), properties,
             new SpotifyAppTokenProvider(RestClient.builder(), properties),
             new SpotifyTrackMapper(), new SpotifyApiExecutor(properties));

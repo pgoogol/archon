@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/library")
+@RequestMapping("/music/api/v1/library")
 @Tag(name = "Library", description = "Biblioteka DJ-a — dane prywatne")
 @RequiredArgsConstructor
 public class LibraryController {

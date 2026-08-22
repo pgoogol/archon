@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/enrich")
+@RequestMapping("/music/api/v1/enrich")
 @Tag(name = "Enrichment", description = "Joby wzbogacania Spring Batch")
 @RequiredArgsConstructor
 public class EnrichController {
@@ -35,7 +35,7 @@ public class EnrichController {
             scope: SINGLE/SELECTED (z spotifyIds, max 100), MISSING (wg braków) \
             albo OUTDATED (utwory opisane starszym modelem/promptem — wyłącznie grupa AI); \
             fields: podzbiór METADATA/AUDIO/AI. Zlecenie ponad llm.max-tracks-per-job \
-            kończy się 400 ENRICH_TOO_MANY_TRACKS — sprawdź wcześniej /api/enrich/estimate.""")
+            kończy się 400 ENRICH_TOO_MANY_TRACKS — sprawdź wcześniej /music/api/v1/enrich/estimate.""")
     public Map<String, Long> startEnrichment(@Valid @RequestBody EnrichRequest request) {
 
         long executionId = enrichmentService.start(

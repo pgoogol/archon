@@ -2,7 +2,7 @@ import { expect, test, type APIRequestContext, type Page } from '@playwright/tes
 
 /**
  * Pełny przepływ DJ-a (DoD Etapu 3 rozszerzone o Etap 4) na dwóch osobnych
- * aplikacjach — zbudowany front i backend za proxy /api:
+ * aplikacjach — zbudowany front i backend za proxy /music/api/v1:
  * import → przegląd → biblioteka i utwór → wzbogacenie AI → set → generator.
  *
  * Eksport na Spotify świadomie zostaje poza tym testem: wymagałby albo
@@ -22,13 +22,13 @@ Propuesta Indecente,Romeo Santos,Formula Vol 2,spotify:track:e2ePropu00000000000
 
 /** Sprzątanie po poprzednim przebiegu — test ma być powtarzalny na tej samej bazie. */
 async function resetLibrary(api: APIRequestContext) {
-  const playlists = await (await api.get('/api/playlists')).json()
+  const playlists = await (await api.get('/music/api/v1/playlists')).json()
   for (const playlist of playlists) {
-    await api.delete(`/api/playlists/${playlist.id}`)
+    await api.delete(`/music/api/v1/playlists/${playlist.id}`)
   }
-  const page = await (await api.get('/api/library/tracks?size=100')).json()
+  const page = await (await api.get('/music/api/v1/library/tracks?size=100')).json()
   for (const entry of page.content ?? []) {
-    await api.delete(`/api/library/tracks/${entry.spotifyId}`)
+    await api.delete(`/music/api/v1/library/tracks/${entry.spotifyId}`)
   }
 }
 
@@ -51,7 +51,7 @@ test.describe('przepływ DJ-a', () => {
   test('import → przegląd → utwór → wzbogacenie → set → generator', async ({ page, request }) => {
 
     // --- import: plik CSV wchodzi do katalogu i biblioteki (tryb A)
-    const imported = await request.post('/api/ingest/file', {
+    const imported = await request.post('/music/api/v1/ingest/file', {
       multipart: {
         file: { name: 'biblioteka.csv', mimeType: 'text/csv', buffer: Buffer.from(CSV) },
       },
@@ -59,7 +59,7 @@ test.describe('przepływ DJ-a', () => {
     expect(imported.ok()).toBeTruthy()
     expect((await imported.json()).imported).toBe(5)
 
-    // --- przegląd: front dochodzi do API po względnym /api, liczby liczy baza
+    // --- przegląd: front dochodzi do API po adresie względnym, liczby liczy baza
     await page.goto('/#/music/overview')
     await expect(page.getByTestId('overview')).toBeVisible()
     await expect(page.getByTestId('overview-headline')).toContainText('5')
@@ -126,14 +126,14 @@ test.describe('przepływ DJ-a', () => {
     await expect(page.getByText('Ułożono set wg faz wieczoru')).toBeVisible()
 
     // --- generator: propozycja, która niczego nie zapisuje
-    const playlistsBefore = (await (await request.get('/api/playlists')).json()).length
+    const playlistsBefore = (await (await request.get('/music/api/v1/playlists')).json()).length
     await page.getByTestId('propose-set').click()
     await expect(page.getByTestId('set-proposal')).toBeVisible()
-    expect((await (await request.get('/api/playlists')).json()).length).toBe(playlistsBefore)
+    expect((await (await request.get('/music/api/v1/playlists')).json()).length).toBe(playlistsBefore)
 
     await page.getByTestId('materialize-set').click()
     await expect
-      .poll(async () => (await (await request.get('/api/playlists')).json()).length)
+      .poll(async () => (await (await request.get('/music/api/v1/playlists')).json()).length)
       .toBe(playlistsBefore + 1)
   })
 })

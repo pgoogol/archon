@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/playlists")
+@RequestMapping("/music/api/v1/playlists")
 @Tag(name = "Playlists", description = "Playlisty i planowanie setów")
 @RequiredArgsConstructor
 public class PlaylistController {
@@ -102,7 +102,7 @@ public class PlaylistController {
         description = """
             Pierwszy eksport zakłada prywatną playlistę na koncie właściciela, \
             kolejne nadpisują jej zawartość — kolejność na Spotify odpowiada setowi. \
-            Wymaga połączonego konta (GET /api/auth/spotify/login).""")
+            Wymaga połączonego konta (GET /music/api/v1/auth/spotify/login).""")
     public PlaylistExportResponse exportToSpotify(@PathVariable Long id) {
         return mapper.toResponse(playlistExportService.export(id));
     }

@@ -36,7 +36,7 @@ public class MyPlaylistsIngestionService {
 
         String ownerId = accountService.connectedUserId()
             .orElseThrow(() -> new ValidationException("SPOTIFY_NOT_CONNECTED",
-                "Konto Spotify nie jest połączone — otwórz /api/auth/spotify/login"));
+                "Konto Spotify nie jest połączone — otwórz /music/api/v1/auth/spotify/login"));
         List<SpotifyPlaylist> owned = playlistClient.getMyPlaylists().stream()
             .filter(playlist -> Objects.equals(playlist.ownerId(), ownerId))
             .toList();
