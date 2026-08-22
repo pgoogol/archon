@@ -5,6 +5,7 @@ import com.pgoogol.finance.currency.domain.ExchangeRate;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,17 +23,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/finance/exchange-rates")
 @Tag(name = "currencies", description = "Waluty i kursy wymiany")
+@RequiredArgsConstructor
 public class ExchangeRateController {
 
     private final ExchangeRateService exchangeRateService;
     private final CurrencyApiMapper mapper;
-
-    public ExchangeRateController(ExchangeRateService exchangeRateService,
-                                  CurrencyApiMapper mapper) {
-
-        this.exchangeRateService = exchangeRateService;
-        this.mapper = mapper;
-    }
 
     @GetMapping
     @Operation(summary = "Kursy waluty w zakresie dat")

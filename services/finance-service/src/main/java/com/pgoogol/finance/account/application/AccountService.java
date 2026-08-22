@@ -7,6 +7,7 @@ import com.pgoogol.finance.common.ExceptionMessageConstants;
 import com.pgoogol.finance.common.NotFoundException;
 import com.pgoogol.finance.currency.application.CurrencyService;
 import com.pgoogol.finance.currency.domain.Currency;
+import lombok.RequiredArgsConstructor;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,16 +18,11 @@ import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class AccountService {
 
     private final AccountRepository accountRepository;
     private final CurrencyService currencyService;
-
-    public AccountService(AccountRepository accountRepository, CurrencyService currencyService) {
-
-        this.accountRepository = accountRepository;
-        this.currencyService = currencyService;
-    }
 
     public List<Account> list(boolean includeArchived) {
 

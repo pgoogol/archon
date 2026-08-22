@@ -7,6 +7,7 @@ import com.pgoogol.finance.currency.domain.Currency;
 import com.pgoogol.finance.currency.domain.FinanceProperties;
 import com.pgoogol.finance.currency.domain.MinorUnits;
 import com.pgoogol.finance.currency.infrastructure.CurrencyRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,17 +21,11 @@ import java.util.Objects;
  */
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class CurrencyService {
 
     private final CurrencyRepository currencyRepository;
     private final FinanceProperties financeProperties;
-
-    public CurrencyService(CurrencyRepository currencyRepository,
-                           FinanceProperties financeProperties) {
-
-        this.currencyRepository = currencyRepository;
-        this.financeProperties = financeProperties;
-    }
 
     public List<Currency> listAll() {
 

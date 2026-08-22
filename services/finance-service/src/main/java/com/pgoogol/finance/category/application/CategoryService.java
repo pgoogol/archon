@@ -8,6 +8,7 @@ import com.pgoogol.finance.common.ConflictException;
 import com.pgoogol.finance.common.ExceptionMessageConstants;
 import com.pgoogol.finance.common.NotFoundException;
 import com.pgoogol.finance.common.ValidationException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,14 +23,10 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
-
-    public CategoryService(CategoryRepository categoryRepository) {
-
-        this.categoryRepository = categoryRepository;
-    }
 
     /** Drzewo kategorii: jedno zapytanie do bazy, struktura składana w pamięci. */
     public List<CategoryNode> tree(@Nullable CategoryDirection direction, boolean includeArchived) {

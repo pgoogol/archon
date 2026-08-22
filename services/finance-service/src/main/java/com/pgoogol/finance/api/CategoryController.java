@@ -7,6 +7,7 @@ import com.pgoogol.finance.category.domain.CategoryNode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,16 +25,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/finance/categories")
 @Tag(name = "categories", description = "Drzewo kategorii")
+@RequiredArgsConstructor
 public class CategoryController {
 
     private final CategoryService categoryService;
     private final CategoryApiMapper mapper;
-
-    public CategoryController(CategoryService categoryService, CategoryApiMapper mapper) {
-
-        this.categoryService = categoryService;
-        this.mapper = mapper;
-    }
 
     @GetMapping
     @Operation(summary = "Drzewo kategorii",

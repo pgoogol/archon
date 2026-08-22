@@ -12,6 +12,7 @@ import com.pgoogol.finance.currency.domain.FxRate;
 import com.pgoogol.finance.currency.domain.MoneyConverter;
 import com.pgoogol.finance.transaction.domain.Transaction;
 import com.pgoogol.finance.transaction.infrastructure.TransactionRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.lang.Nullable;
@@ -29,6 +30,7 @@ import java.util.Objects;
  */
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class TransactionService {
 
     private final TransactionRepository transactionRepository;
@@ -38,23 +40,6 @@ public class TransactionService {
     private final ExchangeRateService exchangeRateService;
     private final MoneyConverter moneyConverter;
     private final TransactionValidator validator;
-
-    public TransactionService(TransactionRepository transactionRepository,
-                              AccountService accountService,
-                              CategoryService categoryService,
-                              CurrencyService currencyService,
-                              ExchangeRateService exchangeRateService,
-                              MoneyConverter moneyConverter,
-                              TransactionValidator validator) {
-
-        this.transactionRepository = transactionRepository;
-        this.accountService = accountService;
-        this.categoryService = categoryService;
-        this.currencyService = currencyService;
-        this.exchangeRateService = exchangeRateService;
-        this.moneyConverter = moneyConverter;
-        this.validator = validator;
-    }
 
     public Page<Transaction> search(TransactionSearchCriteria criteria, Pageable pageable) {
 

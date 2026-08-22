@@ -8,6 +8,7 @@ import com.pgoogol.finance.currency.application.ExchangeRateService;
 import com.pgoogol.finance.currency.domain.FxRate;
 import com.pgoogol.finance.currency.domain.MinorUnits;
 import com.pgoogol.finance.currency.domain.MoneyConverter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class BalanceService {
 
     private final AccountRepository accountRepository;
@@ -24,19 +26,6 @@ public class BalanceService {
     private final CurrencyService currencyService;
     private final ExchangeRateService exchangeRateService;
     private final MoneyConverter moneyConverter;
-
-    public BalanceService(AccountRepository accountRepository,
-                          AccountService accountService,
-                          CurrencyService currencyService,
-                          ExchangeRateService exchangeRateService,
-                          MoneyConverter moneyConverter) {
-
-        this.accountRepository = accountRepository;
-        this.accountService = accountService;
-        this.currencyService = currencyService;
-        this.exchangeRateService = exchangeRateService;
-        this.moneyConverter = moneyConverter;
-    }
 
     public AccountBalance balanceOf(long accountId) {
 

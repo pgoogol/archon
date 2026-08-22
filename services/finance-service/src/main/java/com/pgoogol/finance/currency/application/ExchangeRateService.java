@@ -10,6 +10,7 @@ import com.pgoogol.finance.currency.domain.ExchangeRateProvider;
 import com.pgoogol.finance.currency.domain.FxRate;
 import com.pgoogol.finance.currency.domain.RateSource;
 import com.pgoogol.finance.currency.infrastructure.ExchangeRateRepository;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,7 @@ import java.util.Objects;
  */
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class ExchangeRateService {
 
     private static final Logger log = LoggerFactory.getLogger(ExchangeRateService.class);
@@ -36,15 +38,6 @@ public class ExchangeRateService {
     private final ExchangeRateRepository exchangeRateRepository;
     private final CurrencyService currencyService;
     private final ExchangeRateProvider exchangeRateProvider;
-
-    public ExchangeRateService(ExchangeRateRepository exchangeRateRepository,
-                               CurrencyService currencyService,
-                               ExchangeRateProvider exchangeRateProvider) {
-
-        this.exchangeRateRepository = exchangeRateRepository;
-        this.currencyService = currencyService;
-        this.exchangeRateProvider = exchangeRateProvider;
-    }
 
     /** Kurs obowiązujący dla podanej daty księgowania. */
     public FxRate resolve(String code, LocalDate onDate) {

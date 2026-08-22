@@ -41,6 +41,7 @@
     <wiremock.version>3.13.2</wiremock.version>
     <archunit.version>1.4.1</archunit.version>
     <mapstruct.version>1.6.3</mapstruct.version>
+    <lombok.version>1.18.38</lombok.version>
 
     <!-- ==== wersje wtyczek ==== -->
     <!-- także wtyczki cyklu domyślnego: bez tego wchodzą wersje wbudowane
@@ -123,6 +124,14 @@
         <artifactId>mapstruct</artifactId>
         <version>${mapstruct.version}</version>
       </dependency>
+      <!-- wyłącznie na czas kompilacji: adnotacje Lomboka nie trafiają do jara
+           aplikacji ani do classpathu w runtime -->
+      <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <version>${lombok.version}</version>
+        <scope>provided</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -142,6 +151,13 @@
               <arg>-Amapstruct.unmappedTargetPolicy=ERROR</arg>
             </compilerArgs>
             <annotationProcessorPaths>
+              <!-- Lombok idzie PRZED MapStructem: mapper czyta typy już po
+                   wygenerowaniu przez Lomboka, nie przed -->
+              <path>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+              </path>
               <path>
                 <groupId>org.mapstruct</groupId>
                 <artifactId>mapstruct-processor</artifactId>

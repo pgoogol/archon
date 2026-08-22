@@ -168,6 +168,14 @@ boolean hasRole = CollectionUtils.containsAny(roles, allowed);
 
 - Inject through the constructor. Never `@Autowired` on a field. Never put
   `@Autowired` on the only constructor — Spring injects it anyway.
+- Generate that constructor with Lombok's **`@RequiredArgsConstructor`** — a
+  hand-written constructor that only assigns `final` fields is a place to forget
+  a field, and adding a dependency means editing three lines instead of one.
+  Write the constructor by hand only when it does something beyond assignment
+  (building a `RestClient`, deriving a value from properties). Lombok stops at
+  that annotation: no `@Data`, no `@Builder`, no `@Getter`/`@Setter` on entities —
+  a JPA entity's accessors stay visible in the source, because that is where
+  lazy loading and `equals` go wrong.
 - Keep `@RestController` thin: input validation and delegation to a service,
   no business logic.
 - Put `@Transactional` on the class only when ALL methods need it. Otherwise

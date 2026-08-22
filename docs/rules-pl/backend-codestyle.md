@@ -170,6 +170,14 @@ boolean maRole = CollectionUtils.containsAny(role, dozwolone);
 
 - Wstrzykuj przez konstruktor. Nigdy `@Autowired` na polu. Nigdy nie stawiaj
   `@Autowired` na jedynym konstruktorze — Spring i tak wstrzyknie.
+- Ten konstruktor generuj Lombokiem, adnotacją **`@RequiredArgsConstructor`** —
+  ręcznie pisany konstruktor, który wyłącznie przepisuje pola `final`, to miejsce
+  na zapomniane pole, a dołożenie zależności oznacza poprawkę w trzech linijkach
+  zamiast w jednej. Konstruktor piszemy ręcznie tylko wtedy, gdy robi coś ponad
+  przypisanie (buduje `RestClient`, wylicza wartość z konfiguracji). Na tej
+  adnotacji Lombok się kończy: żadnego `@Data`, `@Builder` ani `@Getter`/`@Setter`
+  na encjach — akcesory encji JPA zostają widoczne w kodzie, bo to w nich psuje
+  się leniwe ładowanie i `equals`.
 - Trzymaj `@RestController` cienki: walidacja wejścia i delegacja do serwisu,
   zero logiki biznesowej.
 - Stawiaj `@Transactional` na klasie tylko wtedy, gdy WSZYSTKIE metody go

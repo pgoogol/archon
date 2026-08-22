@@ -9,6 +9,7 @@ import com.pgoogol.finance.transaction.domain.TransactionType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -29,6 +30,7 @@ import java.time.LocalDate;
 @RestController
 @RequestMapping("/api/finance/transactions")
 @Tag(name = "transactions", description = "Wydatki, przychody i transfery")
+@RequiredArgsConstructor
 public class TransactionController {
 
     static final int DEFAULT_PAGE_SIZE = 20;
@@ -37,15 +39,6 @@ public class TransactionController {
     private final TransactionService transactionService;
     private final CurrencyService currencyService;
     private final TransactionApiMapper mapper;
-
-    public TransactionController(TransactionService transactionService,
-                                 CurrencyService currencyService,
-                                 TransactionApiMapper mapper) {
-
-        this.transactionService = transactionService;
-        this.currencyService = currencyService;
-        this.mapper = mapper;
-    }
 
     @GetMapping
     @Operation(summary = "Transakcje z filtrami i stronicowaniem",
