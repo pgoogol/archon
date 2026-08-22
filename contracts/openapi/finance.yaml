@@ -34,6 +34,15 @@ tags:
     description: Import wyciągów bankowych
   - name: recurring
     description: Rachunki cykliczne i terminarz płatności
+  - name: categorization
+    description: |
+      Automatyzacja importu: reguły podpowiadające kategorię, dopasowanie do
+      terminarza i wykrywanie przelewów między własnymi kontami.
+
+      Wszystko, co powstaje tutaj, jest **sugestią do potwierdzenia**.
+      Automatyczne oznaczenie rachunku jako opłaconego byłoby najgorszym
+      rodzajem cichego błędu w tej aplikacji: pieniądze zgadzałyby się na
+      ekranie i nie zgadzały w banku.
   - name: reports
     description: |
       Zestawienia i raporty.
@@ -911,6 +920,125 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/DashboardResponse' }
 
+  /finance/api/v1/category-rules:
+    get:
+      tags: [categorization]
+      operationId: listCategoryRules
+      summary: Reguły w kolejności rozstrzygania
+      parameters:
+        - name: activeOnly
+          in: query
+          schema: { type: boolean, default: false }
+      responses:
+        '200':
+          description: Reguły posortowane po priorytecie
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/CategoryRuleResponse' }
+    post:
+      tags: [categorization]
+      operationId: createCategoryRule
+      summary: Nowa reguła kategoryzacji
+      description: >-
+        Dopasowanie jest zawieraniem tekstu, nie wyrażeniem regularnym. Reguła
+        wypełnia wyłącznie pole sugestii — kategorię i tak potwierdza człowiek
+        w podglądzie wyciągu.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CategoryRuleRequest' }
+      responses:
+        '201':
+          description: Reguła zapisana
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CategoryRuleResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /finance/api/v1/category-rules/{id}:
+    put:
+      tags: [categorization]
+      operationId: updateCategoryRule
+      summary: Zmiana reguły
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CategoryRuleRequest' }
+      responses:
+        '200':
+          description: Reguła po zmianie
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CategoryRuleResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [categorization]
+      operationId: deleteCategoryRule
+      summary: Usunięcie reguły
+      description: >-
+        Reguła nie zostawia po sobie śladu w danych — podpowiadała kategorię,
+        a zapisane kategorie są na transakcjach i zostają nietknięte.
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+      responses:
+        '204':
+          description: Reguła usunięta
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /finance/api/v1/transfers/candidates:
+    get:
+      tags: [categorization]
+      operationId: listTransferCandidates
+      summary: Pary wyglądające na dwie strony jednego przelewu
+      description: >-
+        Ta sama kwota i waluta, przeciwne kierunki, dwa różne własne konta,
+        odstęp nie większy niż trzy dni. Scalenie jest osobnym, potwierdzonym
+        krokiem — automatyczne zjadłoby dwie prawdziwe operacje o tej samej
+        kwocie w tym samym tygodniu.
+      parameters:
+        - { $ref: '#/components/parameters/ReportFrom' }
+        - { $ref: '#/components/parameters/ReportTo' }
+      responses:
+        '200':
+          description: Propozycje scalenia
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/TransferCandidate' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /finance/api/v1/transfers/merge:
+    post:
+      tags: [categorization]
+      operationId: mergeTransfer
+      summary: Scalenie potwierdzonej pary w jeden przelew
+      description: >-
+        Powstaje jedna transakcja typu `TRANSFER`, a obie strony znikają.
+        Warunki pary sprawdzamy jeszcze raz — między podglądem a potwierdzeniem
+        ktoś mógł zmienić kwotę albo datę.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MergeTransferRequest' }
+      responses:
+        '200':
+          description: Powstały przelew
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TransactionResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
 components:
 
   parameters:
@@ -1452,6 +1580,14 @@ components:
         status: { $ref: '#/components/schemas/ImportRowStatus' }
         suggestedCategoryId: { type: [integer, 'null'], format: int64 }
         suggestedCategoryName: { type: [string, 'null'] }
+        suggestedOccurrenceId:
+          type: [integer, 'null']
+          format: int64
+          description: >-
+            Propozycja rozliczenia rachunku cyklicznego tym wierszem. Sama
+            propozycja niczego nie rozlicza — potrzebne jest potwierdzenie
+            w żądaniu zatwierdzenia
+        suggestedOccurrenceName: { type: [string, 'null'] }
         transactionId: { type: [integer, 'null'], format: int64 }
       required: [id, ordinal, bookedOn, amountMinor, currency, status]
 
@@ -1473,6 +1609,12 @@ components:
             Kategoria dla wierszy, które jej wymagają. Wpływ i wydatek muszą
             mieć kategorię — wiersz bez niej wywala zatwierdzenie całej partii.
           items: { $ref: '#/components/schemas/ImportCategoryAssignment' }
+        occurrenceAssignments:
+          type: array
+          description: >-
+            Potwierdzone rozliczenia rachunków cyklicznych. Bez wpisu na tej
+            liście sugestia z podglądu niczego nie rozlicza.
+          items: { $ref: '#/components/schemas/ImportOccurrenceAssignment' }
       required: [categoryAssignments]
 
     ImportCategoryAssignment:
@@ -1480,7 +1622,20 @@ components:
       properties:
         rowId: { type: integer, format: int64 }
         categoryId: { type: integer, format: int64 }
+        rememberPattern:
+          type: [string, 'null']
+          description: >-
+            Fragment opisu, z którego ma powstać reguła kategoryzacji. Puste
+            znaczy „nie zapamiętuj" — reguła powstaje z poprawki użytkownika,
+            nigdy sama z siebie
       required: [rowId, categoryId]
+
+    ImportOccurrenceAssignment:
+      type: object
+      properties:
+        rowId: { type: integer, format: int64 }
+        occurrenceId: { type: integer, format: int64 }
+      required: [rowId, occurrenceId]
 
     CommitImportResponse:
       type: object
@@ -1828,3 +1983,72 @@ components:
         balanceMinor: { type: integer, format: int64 }
         baseValueMinor: { type: [integer, 'null'], format: int64 }
       required: [accountId, accountName, currency, minorUnit, balanceMinor]
+
+    MatchField:
+      type: string
+      enum: [DESCRIPTION, COUNTERPARTY, ANY]
+      description: Które pole wiersza wyciągu porównujemy ze wzorcem reguły
+
+    CategoryRuleRequest:
+      type: object
+      properties:
+        pattern:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Fragment tekstu; dopasowanie jest zawieraniem
+        matchField: { $ref: '#/components/schemas/MatchField' }
+        categoryId: { type: integer, format: int64 }
+        priority:
+          type: [integer, 'null']
+          format: int32
+          description: Niższa liczba wygrywa; domyślnie 100
+        active: { type: [boolean, 'null'] }
+      required: [pattern, matchField, categoryId]
+
+    CategoryRuleResponse:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        pattern: { type: string }
+        matchField: { $ref: '#/components/schemas/MatchField' }
+        categoryId: { type: integer, format: int64 }
+        categoryName: { type: string }
+        priority: { type: integer, format: int32 }
+        active: { type: boolean }
+      required: [id, pattern, matchField, categoryId, categoryName, priority, active]
+
+    TransferCandidate:
+      type: object
+      description: Widok dwóch istniejących transakcji obok siebie; nic jeszcze nie zapisano
+      properties:
+        expenseTransactionId: { type: integer, format: int64 }
+        fromAccountId: { type: integer, format: int64 }
+        fromAccountName: { type: string }
+        expenseBookedOn: { type: string, format: date }
+        incomeTransactionId: { type: integer, format: int64 }
+        toAccountId: { type: integer, format: int64 }
+        toAccountName: { type: string }
+        incomeBookedOn: { type: string, format: date }
+        amountMinor: { type: integer, format: int64 }
+        currency: { type: string, minLength: 3, maxLength: 3 }
+        daysApart: { type: integer, format: int64 }
+      required:
+        - expenseTransactionId
+        - fromAccountId
+        - fromAccountName
+        - expenseBookedOn
+        - incomeTransactionId
+        - toAccountId
+        - toAccountName
+        - incomeBookedOn
+        - amountMinor
+        - currency
+        - daysApart
+
+    MergeTransferRequest:
+      type: object
+      properties:
+        expenseTransactionId: { type: integer, format: int64 }
+        incomeTransactionId: { type: integer, format: int64 }
+      required: [expenseTransactionId, incomeTransactionId]

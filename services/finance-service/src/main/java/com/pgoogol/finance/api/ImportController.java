@@ -1,5 +1,7 @@
 package com.pgoogol.finance.api;
 
+import com.pgoogol.finance.categorization.application.CategorizationService;
+import com.pgoogol.finance.categorization.domain.MatchField;
 import com.pgoogol.finance.common.ErrorCodes;
 import com.pgoogol.finance.common.ExceptionMessageConstants;
 import com.pgoogol.finance.common.ValidationException;
@@ -37,8 +39,15 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class ImportController {
 
+    /**
+     * Reguła z poprawki użytkownika ma ustąpić regułom ustawionym ręcznie,
+     * a nie przebić je tylko dlatego, że powstała później.
+     */
+    private static final int DEFAULT_RULE_PRIORITY = 200;
+
     private final ImportService importService;
     private final TransactionService transactionService;
+    private final CategorizationService categorizationService;
     private final ImportApiMapper mapper;
 
     @GetMapping
@@ -92,8 +101,42 @@ public class ImportController {
                                                   @Valid @RequestBody CommitImportRequest request) {
 
         Map<Long, Long> categoryByRow = toCategoryMap(request);
-        ImportService.CommitResult result = importService.commit(id, categoryByRow);
+        Map<Long, Long> occurrenceByRow = toOccurrenceMap(request);
+        ImportService.CommitResult result =
+            importService.commit(id, categoryByRow, occurrenceByRow);
+        rememberCorrections(request);
         return mapper.toResponse(result);
+    }
+
+    /**
+     * Reguły powstają dopiero po udanym zatwierdzeniu. Zapamiętanie wzorca
+     * z żądania, które zaraz odpadnie na walidacji, zostawiłoby regułę po
+     * imporcie, którego nie było.
+     */
+    private void rememberCorrections(CommitImportRequest request) {
+
+        request.categoryAssignments().forEach(this::rememberCorrection);
+    }
+
+    private void rememberCorrection(ImportCategoryAssignment assignment) {
+
+        String pattern = assignment.rememberPattern();
+        if (Objects.isNull(pattern) || pattern.isBlank()) {
+
+            return;
+        }
+        categorizationService.rememberCorrection(pattern, MatchField.ANY,
+            assignment.categoryId(), DEFAULT_RULE_PRIORITY);
+    }
+
+    private Map<Long, Long> toOccurrenceMap(CommitImportRequest request) {
+
+        List<ImportOccurrenceAssignment> assignments =
+            Objects.requireNonNullElse(request.occurrenceAssignments(), List.of());
+        Map<Long, Long> byRow = new LinkedHashMap<>();
+        assignments.forEach(assignment -> byRow.put(assignment.rowId(),
+            assignment.occurrenceId()));
+        return Map.copyOf(byRow);
     }
 
     /**

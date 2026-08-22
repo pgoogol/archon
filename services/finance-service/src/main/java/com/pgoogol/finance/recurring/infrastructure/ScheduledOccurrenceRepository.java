@@ -52,6 +52,20 @@ public interface ScheduledOccurrenceRepository extends JpaRepository<ScheduledOc
     Optional<ScheduledOccurrence> findDetailedById(@Param("id") long id);
 
     /**
+     * Czekające pozycje jednego konta w oknie dat — wsad dla dopasowania
+     * wierszy wyciągu. Jedno zapytanie na wyciąg, nie na wiersz.
+     */
+    @Query("""
+        select o from ScheduledOccurrence o \
+        join fetch o.rule r \
+        where o.status = com.pgoogol.finance.recurring.domain.OccurrenceStatus.PENDING \
+          and r.account.id = :accountId \
+          and o.dueDate between :from and :to""")
+    List<ScheduledOccurrence> findPendingForAccount(@Param("accountId") long accountId,
+                                                    @Param("from") LocalDate from,
+                                                    @Param("to") LocalDate to);
+
+    /**
      * Terminy, które reguła już ma. Generator porównuje z nimi wyliczone daty —
      * to jest jego idempotencja, obok ograniczenia {@code ux_occurrence}.
      */

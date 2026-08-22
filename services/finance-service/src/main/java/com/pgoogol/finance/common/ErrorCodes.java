@@ -47,6 +47,8 @@ public class ErrorCodes {
     public static final String FILE_TOO_LARGE = "FILE_TOO_LARGE";
 
     public static final String RECURRING_RULE_NOT_FOUND = "RECURRING_RULE_NOT_FOUND";
+    public static final String CATEGORY_RULE_NOT_FOUND = "CATEGORY_RULE_NOT_FOUND";
+    public static final String TRANSFER_PAIR_MISMATCH = "TRANSFER_PAIR_MISMATCH";
     public static final String OCCURRENCE_NOT_FOUND = "OCCURRENCE_NOT_FOUND";
     public static final String OCCURRENCE_ALREADY_SETTLED = "OCCURRENCE_ALREADY_SETTLED";
     public static final String RULE_TYPE_NOT_FLOW = "RULE_TYPE_NOT_FLOW";

@@ -107,6 +107,9 @@ public class ExceptionMessageConstants {
         "Dzień miesiąca poza zakresem 1..31: %d";
 
     public static final String RECURRING_RULE_NOT_FOUND = "Reguła cykliczna %d nie istnieje";
+    public static final String CATEGORY_RULE_NOT_FOUND = "Reguła kategoryzacji %d nie istnieje";
+    public static final String TRANSFER_PAIR_MISMATCH =
+        "Transakcje %d i %d nie wyglądają na dwie strony jednego przelewu";
     public static final String OCCURRENCE_NOT_FOUND = "Pozycja terminarza %d nie istnieje";
     public static final String OCCURRENCE_ALREADY_SETTLED =
         "Pozycja terminarza %d jest już rozliczona (%s)";

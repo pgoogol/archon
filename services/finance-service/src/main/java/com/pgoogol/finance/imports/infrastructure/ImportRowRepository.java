@@ -10,13 +10,15 @@ import java.util.List;
 public interface ImportRowRepository extends JpaRepository<ImportRow, Long> {
 
     /**
-     * Wiersze partii do podglądu. {@code left join fetch} po sugerowanej
-     * kategorii, bo bez niego podgląd robi jedno zapytanie na wiersz — a wyciąg
-     * miesięczny ma ich kilkaset.
+     * Wiersze partii do podglądu. {@code left join fetch} po obu podpowiedziach —
+     * kategorii i pozycji terminarza wraz z jej regułą — bo podgląd pokazuje
+     * ich nazwy przy każdym wierszu, a wyciąg miesięczny ma ich kilkaset.
      */
     @Query("""
         select r from ImportRow r
         left join fetch r.suggestedCategory
+        left join fetch r.suggestedOccurrence o
+        left join fetch o.rule
         where r.batch.id = :batchId
         order by r.ordinal""")
     List<ImportRow> findByBatchIdOrdered(long batchId);

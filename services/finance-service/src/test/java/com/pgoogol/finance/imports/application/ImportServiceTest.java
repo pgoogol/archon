@@ -13,6 +13,7 @@ import com.pgoogol.finance.imports.domain.ImportRowStatus;
 import com.pgoogol.finance.imports.infrastructure.ImportBatchRepository;
 import com.pgoogol.finance.imports.infrastructure.ImportRowRepository;
 import com.pgoogol.finance.imports.statement.DedupKey;
+import com.pgoogol.finance.recurring.application.OccurrenceService;
 import com.pgoogol.finance.imports.statement.ParsedStatement;
 import com.pgoogol.finance.imports.statement.RawRow;
 import com.pgoogol.finance.imports.statement.SourceFile;
@@ -70,6 +71,12 @@ class ImportServiceTest {
 
     @Mock
     private ReconciliationService reconciliationService;
+
+    @Mock
+    private RowSuggestionService rowSuggestionService;
+
+    @Mock
+    private OccurrenceService occurrenceService;
 
     @Mock
     private StatementParser parser;
@@ -244,7 +251,7 @@ class ImportServiceTest {
         prepareCommit(batch, row);
 
         // when
-        service().commit(1L, Map.of(11L, 3L));
+        service().commit(1L, Map.of(11L, 3L), Map.of());
 
         // then
         TransactionCommand command = capturedCommand();
@@ -263,7 +270,7 @@ class ImportServiceTest {
         prepareCommit(batch, row);
 
         // when
-        service().commit(1L, Map.of(11L, 3L));
+        service().commit(1L, Map.of(11L, 3L), Map.of());
 
         // then
         assertThat(capturedCommand().type()).isEqualTo(TransactionType.INCOME);
@@ -279,7 +286,7 @@ class ImportServiceTest {
         prepareCommit(batch, row);
 
         // when & then
-        assertThatThrownBy(() -> service().commit(1L, Map.of()))
+        assertThatThrownBy(() -> service().commit(1L, Map.of(), Map.of()))
             .isInstanceOf(ValidationException.class);
         assertThat(batch.isCommitted()).isFalse();
     }
@@ -294,7 +301,7 @@ class ImportServiceTest {
         prepareCommit(batch, duplikat);
 
         // when
-        ImportService.CommitResult result = service().commit(1L, Map.of());
+        ImportService.CommitResult result = service().commit(1L, Map.of(), Map.of());
 
         // then
         assertThat(result.committedCount()).isZero();
@@ -312,7 +319,7 @@ class ImportServiceTest {
         when(importBatchRepository.findDetailedById(1L)).thenReturn(Optional.of(batch));
 
         // when & then
-        assertThatThrownBy(() -> service().commit(1L, Map.of()))
+        assertThatThrownBy(() -> service().commit(1L, Map.of(), Map.of()))
             .isInstanceOf(ConflictException.class);
     }
 
@@ -377,8 +384,8 @@ class ImportServiceTest {
     private ImportService service() {
 
         return new ImportService(importBatchRepository, importRowRepository, accountService,
-            currencyService, transactionService, reconciliationService, new DedupKey(),
-            List.of(parser));
+            currencyService, transactionService, reconciliationService, rowSuggestionService,
+            occurrenceService, new DedupKey(), List.of(parser));
     }
 
     private void prepareUpload() {

@@ -76,6 +76,22 @@ public class OccurrenceService {
         return occurrence;
     }
 
+    /**
+     * Rozliczenie pozycji transakcją, która już powstała — tak wchodzi
+     * potwierdzona płatność z importu wyciągu. Osobno od {@link #pay}, bo tam
+     * transakcję zakłada dopiero ten serwis, a tu istnieje wcześniej.
+     */
+    @Transactional
+    public ScheduledOccurrence settleWith(long id, LocalDate paidOn, long paidAmountMinor,
+                                          Transaction transaction) {
+
+        Objects.requireNonNull(transaction, "transaction");
+        ScheduledOccurrence occurrence = get(id);
+        requirePending(occurrence);
+        occurrence.markPaid(paidOn, paidAmountMinor, transaction);
+        return occurrence;
+    }
+
     @Transactional
     public ScheduledOccurrence skip(long id) {
 

@@ -149,6 +149,22 @@ class ArchitectureTest {
     }
 
     @Test
+    @DisplayName("dopasowywanie nie zna Springa ani JPA")
+    void matching_staysFreeOfFrameworks() {
+
+        // given: reguła „kwota o 5% wyższa i termin trzy dni wcześniej" ma dać
+        // się sprawdzić przez podanie liczb, a nie przez postawienie kontekstu
+        ArchRule rule = noClasses()
+            .that().resideInAPackage(BASE + ".categorization.match..")
+            .should().dependOnClassesThat()
+            .resideInAnyPackage("org.springframework..", "jakarta.persistence..", "org.hibernate..")
+            .because("dopasowywanie ma się dać testować jak zwykły kod");
+
+        // when & then
+        rule.check(classesUnderTest);
+    }
+
+    @Test
     @DisplayName("raporty nie sięgają po encje JPA ani po repozytoria Spring Data")
     void reports_workWithoutEntities() {
 

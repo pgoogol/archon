@@ -61,6 +61,19 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     Optional<Transaction> findDetailedById(@Param("id") long id);
 
     /**
+     * Wydatki i przychody w oknie dat, z dociągniętym kontem — wsad dla
+     * wykrywania transferów. Transfery świadomie pomijamy: szukamy par, które
+     * transferem jeszcze nie są.
+     */
+    @Query("""
+        select t from Transaction t \
+        join fetch t.account \
+        where t.type <> com.pgoogol.finance.transaction.domain.TransactionType.TRANSFER \
+          and t.bookedOn between :from and :to \
+        order by t.bookedOn asc, t.id asc""")
+    List<Transaction> findFlowsBetween(@Param("from") LocalDate from, @Param("to") LocalDate to);
+
+    /**
      * Powiązania wierszy wyciągu z transakcjami, które z nich powstały.
      * Jedno zapytanie na całą partię zamiast jednego na wiersz — wyciąg
      * miesięczny ma ich kilkaset.

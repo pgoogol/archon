@@ -2,6 +2,7 @@ package com.pgoogol.finance.imports.domain;
 
 import com.pgoogol.finance.category.domain.Category;
 import com.pgoogol.finance.imports.statement.RawRow;
+import com.pgoogol.finance.recurring.domain.ScheduledOccurrence;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -80,6 +81,15 @@ public class ImportRow {
     @JoinColumn(name = "suggested_category_id")
     private Category suggestedCategory;
 
+    /**
+     * Propozycja rozliczenia rachunku cyklicznego tym wierszem. Propozycja,
+     * nie fakt — pozycja terminarza zmienia status dopiero po potwierdzeniu
+     * przy zatwierdzaniu wyciągu.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "suggested_occurrence_id")
+    private ScheduledOccurrence suggestedOccurrence;
+
     protected ImportRow() {
 
     }
@@ -110,6 +120,17 @@ public class ImportRow {
     public void suggestCategory(@Nullable Category category) {
 
         this.suggestedCategory = category;
+    }
+
+    public void suggestOccurrence(@Nullable ScheduledOccurrence occurrence) {
+
+        this.suggestedOccurrence = occurrence;
+    }
+
+    @Nullable
+    public ScheduledOccurrence getSuggestedOccurrence() {
+
+        return suggestedOccurrence;
     }
 
     public boolean isDuplicate() {

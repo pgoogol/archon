@@ -15,6 +15,7 @@ import com.pgoogol.finance.imports.domain.ImportRowStatus;
 import com.pgoogol.finance.imports.infrastructure.ImportBatchRepository;
 import com.pgoogol.finance.imports.infrastructure.ImportRowRepository;
 import com.pgoogol.finance.imports.statement.DedupKey;
+import com.pgoogol.finance.recurring.application.OccurrenceService;
 import com.pgoogol.finance.imports.statement.ParsedStatement;
 import com.pgoogol.finance.imports.statement.RawRow;
 import com.pgoogol.finance.imports.statement.SourceFile;
@@ -61,6 +62,8 @@ public class ImportService {
     private final CurrencyService currencyService;
     private final TransactionService transactionService;
     private final ReconciliationService reconciliationService;
+    private final RowSuggestionService rowSuggestionService;
+    private final OccurrenceService occurrenceService;
     private final DedupKey dedupKey;
     private final List<StatementParser> parsers;
 
@@ -126,7 +129,10 @@ public class ImportService {
         ImportBatch saved = importBatchRepository.save(batch);
 
         List<ImportRow> rows = toRows(saved, account, statement);
-        importRowRepository.saveAll(rows);
+        List<ImportRow> stored = importRowRepository.saveAll(rows);
+        // podpowiedzi liczymy po zapisie, żeby wiersz miał już identyfikator —
+        // podgląd pokazuje je obok siebie, a potwierdza je człowiek
+        rowSuggestionService.suggestFor(accountId, stored);
         log.info("Wgrano wyciąg {} dla konta {}: {} wierszy, w tym {} duplikatów",
             file.name(), accountId, rows.size(), countDuplicates(rows));
         return saved;
@@ -138,9 +144,11 @@ public class ImportService {
      * byłby gorszy niż niezaimportowany wcale.
      */
     @Transactional
-    public CommitResult commit(long batchId, Map<Long, Long> categoryByRowId) {
+    public CommitResult commit(long batchId, Map<Long, Long> categoryByRowId,
+                               Map<Long, Long> occurrenceByRowId) {
 
         Objects.requireNonNull(categoryByRowId, "categoryByRowId");
+        Objects.requireNonNull(occurrenceByRowId, "occurrenceByRowId");
         ImportBatch batch = get(batchId);
         rejectWhenCommitted(batch);
 
@@ -148,7 +156,7 @@ public class ImportService {
         List<ImportRow> pending = rows.stream()
             .filter(row -> Objects.equals(row.getStatus(), ImportRowStatus.NEW))
             .toList();
-        pending.forEach(row -> commitRow(row, batch, categoryByRowId));
+        pending.forEach(row -> commitRow(row, batch, categoryByRowId, occurrenceByRowId));
 
         batch.markCommitted();
         long duplicates = countDuplicates(rows);
@@ -158,7 +166,8 @@ public class ImportService {
         return new CommitResult(batchId, pending.size(), (int) duplicates, reconciliation);
     }
 
-    private void commitRow(ImportRow row, ImportBatch batch, Map<Long, Long> categoryByRowId) {
+    private void commitRow(ImportRow row, ImportBatch batch, Map<Long, Long> categoryByRowId,
+                           Map<Long, Long> occurrenceByRowId) {
 
         Long categoryId = categoryByRowId.get(row.getId());
         requireCategory(row, categoryId);
@@ -166,6 +175,24 @@ public class ImportService {
         Transaction created = transactionService.create(command);
         created.assignImportRow(row);
         row.markCommitted();
+        settleOccurrence(row, created, occurrenceByRowId);
+    }
+
+    /**
+     * Rozliczenie rachunku cyklicznego tym wierszem — wyłącznie wtedy, gdy
+     * użytkownik potwierdził je w żądaniu. Sama podpowiedź na wierszu niczego
+     * nie rozlicza.
+     */
+    private void settleOccurrence(ImportRow row, Transaction created,
+                                  Map<Long, Long> occurrenceByRowId) {
+
+        Long occurrenceId = occurrenceByRowId.get(row.getId());
+        if (Objects.isNull(occurrenceId)) {
+
+            return;
+        }
+        occurrenceService.settleWith(occurrenceId, row.getBookedOn(),
+            row.absoluteAmountMinor(), created);
     }
 
     private TransactionCommand toCommand(ImportRow row, ImportBatch batch, Long categoryId) {

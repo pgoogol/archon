@@ -29,6 +29,8 @@ public interface ImportApiMapper {
 
     @Mapping(target = "suggestedCategoryId", source = "row.suggestedCategory.id")
     @Mapping(target = "suggestedCategoryName", source = "row.suggestedCategory.name")
+    @Mapping(target = "suggestedOccurrenceId", source = "row.suggestedOccurrence.id")
+    @Mapping(target = "suggestedOccurrenceName", source = "row.suggestedOccurrence.rule.name")
     @Mapping(target = "transactionId", source = "transactionId")
     ImportRowResponse toResponse(ImportRow row, Long transactionId);
 

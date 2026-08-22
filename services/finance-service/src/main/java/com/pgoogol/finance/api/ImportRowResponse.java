@@ -23,6 +23,8 @@ public record ImportRowResponse(
     ImportRowStatus status,
     @Nullable Long suggestedCategoryId,
     @Nullable String suggestedCategoryName,
+    @Nullable Long suggestedOccurrenceId,
+    @Nullable String suggestedOccurrenceName,
     @Nullable Long transactionId) {
 
 }
