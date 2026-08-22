@@ -49,6 +49,7 @@ public class LibraryController {
             w bazie jednym wywołaniem. Udział bpm_source mówi, ile biblioteki stoi \
             na faktach, a ile na estymacie LLM — wskaźnik jakości tempa.""")
     public LibraryOverviewResponse getOverview() {
+
         return mapper.toResponse(libraryService.overview());
     }
 
@@ -56,12 +57,14 @@ public class LibraryController {
     @Operation(summary = "Custom tagi użyte w bibliotece",
         description = "Posortowany słownik tagów DJ-a — podpowiedzi filtra wyszukiwarki (M3.2).")
     public List<String> listTags() {
+
         return libraryService.listTags();
     }
 
     @GetMapping("/tracks/{spotifyId}")
     @Operation(summary = "Pojedynczy wpis biblioteki z rekordem katalogu")
     public LibraryEntryResponse getTrack(@PathVariable String spotifyId) {
+
         return mapper.toResponse(libraryService.get(spotifyId));
     }
 
@@ -90,6 +93,7 @@ public class LibraryController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Usunięcie wpisu z biblioteki (rekord katalogu zostaje)")
     public void deleteTrack(@PathVariable String spotifyId) {
+
         libraryService.delete(spotifyId);
     }
 }

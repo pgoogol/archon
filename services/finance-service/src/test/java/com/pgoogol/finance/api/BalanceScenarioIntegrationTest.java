@@ -55,6 +55,7 @@ class BalanceScenarioIntegrationTest {
 
         try (Connection connection = dataSource.getConnection();
              Statement statement = connection.createStatement()) {
+
             statement.execute("""
                 truncate table finance.transaction, finance.account, finance.category \
                 restart identity cascade""");

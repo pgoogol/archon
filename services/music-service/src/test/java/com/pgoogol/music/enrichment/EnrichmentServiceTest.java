@@ -378,16 +378,19 @@ class EnrichmentServiceTest {
 
             @Override
             public long getMetadata() {
+
                 return metadata;
             }
 
             @Override
             public long getAudio() {
+
                 return audio;
             }
 
             @Override
             public long getAi() {
+
                 return ai;
             }
         };

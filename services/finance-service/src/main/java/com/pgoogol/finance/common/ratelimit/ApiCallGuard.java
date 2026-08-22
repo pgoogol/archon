@@ -52,7 +52,9 @@ public final class ApiCallGuard {
             .maxAttempts(maxAttempts)
             .retryOnException(ex -> ex instanceof ExternalServiceException)
             .intervalBiFunction((attempt, either) -> {
+
                 if (either.isLeft()) {
+
                     return backoffMillis(attempt, initialBackoff, either.getLeft());
                 }
                 return backoffMillis(attempt, initialBackoff, null);
@@ -73,6 +75,7 @@ public final class ApiCallGuard {
 
         if (failure instanceof RateLimitedException rateLimited
                 && Objects.nonNull(rateLimited.getRetryAfter())) {
+
             return rateLimited.getRetryAfter().toMillis();
         }
         return initialBackoff.toMillis() * (1L << (attempt - 1));

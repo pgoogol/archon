@@ -19,6 +19,7 @@ public record FxRate(BigDecimal rate, LocalDate rateDate) {
         Objects.requireNonNull(rate, "rate");
         Objects.requireNonNull(rateDate, "rateDate");
         if (rate.signum() <= 0) {
+
             throw new IllegalArgumentException("Kurs musi być dodatni: " + rate);
         }
     }

@@ -64,6 +64,7 @@ class LibraryDistributionsRepositoryTest {
     @Test
     @DisplayName("pusty katalog daje puste koło, a nie 24 zera")
     void camelotKeys_emptyInputGivesEmptyWheel() {
+
         assertThat(repository.camelotKeys(List.of())).isEmpty();
     }
 }

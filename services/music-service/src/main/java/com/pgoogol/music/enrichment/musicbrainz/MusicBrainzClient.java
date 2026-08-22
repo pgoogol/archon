@@ -46,6 +46,7 @@ public class MusicBrainzClient {
         Objects.requireNonNull(isrc, "isrc");
         Optional<MusicBrainzIsrcCache> cached = cacheRepository.findById(isrc);
         if (cached.isPresent()) {
+
             return Optional.ofNullable(cached.get().getMbid());
         }
         Optional<String> mbid = fetchMbid(isrc);
@@ -56,15 +57,19 @@ public class MusicBrainzClient {
     private Optional<String> fetchMbid(String isrc) {
 
         return guard.execute(() -> {
+
             try {
+
                 IsrcResponse response = restClient.get()
                     .uri("/ws/2/isrc/{isrc}?fmt=json", isrc)
                     .retrieve()
                     .body(IsrcResponse.class);
                 return firstRecordingId(response);
             } catch (HttpClientErrorException.NotFound ex) {
+
                 return Optional.<String>empty();
             } catch (HttpServerErrorException | ResourceAccessException ex) {
+
                 throw new ExternalServiceException("MUSICBRAINZ_UNAVAILABLE",
                     "MusicBrainz API niedostępne", ex);
             }

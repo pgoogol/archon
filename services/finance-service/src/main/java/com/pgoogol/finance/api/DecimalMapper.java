@@ -21,6 +21,7 @@ public class DecimalMapper {
     public String toPlainString(@Nullable BigDecimal value) {
 
         if (Objects.isNull(value)) {
+
             return null;
         }
         return value.toPlainString();

@@ -70,6 +70,7 @@ public class EnrichController {
     @GetMapping("/jobs/{executionId}")
     @Operation(summary = "Status i postęp wykonania joba")
     public EnrichJobResponse jobStatus(@PathVariable long executionId) {
+
         return EnrichJobResponse.from(enrichmentService.status(executionId));
     }
 
@@ -90,12 +91,14 @@ public class EnrichController {
     @ResponseStatus(HttpStatus.ACCEPTED)
     @Operation(summary = "Restart nieudanego wykonania — dokańcza od checkpointu")
     public Map<String, Long> restartJob(@PathVariable long executionId) {
+
         return Map.of("executionId", enrichmentService.restart(executionId));
     }
 
     @GetMapping("/missing-count")
     @Operation(summary = "Liczba utworów z brakami per grupa pól")
     public MissingFieldsCount missingCount() {
+
         return enrichmentService.missingCount();
     }
 }

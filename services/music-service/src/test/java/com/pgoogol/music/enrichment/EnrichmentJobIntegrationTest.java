@@ -94,21 +94,25 @@ class EnrichmentJobIntegrationTest {
         failOnSecondChunk.set(false);
         alwaysFailingTrack.set(null);
         given(spotifyClient.getTracks(any())).willAnswer(invocation -> {
+
             Collection<String> ids = invocation.getArgument(0);
             return ids.stream().map(this::spotifyMetadata).toList();
         });
         given(musicBrainzClient.lookupMbid(anyString())).willReturn(Optional.empty());
         given(deezerClient.findBpmByIsrc(anyString())).willReturn(Optional.of(new BigDecimal("120")));
         given(trackAnalysisService.analyze(anyList(), anyBoolean())).willAnswer(invocation -> {
+
             List<TrackCatalog> batch = invocation.getArgument(0);
             List<String> batchIds = batch.stream().map(TrackCatalog::getSpotifyId).toList();
             if (failOnSecondChunk.get() && batchIds.contains("trk-005")) {
+
                 failOnSecondChunk.set(false);
                 throw new com.pgoogol.music.common.ExternalServiceException(
                     "LLM_UNAVAILABLE", "symulowana awaria w trakcie joba");
             }
             String failing = alwaysFailingTrack.get();
             if (Objects.nonNull(failing) && batchIds.contains(failing)) {
+
                 throw new com.pgoogol.music.common.ExternalServiceException(
                     "LLM_UNAVAILABLE", "symulowana trwała awaria dla " + failing);
             }
@@ -146,6 +150,7 @@ class EnrichmentJobIntegrationTest {
         List<TrackCatalog> enriched = trackCatalogRepository.findAll();
         assertThat(enriched).hasSize(12);
         assertThat(enriched).allSatisfy(track -> {
+
             assertThat(track.getIsrc()).startsWith("ISRC-");
             assertThat(track.getYear()).isEqualTo(2020);
             assertThat(track.getBpm()).isEqualTo(120);
@@ -189,6 +194,7 @@ class EnrichmentJobIntegrationTest {
         assertThat(enrichmentService.failures(executionId, 50))
             .singleElement()
             .satisfies(failure -> {
+
                 assertThat(failure.spotifyId()).isEqualTo("trk-005");
                 assertThat(failure.reason()).contains("symulowana trwała awaria");
             });
@@ -209,6 +215,7 @@ class EnrichmentJobIntegrationTest {
 
         // then — 93 → 186 (latin, <100) i tempo_class z wartości po korekcie
         assertThat(trackCatalogRepository.findById("trk-000")).hasValueSatisfying(track -> {
+
             assertThat(track.getBpm()).isEqualTo(186);
             assertThat(track.getBpmSource()).isEqualTo(BpmSource.DEEZER);
             assertThat(track.getTempoClass()).isEqualTo(TempoClass.VERY_FAST);
@@ -224,6 +231,7 @@ class EnrichmentJobIntegrationTest {
         // w tym momencie zarządzany, inaczej Hibernate próbuje wstawić go drugi raz.
         seedSkeletons(1);
         transactionTemplate.executeWithoutResult(status -> {
+
             TrackCatalog track = trackCatalogRepository.findById("trk-000").orElseThrow();
             ManualMetrics metrics = new ManualMetrics(track);
             metrics.setGenreFamily(GenreFamily.ROCK);
@@ -239,6 +247,7 @@ class EnrichmentJobIntegrationTest {
 
         // then — zmierzone zostaje, reszta analizy jest AI-owa
         assertThat(trackCatalogRepository.findById("trk-000")).hasValueSatisfying(enriched -> {
+
             assertThat(enriched.getGenreFamily()).isEqualTo(GenreFamily.ROCK);
             assertThat(enriched.getEnergy()).isEqualTo("low");
             assertThat(enriched.getDescriptionPl()).isEqualTo("Opis PL.");

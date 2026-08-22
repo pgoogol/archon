@@ -51,6 +51,7 @@ public class CategoryService {
         CategoryNode node = node(category, childrenByParent);
         Long parentId = category.getParentId();
         if (Objects.isNull(parentId) || !loaded.contains(parentId)) {
+
             // rodzic odfiltrowany (np. zarchiwizowany) nie może pochłonąć gałęzi
             roots.add(node);
             return;
@@ -100,6 +101,7 @@ public class CategoryService {
     private Category parentOrNull(@Nullable Long parentId) {
 
         if (Objects.isNull(parentId)) {
+
             return null;
         }
         return get(parentId);
@@ -119,6 +121,7 @@ public class CategoryService {
     private void requireUniqueName(@Nullable Long parentId, String name, @Nullable Long excludeId) {
 
         if (categoryRepository.existsSibling(parentId, name, excludeId)) {
+
             throw new ConflictException(ErrorCodes.CATEGORY_EXISTS,
                 ExceptionMessageConstants.CATEGORY_EXISTS.formatted(name));
         }
@@ -128,6 +131,7 @@ public class CategoryService {
                                                CategoryDirection direction) {
 
         if (Objects.nonNull(parent) && !Objects.equals(parent.getDirection(), direction)) {
+
             throw new ValidationException(ErrorCodes.CATEGORY_DIRECTION_MISMATCH,
                 ExceptionMessageConstants.CATEGORY_PARENT_DIRECTION_MISMATCH.formatted(
                     parent.getDirection()));
@@ -142,7 +146,9 @@ public class CategoryService {
 
         Category ancestor = newParent;
         while (Objects.nonNull(ancestor)) {
+
             if (Objects.equals(ancestor.getId(), category.getId())) {
+
                 throw new ValidationException(ErrorCodes.CATEGORY_CYCLE,
                     ExceptionMessageConstants.CATEGORY_CYCLE);
             }

@@ -47,34 +47,42 @@ public class AudioFeatures {
     }
 
     public String getMbid() {
+
         return mbid;
     }
 
     public TrackCatalog getTrack() {
+
         return track;
     }
 
     public BigDecimal getBpm() {
+
         return bpm;
     }
 
     public void setBpm(BigDecimal bpm) {
+
         this.bpm = bpm;
     }
 
     public String getMusicalKey() {
+
         return musicalKey;
     }
 
     public void setMusicalKey(String musicalKey) {
+
         this.musicalKey = musicalKey;
     }
 
     public BigDecimal getDanceability() {
+
         return danceability;
     }
 
     public void setDanceability(BigDecimal danceability) {
+
         this.danceability = danceability;
     }
 }

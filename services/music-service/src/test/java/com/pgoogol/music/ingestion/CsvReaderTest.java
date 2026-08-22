@@ -37,6 +37,7 @@ class CsvReaderTest {
 
         // when
         try (CSVParser csvParser = reader.open(input)) {
+
             reader.forEachRow(csvParser, rows::add);
         }
 
@@ -56,6 +57,7 @@ class CsvReaderTest {
 
         // when
         try (CSVParser csvParser = reader.open(input)) {
+
             reader.forEachRow(csvParser, rows::add);
         }
 
@@ -75,6 +77,7 @@ class CsvReaderTest {
 
         // when + then
         try (CSVParser csvParser = reader.open(input)) {
+
             assertThatThrownBy(() -> reader.forEachRow(csvParser, row -> { }))
                 .isInstanceOf(ValidationException.class)
                 .hasMessageContaining("wierszu 3");
@@ -96,7 +99,9 @@ class CsvReaderTest {
 
             @Override
             public int read() throws IOException {
+
                 if (position >= bytes.length) {
+
                     throw new IOException("dysk odmówił współpracy");
                 }
                 return bytes[position++];

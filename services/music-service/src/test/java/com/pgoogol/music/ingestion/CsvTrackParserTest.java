@@ -69,6 +69,7 @@ class CsvTrackParserTest {
         // then
         assertThat(result.tracks()).hasSize(1);
         assertThat(result.errors()).singleElement().satisfies(error -> {
+
             assertThat(error.line()).isEqualTo(1);
             assertThat(error.reason()).contains("Spotify URI");
         });
@@ -165,6 +166,7 @@ class CsvTrackParserTest {
     }
 
     private InputStream toStream(String csv) {
+
         return new ByteArrayInputStream(csv.getBytes(StandardCharsets.UTF_8));
     }
 }

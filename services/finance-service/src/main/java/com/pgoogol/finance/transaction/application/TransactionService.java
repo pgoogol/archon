@@ -113,6 +113,7 @@ public class TransactionService {
     private Account optionalAccount(@Nullable Long accountId) {
 
         if (Objects.isNull(accountId)) {
+
             return null;
         }
         return accountService.get(accountId);
@@ -122,6 +123,7 @@ public class TransactionService {
     private Category optionalCategory(@Nullable Long categoryId) {
 
         if (Objects.isNull(categoryId)) {
+
             return null;
         }
         return categoryService.get(categoryId);

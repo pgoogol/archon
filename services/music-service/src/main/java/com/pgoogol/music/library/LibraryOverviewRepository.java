@@ -152,6 +152,7 @@ public class LibraryOverviewRepository {
 
     /** Średnia z pustego zbioru to brak odpowiedzi, nie zero. */
     private Double average(Object value) {
+
         return Objects.isNull(value) ? null : ((Number) value).doubleValue();
     }
 
@@ -219,14 +220,17 @@ public class LibraryOverviewRepository {
     }
 
     private List<Bucket> dimension(Map<String, List<Bucket>> distributions, String name) {
+
         return distributions.getOrDefault(name, List.of());
     }
 
     private Bucket bucket(ResultSet resultSet, int index) throws SQLException {
+
         return new Bucket(resultSet.getString("label"), resultSet.getLong("total"));
     }
 
     private long number(Object value) {
+
         return ((Number) value).longValue();
     }
 }

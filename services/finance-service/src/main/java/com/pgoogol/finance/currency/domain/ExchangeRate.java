@@ -80,6 +80,7 @@ public class ExchangeRate {
 
         Objects.requireNonNull(rate, "rate");
         if (rate.signum() <= 0) {
+
             throw new IllegalArgumentException("Kurs musi być dodatni: " + rate);
         }
         this.rate = rate;

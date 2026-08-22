@@ -66,6 +66,7 @@ class MyPlaylistsIngestionServiceTest {
         assertThat(result.imported()).extracting(PlaylistIngestReport::name)
             .containsExactly("Wesela 2026", "Salsa nocą");
         assertThat(result.failed()).singleElement().satisfies(failed -> {
+
             assertThat(failed.spotifyPlaylistId()).isEqualTo("pl-bachata");
             assertThat(failed.name()).isEqualTo("Bachata");
             assertThat(failed.errorCode()).isEqualTo("SPOTIFY_UNAVAILABLE");
@@ -89,6 +90,7 @@ class MyPlaylistsIngestionServiceTest {
         // then — komunikat bazy nie wychodzi na zewnątrz (docs/rules/errorhandling.md)
         assertThat(result.imported()).isEmpty();
         assertThat(result.failed()).singleElement().satisfies(failed -> {
+
             assertThat(failed.errorCode()).isEqualTo("INTERNAL_ERROR");
             assertThat(failed.reason()).doesNotContain("relation");
         });

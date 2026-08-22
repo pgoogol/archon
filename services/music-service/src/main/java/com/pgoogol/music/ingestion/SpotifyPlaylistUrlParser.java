@@ -26,9 +26,11 @@ public class SpotifyPlaylistUrlParser {
         String trimmed = urlOrId.trim();
         Matcher reference = PLAYLIST_REFERENCE.matcher(trimmed);
         if (reference.find()) {
+
             return reference.group(1);
         }
         if (BARE_ID.matcher(trimmed).matches()) {
+
             return trimmed;
         }
         throw new ValidationException("PLAYLIST_URL_INVALID",

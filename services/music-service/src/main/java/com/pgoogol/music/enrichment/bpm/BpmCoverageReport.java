@@ -9,6 +9,7 @@ public record BpmCoverageReport(int fromManual, int fromAcousticBrainz, int from
                                 int withoutBpm) {
 
     public int total() {
+
         return fromManual + fromAcousticBrainz + fromDeezer + withoutBpm;
     }
 }

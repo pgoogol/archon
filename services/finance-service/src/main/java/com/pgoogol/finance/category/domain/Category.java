@@ -80,6 +80,7 @@ public class Category {
     public Long getParentId() {
 
         if (Objects.isNull(parent)) {
+
             return null;
         }
         return parent.getId();

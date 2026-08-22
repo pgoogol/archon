@@ -45,6 +45,7 @@ class BpmCoverageReportTest {
 
     @BeforeEach
     void setUp() {
+
         resolver = new BpmResolver(manualMetricsRepository, audioFeaturesRepository,
             deezerClient, new HalfTimeCorrector());
     }
@@ -84,6 +85,7 @@ class BpmCoverageReportTest {
     private Optional<AudioFeatures> acousticBrainzFeaturesFor(String spotifyId) {
 
         if (indexOf(spotifyId) >= WITH_ACOUSTICBRAINZ) {
+
             return Optional.empty();
         }
         AudioFeatures features = new AudioFeatures("mbid-" + spotifyId,
@@ -101,6 +103,7 @@ class BpmCoverageReportTest {
     }
 
     private int indexOf(String spotifyId) {
+
         return Integer.parseInt(spotifyId.substring(3));
     }
 }

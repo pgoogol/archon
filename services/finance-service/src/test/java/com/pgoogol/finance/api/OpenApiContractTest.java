@@ -111,13 +111,16 @@ class OpenApiContractTest {
         Map<String, Object> shared = sharedParameters(root);
         Map<String, Set<String>> parameters = new TreeMap<>();
         paths.forEach((path, item) -> ((Map<String, Object>) item).forEach((method, spec) -> {
+
             if (!METHODS.contains(method)) {
+
                 return;
             }
             List<Map<String, Object>> declared =
                 (List<Map<String, Object>>) ((Map<String, Object>) spec).get("parameters");
             Set<String> names = new LinkedHashSet<>();
             if (declared != null) {
+
                 declared.forEach(parameter -> names.add(parameterName(parameter, shared)));
             }
             parameters.put(operation(method, path), new TreeSet<>(names));
@@ -138,6 +141,7 @@ class OpenApiContractTest {
 
         Object ref = parameter.get("$ref");
         if (ref instanceof String reference) {
+
             String key = reference.substring(reference.lastIndexOf('/') + 1);
             return (String) ((Map<String, Object>) shared.get(key)).get("name");
         }
@@ -156,7 +160,9 @@ class OpenApiContractTest {
         JsonNode paths = generatedSpec().get("paths");
         Set<String> operations = new TreeSet<>();
         paths.properties().forEach(path -> path.getValue().properties().forEach(method -> {
+
             if (METHODS.contains(method.getKey())) {
+
                 operations.add(operation(method.getKey(), path.getKey()));
             }
         }));
@@ -168,12 +174,15 @@ class OpenApiContractTest {
         JsonNode paths = generatedSpec().get("paths");
         Map<String, Set<String>> parameters = new TreeMap<>();
         paths.properties().forEach(path -> path.getValue().properties().forEach(method -> {
+
             if (!METHODS.contains(method.getKey())) {
+
                 return;
             }
             Set<String> names = new TreeSet<>();
             JsonNode declared = method.getValue().get("parameters");
             if (declared != null) {
+
                 declared.forEach(parameter -> names.add(parameter.get("name").asString()));
             }
             parameters.put(operation(method.getKey(), path.getKey()), names);

@@ -104,190 +104,237 @@ public class TrackCatalog {
     }
 
     public String getSpotifyId() {
+
         return spotifyId;
     }
 
     public String getIsrc() {
+
         return isrc;
     }
 
     public void setIsrc(String isrc) {
+
         this.isrc = isrc;
     }
 
     public String getTitle() {
+
         return title;
     }
 
     public void setTitle(String title) {
+
         this.title = title;
     }
 
     public String getArtist() {
+
         return artist;
     }
 
     public void setArtist(String artist) {
+
         this.artist = artist;
     }
 
     public String getAlbum() {
+
         return album;
     }
 
     public void setAlbum(String album) {
+
         this.album = album;
     }
 
     public Integer getYear() {
+
         return year;
     }
 
     public void setYear(Integer year) {
+
         this.year = year;
     }
 
     public Integer getDurationMs() {
+
         return durationMs;
     }
 
     public void setDurationMs(Integer durationMs) {
+
         this.durationMs = durationMs;
     }
 
     public Integer getPopularity() {
+
         return popularity;
     }
 
     public void setPopularity(Integer popularity) {
+
         this.popularity = popularity;
     }
 
     public Boolean getExplicit() {
+
         return explicit;
     }
 
     public void setExplicit(Boolean explicit) {
+
         this.explicit = explicit;
     }
 
     public String getAlbumImageUrl() {
+
         return albumImageUrl;
     }
 
     public void setAlbumImageUrl(String albumImageUrl) {
+
         this.albumImageUrl = albumImageUrl;
     }
 
     public GenreFamily getGenreFamily() {
+
         return genreFamily;
     }
 
     public void setGenreFamily(GenreFamily genreFamily) {
+
         this.genreFamily = genreFamily;
     }
 
     public String getStyle() {
+
         return style;
     }
 
     public void setStyle(String style) {
+
         this.style = style;
     }
 
     public Integer getBpm() {
+
         return bpm;
     }
 
     public void setBpm(Integer bpm) {
+
         this.bpm = bpm;
     }
 
     public BpmSource getBpmSource() {
+
         return bpmSource;
     }
 
     public void setBpmSource(BpmSource bpmSource) {
+
         this.bpmSource = bpmSource;
     }
 
     public BigDecimal getDanceability() {
+
         return danceability;
     }
 
     public void setDanceability(BigDecimal danceability) {
+
         this.danceability = danceability;
     }
 
     public String getMusicalKey() {
+
         return musicalKey;
     }
 
     public void setMusicalKey(String musicalKey) {
+
         this.musicalKey = musicalKey;
     }
 
     public TempoClass getTempoClass() {
+
         return tempoClass;
     }
 
     public void setTempoClass(TempoClass tempoClass) {
+
         this.tempoClass = tempoClass;
     }
 
     public String getEnergy() {
+
         return energy;
     }
 
     public void setEnergy(String energy) {
+
         this.energy = energy;
     }
 
     public String getLyricsTheme() {
+
         return lyricsTheme;
     }
 
     public void setLyricsTheme(String lyricsTheme) {
+
         this.lyricsTheme = lyricsTheme;
     }
 
     public String getDescriptionPl() {
+
         return descriptionPl;
     }
 
     public void setDescriptionPl(String descriptionPl) {
+
         this.descriptionPl = descriptionPl;
     }
 
     public String getConfidence() {
+
         return confidence;
     }
 
     public void setConfidence(String confidence) {
+
         this.confidence = confidence;
     }
 
     public Instant getEnrichedAt() {
+
         return enrichedAt;
     }
 
     public void setEnrichedAt(Instant enrichedAt) {
+
         this.enrichedAt = enrichedAt;
     }
 
     public String getModelUsed() {
+
         return modelUsed;
     }
 
     public void setModelUsed(String modelUsed) {
+
         this.modelUsed = modelUsed;
     }
 
     public Integer getEnrichVersion() {
+
         return enrichVersion;
     }
 
     public void setEnrichVersion(Integer enrichVersion) {
+
         this.enrichVersion = enrichVersion;
     }
 }

@@ -164,7 +164,23 @@ boolean maRole = CollectionUtils.containsAny(role, dozwolone);
 
 - Wcięcie 4 spacje, nigdy tabulatory.
 - Klamra otwierająca w tej samej linii.
-- Zostaw jedną pustą linię po klamrze otwierającej ciało klasy lub metody.
+- **Zostaw jedną pustą linię po każdej klamrze otwierającej** — nie tylko po
+  ciele klasy czy metody, ale też po `if`, `else`, `for`, `while`, `do`, `try`,
+  `catch`, `finally`, `switch` i po lambdzie z blokiem. Dwa wyjątki: pusty blok
+  (`{` i zaraz `}`) nie dostaje nic, a `{` otwierające inicjalizator tablicy
+  w adnotacji (`@CsvSource({`) nie jest blokiem.
+  ```java
+  // ŹLE
+  if (Objects.isNull(value)) {
+      return null;
+  }
+  // DOBRZE
+  if (Objects.isNull(value)) {
+
+      return null;
+  }
+  ```
+  Spotless tego nie wymusza — pilnuje tego przegląd.
 - Nie formatuj ręcznie tego, co ma formatować narzędzie — Spotless
   (`./mvnw spotless:check`).
 

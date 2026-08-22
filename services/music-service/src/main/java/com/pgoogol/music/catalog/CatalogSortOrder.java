@@ -16,6 +16,7 @@ public record CatalogSortOrder(CatalogSort field, Sort.Direction direction) {
         new CatalogSortOrder(CatalogSort.RELEVANCE, Sort.Direction.ASC);
 
     public CatalogSortOrder {
+
         Objects.requireNonNull(field, "field");
         Objects.requireNonNull(direction, "direction");
     }

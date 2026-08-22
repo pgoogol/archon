@@ -41,16 +41,20 @@ public class MetricsBatchIngestionService {
     private MetricsFileReport ingestFile(NamedCsv file) {
 
         try (InputStream content = file.content().getInputStream()) {
+
             return new MetricsFileReport.Imported(file.name(),
                 metricsIngestionService.ingest(content, file.name()));
         } catch (IOException ex) {
+
             log.warn("Plik '{}' pominięty — nie udało się go odczytać", file.name(), ex);
             return new MetricsFileReport.Failed(file.name(), "FILE_UNREADABLE",
                 "Nie udało się odczytać przesłanego pliku");
         } catch (AppException ex) {
+
             log.warn("Plik '{}' pominięty: {} — {}", file.name(), ex.getErrorCode(), ex.getMessage());
             return new MetricsFileReport.Failed(file.name(), ex.getErrorCode(), ex.getMessage());
         } catch (RuntimeException ex) {
+
             log.error("Plik '{}' pominięty — nieoczekiwany błąd", file.name(), ex);
             return new MetricsFileReport.Failed(file.name(), "INTERNAL_ERROR",
                 "nieoczekiwany błąd importu — szczegóły w logach aplikacji");

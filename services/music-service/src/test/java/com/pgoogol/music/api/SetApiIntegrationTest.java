@@ -58,6 +58,7 @@ class SetApiIntegrationTest {
     void seedCatalog() {
 
         IntStream.range(0, 60).forEach(index -> {
+
             TrackCatalog track = new TrackCatalog(
                 "sp-%02d".formatted(index), "Utwór %d".formatted(index),
                 "Wykonawca %d".formatted(index % 10));
@@ -66,6 +67,7 @@ class SetApiIntegrationTest {
             track.setDurationMs(210_000);
             track.setTempoClass(TempoClass.MEDIUM);
             track.setEnergy(switch (index % 3) {
+
                 case 0 -> "low";
                 case 1 -> "medium";
                 default -> "high";
@@ -319,6 +321,7 @@ class SetApiIntegrationTest {
             .andReturn().getResponse().getContentAsString();
         long playlistId = objectMapper.readTree(created).get("id").asLong();
         for (String spotifyId : spotifyIds) {
+
             mockMvc.perform(post("/music/api/v1/playlists/{id}/tracks", playlistId)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(Map.of("spotifyId", spotifyId))))

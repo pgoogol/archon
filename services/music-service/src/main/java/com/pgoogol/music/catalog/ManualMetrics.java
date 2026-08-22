@@ -96,130 +96,162 @@ public class ManualMetrics {
     }
 
     public String getSpotifyId() {
+
         return spotifyId;
     }
 
     public TrackCatalog getTrack() {
+
         return track;
     }
 
     public BigDecimal getBpm() {
+
         return bpm;
     }
 
     public void setBpm(BigDecimal bpm) {
+
         this.bpm = bpm;
     }
 
     public String getMusicalKey() {
+
         return musicalKey;
     }
 
     public void setMusicalKey(String musicalKey) {
+
         this.musicalKey = musicalKey;
     }
 
     public String getCamelot() {
+
         return camelot;
     }
 
     public void setCamelot(String camelot) {
+
         this.camelot = camelot;
     }
 
     public BigDecimal getDanceability() {
+
         return danceability;
     }
 
     public void setDanceability(BigDecimal danceability) {
+
         this.danceability = danceability;
     }
 
     public BigDecimal getEnergy() {
+
         return energy;
     }
 
     public void setEnergy(BigDecimal energy) {
+
         this.energy = energy;
     }
 
     public BigDecimal getValence() {
+
         return valence;
     }
 
     public void setValence(BigDecimal valence) {
+
         this.valence = valence;
     }
 
     public BigDecimal getAcousticness() {
+
         return acousticness;
     }
 
     public void setAcousticness(BigDecimal acousticness) {
+
         this.acousticness = acousticness;
     }
 
     public BigDecimal getInstrumentalness() {
+
         return instrumentalness;
     }
 
     public void setInstrumentalness(BigDecimal instrumentalness) {
+
         this.instrumentalness = instrumentalness;
     }
 
     public BigDecimal getSpeechiness() {
+
         return speechiness;
     }
 
     public void setSpeechiness(BigDecimal speechiness) {
+
         this.speechiness = speechiness;
     }
 
     public BigDecimal getLiveness() {
+
         return liveness;
     }
 
     public void setLiveness(BigDecimal liveness) {
+
         this.liveness = liveness;
     }
 
     public BigDecimal getLoudnessDb() {
+
         return loudnessDb;
     }
 
     public void setLoudnessDb(BigDecimal loudnessDb) {
+
         this.loudnessDb = loudnessDb;
     }
 
     public Integer getTimeSignature() {
+
         return timeSignature;
     }
 
     public void setTimeSignature(Integer timeSignature) {
+
         this.timeSignature = timeSignature;
     }
 
     public GenreFamily getGenreFamily() {
+
         return genreFamily;
     }
 
     public void setGenreFamily(GenreFamily genreFamily) {
+
         this.genreFamily = genreFamily;
     }
 
     public String getSource() {
+
         return source;
     }
 
     public void setSource(String source) {
+
         this.source = source;
     }
 
     public Instant getImportedAt() {
+
         return importedAt;
     }
 
     public void setImportedAt(Instant importedAt) {
+
         this.importedAt = importedAt;
     }
 }

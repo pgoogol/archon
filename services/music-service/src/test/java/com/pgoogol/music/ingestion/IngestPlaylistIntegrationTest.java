@@ -103,6 +103,7 @@ class IngestPlaylistIntegrationTest {
             .andExpect(jsonPath("$.skipped[0].position").value(2));
 
         assertThat(trackCatalogRepository.findById("sp-vivir")).hasValueSatisfying(track -> {
+
             assertThat(track.getTitle()).isEqualTo("Vivir Mi Vida");
             assertThat(track.getIsrc()).isEqualTo("ISRC-sp-vivir");
             assertThat(track.getYear()).isEqualTo(2013);
@@ -154,6 +155,7 @@ class IngestPlaylistIntegrationTest {
 
         // then — tytuł zostaje, puste pola uzupełnione z playlisty
         assertThat(trackCatalogRepository.findById("sp-vivir")).hasValueSatisfying(track -> {
+
             assertThat(track.getTitle()).isEqualTo("Vivir Mi Vida (CSV)");
             assertThat(track.getIsrc()).isEqualTo("ISRC-sp-vivir");
             assertThat(track.getDurationMs()).isEqualTo(252306);

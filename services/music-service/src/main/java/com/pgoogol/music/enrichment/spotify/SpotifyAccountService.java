@@ -81,6 +81,7 @@ public class SpotifyAccountService {
 
     @Transactional(readOnly = true)
     public Optional<String> connectedUserId() {
+
         return accountRepository.findConnected().map(SpotifyAccount::getSpotifyUserId);
     }
 
@@ -92,6 +93,7 @@ public class SpotifyAccountService {
             .orElseThrow(() -> new ValidationException("SPOTIFY_NOT_CONNECTED",
                 "Konto Spotify nie jest połączone — otwórz /music/api/v1/auth/spotify/login"));
         if (!account.isExpiredAt(Instant.now().plus(EXPIRY_MARGIN))) {
+
             return account.getAccessToken();
         }
         SpotifyTokens tokens = oauthClient.refresh(account.getRefreshToken());
@@ -104,10 +106,12 @@ public class SpotifyAccountService {
 
         PendingAuthorization authorization = pending.getAndSet(null);
         if (Objects.isNull(authorization) || authorization.isExpired()) {
+
             throw new ValidationException("SPOTIFY_AUTH_EXPIRED",
                 "Logowanie wygasło lub nie zostało rozpoczęte — otwórz /music/api/v1/auth/spotify/login");
         }
         if (!Objects.equals(authorization.state(), state)) {
+
             throw new ValidationException("SPOTIFY_AUTH_STATE_MISMATCH",
                 "Parametr state nie zgadza się z rozpoczętym logowaniem");
         }
@@ -117,18 +121,21 @@ public class SpotifyAccountService {
     private void requireClientConfigured() {
 
         if (Objects.toString(properties.clientId(), "").isBlank()) {
+
             throw new ValidationException("SPOTIFY_CLIENT_NOT_CONFIGURED",
                 "Brak SPOTIFY_CLIENT_ID w konfiguracji środowiska");
         }
     }
 
     private Instant expiresAt(SpotifyTokens tokens) {
+
         return Instant.now().plusSeconds(tokens.expiresIn());
     }
 
     private record PendingAuthorization(String state, String verifier, Instant startedAt) {
 
         boolean isExpired() {
+
             return Instant.now().isAfter(startedAt.plus(AUTHORIZATION_TTL));
         }
     }

@@ -26,6 +26,7 @@ public record CatalogSearchCriteria(
     QualityFilter quality) {
 
     public CatalogSearchCriteria {
+
         track = Objects.requireNonNullElse(track, TrackFilter.NONE);
         sound = Objects.requireNonNullElse(sound, SoundFilter.NONE);
         library = Objects.requireNonNullElse(library, LibraryFilter.NONE);
@@ -35,6 +36,7 @@ public record CatalogSearchCriteria(
 
     /** Pusty zestaw kryteriów — cały katalog. */
     public static CatalogSearchCriteria none() {
+
         return new CatalogSearchCriteria(null, null, null, null, null, null);
     }
 
@@ -87,6 +89,7 @@ public record CatalogSearchCriteria(
     public record HarmonicFilter(CamelotKey key, boolean compatible) {
 
         public HarmonicFilter {
+
             Objects.requireNonNull(key, "key");
         }
     }

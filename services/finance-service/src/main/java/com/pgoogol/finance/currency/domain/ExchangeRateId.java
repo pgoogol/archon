@@ -47,9 +47,11 @@ public class ExchangeRateId implements Serializable {
     public boolean equals(Object other) {
 
         if (this == other) {
+
             return true;
         }
         if (!(other instanceof ExchangeRateId that)) {
+
             return false;
         }
         return Objects.equals(code, that.code) && Objects.equals(rateDate, that.rateDate);

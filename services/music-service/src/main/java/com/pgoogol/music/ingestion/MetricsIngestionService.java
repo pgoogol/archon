@@ -77,6 +77,7 @@ public class MetricsIngestionService {
         Map<String, ManualMetrics> working = new LinkedHashMap<>();
         Instant importedAt = Instant.now();
         matched.forEach(row -> row.match().tracks().forEach(track -> {
+
             ManualMetrics metrics = working.computeIfAbsent(track.getSpotifyId(),
                 spotifyId -> existing.getOrDefault(spotifyId, new ManualMetrics(track)));
             overwrite(metrics, row.row().metrics(), row.row().genreFamily(), source, importedAt);
@@ -98,6 +99,7 @@ public class MetricsIngestionService {
         Optional<CamelotKey> fromFile = CamelotKey.ofLabel(metrics.getCamelot());
         Optional<CamelotKey> fromKey = CamelotKey.ofMusicalKey(track.getMusicalKey());
         if (fromFile.isEmpty() || fromKey.isEmpty() || fromFile.equals(fromKey)) {
+
             return;
         }
         log.warn("""
@@ -155,6 +157,7 @@ public class MetricsIngestionService {
 
         Optional<TrackCatalog> direct = Optional.ofNullable(row.spotifyId()).map(index.byId()::get);
         if (direct.isPresent()) {
+
             return new Match(List.of(direct.get()), false);
         }
         List<TrackCatalog> byIsrc = Optional.ofNullable(row.isrc())

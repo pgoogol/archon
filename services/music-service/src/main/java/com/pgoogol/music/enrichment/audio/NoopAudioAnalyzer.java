@@ -15,6 +15,7 @@ public class NoopAudioAnalyzer implements AudioAnalyzer {
 
     @Override
     public Optional<AudioAnalysis> analyze(TrackCatalog track) {
+
         return Optional.empty();
     }
 }

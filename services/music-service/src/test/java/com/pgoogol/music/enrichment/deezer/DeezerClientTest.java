@@ -100,6 +100,7 @@ class DeezerClientTest {
     }
 
     private DeezerClient deezerClient(WireMockRuntimeInfo wireMock) {
+
         return new DeezerClient(WireMockRestClients.builder(),
             new DeezerProperties(wireMock.getHttpBaseUrl(), 100));
     }

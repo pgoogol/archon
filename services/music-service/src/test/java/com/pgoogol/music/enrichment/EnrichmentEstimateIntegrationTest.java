@@ -60,6 +60,7 @@ class EnrichmentEstimateIntegrationTest {
 
     @AfterEach
     void cleanDatabase() {
+
         trackCatalogRepository.deleteAll();
     }
 

@@ -48,6 +48,7 @@ public class LibrarySearchService {
     private Map<String, LibraryEntry> entriesByTrackId(List<TrackCatalog> tracks) {
 
         if (tracks.isEmpty()) {
+
             return Map.of();
         }
         List<String> spotifyIds = tracks.stream().map(TrackCatalog::getSpotifyId).toList();

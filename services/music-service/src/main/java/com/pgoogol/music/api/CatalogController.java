@@ -54,6 +54,7 @@ public class CatalogController {
     @GetMapping("/tracks/{spotifyId}")
     @Operation(summary = "Pełny rekord utworu z katalogu")
     public TrackResponse getTrack(@PathVariable String spotifyId) {
+
         return mapper.toResponse(catalogService.getTrack(spotifyId));
     }
 
@@ -149,6 +150,7 @@ public class CatalogController {
     private HarmonicFilter harmonicFilter(String camelot, boolean compatible) {
 
         if (Objects.isNull(camelot) || camelot.isBlank()) {
+
             return null;
         }
         return CamelotKey.ofLabel(camelot)
@@ -158,6 +160,7 @@ public class CatalogController {
     }
 
     static int cappedSize(int size) {
+
         return Math.clamp(size, 1, MAX_PAGE_SIZE);
     }
 }

@@ -71,9 +71,11 @@ public class NbpClient implements ExchangeRateProvider {
         return Stream.iterate(0L, index -> index + 1)
             .limit(Math.max(count, 1))
             .map(index -> {
+
                 LocalDate start = from.plusDays(index * MAX_RANGE_DAYS);
                 LocalDate end = start.plusDays(MAX_RANGE_DAYS - 1L);
                 if (end.isAfter(to)) {
+
                     return new DateRange(start, to);
                 }
                 return new DateRange(start, end);
@@ -88,6 +90,7 @@ public class NbpClient implements ExchangeRateProvider {
             .retrieve()
             .body(RatesResponse.class));
         if (Objects.isNull(response) || Objects.isNull(response.rates())) {
+
             return List.of();
         }
         return response.rates().stream()
@@ -99,15 +102,20 @@ public class NbpClient implements ExchangeRateProvider {
     private <T> T execute(Supplier<T> call) {
 
         return guard.execute(() -> {
+
             try {
+
                 return call.get();
             } catch (HttpClientErrorException.NotFound ex) {
+
                 // brak tabeli w zakresie — dzień wolny, nie awaria
                 return null;
             } catch (HttpClientErrorException.TooManyRequests ex) {
+
                 throw new RateLimitedException(ErrorCodes.NBP_RATE_LIMITED,
                     ExceptionMessageConstants.NBP_RATE_LIMITED, null);
             } catch (HttpServerErrorException | ResourceAccessException ex) {
+
                 throw new ExternalServiceException(ErrorCodes.NBP_UNAVAILABLE,
                     ExceptionMessageConstants.NBP_UNAVAILABLE, ex);
             }

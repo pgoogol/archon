@@ -36,6 +36,7 @@ class SpotifyAccountServiceTest {
     private final SpotifyPkce pkce = new SpotifyPkce();
 
     private SpotifyAccountService service() {
+
         return new SpotifyAccountService(properties, oauthClient, pkce, accountRepository);
     }
 

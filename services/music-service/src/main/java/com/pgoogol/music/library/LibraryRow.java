@@ -15,10 +15,12 @@ import java.util.Optional;
 public record LibraryRow(TrackCatalog track, @Nullable LibraryEntry entry) {
 
     public LibraryRow {
+
         Objects.requireNonNull(track, "track");
     }
 
     public Optional<LibraryEntry> libraryEntry() {
+
         return Optional.ofNullable(entry);
     }
 }

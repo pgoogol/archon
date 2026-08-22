@@ -22,6 +22,7 @@ public class SpotifyTrackIdParser {
     public Optional<String> parse(@Nullable String rawReference) {
 
         if (Objects.isNull(rawReference) || rawReference.isBlank()) {
+
             return Optional.empty();
         }
         Matcher matcher = TRACK_ID.matcher(rawReference.trim());

@@ -55,6 +55,7 @@ public class SetRules {
         score += Optional.ofNullable(candidate.rating()).orElse(0) * 6;
         score += Optional.ofNullable(candidate.track().getPopularity()).orElse(0) / 20;
         if (candidate.bpm().isEmpty()) {
+
             score -= 30;
         }
         return Objects.isNull(previous) ? score : score - transitionPenalty(previous, candidate);
@@ -72,6 +73,7 @@ public class SetRules {
         Optional<Integer> before = from.bpm();
         Optional<Integer> after = to.bpm();
         if (before.isEmpty() || after.isEmpty()) {
+
             return penalty;
         }
         int jump = Math.abs(after.orElseThrow() - before.orElseThrow());
@@ -123,6 +125,7 @@ public class SetRules {
     private int phaseDistance(@Nullable DjSlot candidateSlot, DjSlot phase) {
 
         if (Objects.isNull(candidateSlot) || candidateSlot == DjSlot.BREAK) {
+
             return 2;
         }
         return Math.abs(PHASE_ORDER.indexOf(candidateSlot) - PHASE_ORDER.indexOf(phase));

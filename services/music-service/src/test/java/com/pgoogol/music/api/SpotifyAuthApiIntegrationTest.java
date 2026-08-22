@@ -55,6 +55,7 @@ class SpotifyAuthApiIntegrationTest {
 
     @AfterEach
     void cleanDatabase() {
+
         accountRepository.deleteAll();
     }
 
@@ -100,6 +101,7 @@ class SpotifyAuthApiIntegrationTest {
             .andExpect(jsonPath("$.refreshToken").doesNotExist());
 
         assertThat(accountRepository.findConnected()).hasValueSatisfying(account -> {
+
             assertThat(account.getSpotifyUserId()).isEqualTo("dj-pgoogol");
             assertThat(account.getRefreshToken()).isEqualTo("refresh");
             assertThat(account.getId()).isEqualTo(SpotifyAccount.SINGLE_ROW_ID);

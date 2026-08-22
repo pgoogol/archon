@@ -161,6 +161,7 @@ public class PlaylistIngestionService {
     private <T> void setIfMissing(T current, T value, Consumer<T> setter) {
 
         if (Objects.isNull(current) && Objects.nonNull(value)) {
+
             setter.accept(value);
         }
     }
@@ -184,6 +185,7 @@ public class PlaylistIngestionService {
         Playlist playlist = playlistRepository
             .findBySpotifyPlaylistId(spotifyPlaylist.spotifyPlaylistId())
             .orElseGet(() -> {
+
                 Playlist created = new Playlist(spotifyPlaylist.name());
                 created.setSpotifyPlaylistId(spotifyPlaylist.spotifyPlaylistId());
                 return created;

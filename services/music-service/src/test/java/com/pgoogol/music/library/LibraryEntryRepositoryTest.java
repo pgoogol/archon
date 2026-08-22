@@ -49,6 +49,7 @@ class LibraryEntryRepositoryTest {
 
         // then
         assertThat(found).hasValueSatisfying(e -> {
+
             assertThat(e.getSource()).isEqualTo(LibrarySource.FILE);
             assertThat(e.getAddedAt()).isNotNull();
             assertThat(e.getDjNotes()).isEqualTo("mocny opener na wesele");

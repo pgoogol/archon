@@ -70,6 +70,7 @@ class IngestFileIntegrationTest {
             .hasValueSatisfying(entry -> assertThat(entry.getSource()).isEqualTo(LibrarySource.FILE));
         assertThat(trackCatalogRepository.findById("4uLU6hMCjMI75M1A2tKUQC"))
             .hasValueSatisfying(track -> {
+
                 assertThat(track.getTitle()).isEqualTo("Vivir Mi Vida");
                 assertThat(track.getAlbum()).isEqualTo("3.0");
             });

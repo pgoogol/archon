@@ -16,6 +16,7 @@ public record MinorUnits(int scale) {
     public MinorUnits {
 
         if (scale < 0 || scale > 4) {
+
             throw new IllegalArgumentException("Skala waluty poza zakresem 0..4: " + scale);
         }
     }

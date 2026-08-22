@@ -116,6 +116,7 @@ public class SetProposalService {
     }
 
     private long durationMs(List<SetCandidate> tracks) {
+
         return tracks.stream().mapToLong(setRules::durationMs).sum();
     }
 
@@ -123,6 +124,7 @@ public class SetProposalService {
 
         List<SetCandidate> candidates = candidates(criteria);
         if (candidates.isEmpty()) {
+
             throw new ValidationException("SET_NO_CANDIDATES",
                 "Żaden utwór nie przeszedł filtrów — poluzuj kryteria puli");
         }
@@ -133,6 +135,7 @@ public class SetProposalService {
 
         int gap = Optional.ofNullable(position).orElse(setSize);
         if (gap < 0 || gap > setSize) {
+
             throw new ValidationException("SET_POSITION_OUT_OF_RANGE",
                 "Pozycja %d jest poza setem (dozwolone 0–%d)".formatted(gap, setSize));
         }
@@ -165,6 +168,7 @@ public class SetProposalService {
     private Map<String, TrackDjData> djData(List<TrackCatalog> tracks) {
 
         if (tracks.isEmpty()) {
+
             return Map.of();
         }
         List<String> spotifyIds = tracks.stream().map(TrackCatalog::getSpotifyId).toList();
@@ -175,6 +179,7 @@ public class SetProposalService {
     private void validateTarget(int targetMinutes) {
 
         if (targetMinutes < MIN_TARGET_MINUTES || targetMinutes > MAX_TARGET_MINUTES) {
+
             throw new ValidationException("SET_TARGET_OUT_OF_RANGE",
                 "Długość setu musi mieścić się w %d–%d minutach"
                     .formatted(MIN_TARGET_MINUTES, MAX_TARGET_MINUTES));

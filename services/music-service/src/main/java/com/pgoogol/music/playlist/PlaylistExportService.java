@@ -45,6 +45,7 @@ public class PlaylistExportService {
             .map(entry -> entry.getTrack().getSpotifyId())
             .toList();
         if (spotifyIds.isEmpty()) {
+
             throw new ValidationException("PLAYLIST_EMPTY",
                 "Set '%s' jest pusty — nie ma czego eksportować".formatted(playlist.getName()));
         }
@@ -54,6 +55,7 @@ public class PlaylistExportService {
 
         boolean created = Objects.isNull(playlist.getSpotifyPlaylistId());
         if (created) {
+
             playlist.setSpotifyPlaylistId(
                 playlistClient.createPlaylist(ownerId, playlist.getName(), DESCRIPTION));
         }

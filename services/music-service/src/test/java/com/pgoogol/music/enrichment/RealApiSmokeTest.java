@@ -64,6 +64,7 @@ class RealApiSmokeTest {
         // when + then — oceniamy pokrycie ręcznie, test wymaga min. 1 trafienia per źródło
         long deezerHits = TRACKS.keySet().stream()
             .map(isrc -> {
+
                 Optional<BigDecimal> bpm = deezer.findBpmByIsrc(isrc);
                 System.out.printf("Deezer  %s (%s) → bpm=%s%n", isrc, TRACKS.get(isrc), bpm);
                 return bpm;
@@ -72,6 +73,7 @@ class RealApiSmokeTest {
             .count();
         long mbHits = TRACKS.keySet().stream()
             .map(isrc -> {
+
                 Optional<String> mbid = musicBrainz.lookupMbid(isrc);
                 System.out.printf("MB      %s (%s) → mbid=%s%n", isrc, TRACKS.get(isrc), mbid);
                 return mbid;

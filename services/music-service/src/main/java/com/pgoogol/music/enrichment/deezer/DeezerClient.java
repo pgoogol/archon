@@ -66,6 +66,7 @@ public class DeezerClient {
     private Optional<BigDecimal> findBpmByTrackId(Long trackId) {
 
         if (Objects.isNull(trackId)) {
+
             return Optional.empty();
         }
         TrackNode track = execute(() -> restClient.get()
@@ -78,6 +79,7 @@ public class DeezerClient {
     private Optional<BigDecimal> bpmOf(TrackNode track) {
 
         if (Objects.isNull(track) || Objects.nonNull(track.error()) || Objects.isNull(track.bpm())) {
+
             return Optional.empty();
         }
         return BigDecimal.ZERO.compareTo(track.bpm()) == 0
@@ -88,12 +90,16 @@ public class DeezerClient {
     private <T> T execute(Supplier<T> call) {
 
         return guard.execute(() -> {
+
             try {
+
                 return call.get();
             } catch (HttpClientErrorException.TooManyRequests ex) {
+
                 throw new RateLimitedException("DEEZER_RATE_LIMITED",
                     "Deezer ograniczył liczbę zapytań", null);
             } catch (HttpServerErrorException | ResourceAccessException ex) {
+
                 throw new ExternalServiceException("DEEZER_UNAVAILABLE",
                     "Deezer API niedostępne", ex);
             }

@@ -323,6 +323,7 @@ class LibraryOverviewIntegrationTest {
     private void withMetrics(String spotifyId) {
 
         new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+
             ManualMetrics metrics = new ManualMetrics(
                 trackCatalogRepository.findById(spotifyId).orElseThrow());
             metrics.setEnergy(new BigDecimal("0.800"));

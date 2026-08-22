@@ -15,6 +15,7 @@ public record SpotifyAccountStatus(
     Instant connectedAt) {
 
     public static SpotifyAccountStatus disconnected() {
+
         return new SpotifyAccountStatus(false, null, null, null, null, null);
     }
 

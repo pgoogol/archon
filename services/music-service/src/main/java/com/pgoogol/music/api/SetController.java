@@ -114,6 +114,7 @@ public class SetController {
     private SetCurve curve(String raw) {
 
         if (Objects.isNull(raw) || raw.isBlank()) {
+
             return SetCurve.STANDARD;
         }
         return SetCurve.parse(raw).orElseThrow(() -> new ValidationException("INVALID_SET_CURVE",
@@ -147,6 +148,7 @@ public class SetController {
     private HarmonicFilter harmonicFilter(SetFilters request) {
 
         if (Objects.isNull(request.camelot()) || request.camelot().isBlank()) {
+
             return null;
         }
         return CamelotKey.ofLabel(request.camelot())
@@ -160,11 +162,14 @@ public class SetController {
     private <E extends Enum<E>> E parseEnum(Class<E> type, String raw, String field) {
 
         if (Objects.isNull(raw) || raw.isBlank()) {
+
             return null;
         }
         try {
+
             return Enum.valueOf(type, raw.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException ex) {
+
             throw new ValidationException("INVALID_PARAMETER",
                 "Nieprawidłowa wartość '%s' dla pola %s".formatted(raw, field));
         }

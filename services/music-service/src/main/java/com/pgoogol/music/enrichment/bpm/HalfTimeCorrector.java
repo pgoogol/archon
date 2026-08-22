@@ -22,6 +22,7 @@ public class HalfTimeCorrector {
         boolean latin = Objects.equals(genreFamily, GenreFamily.LATIN);
         int doubled = bpm * 2;
         if (latin && bpm < HALF_TIME_THRESHOLD && doubled <= MAX_PLAUSIBLE_BPM) {
+
             return doubled;
         }
         return bpm;

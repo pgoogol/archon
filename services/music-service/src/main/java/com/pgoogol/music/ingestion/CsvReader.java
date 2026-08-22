@@ -47,8 +47,10 @@ public class CsvReader {
 
         Objects.requireNonNull(input, "input");
         try {
+
             return CSVParser.parse(new InputStreamReader(input, StandardCharsets.UTF_8), FORMAT);
         } catch (IOException | UncheckedIOException ex) {
+
             log.warn("Nie udało się wczytać nagłówka pliku CSV", ex);
             throw new ValidationException("CSV_UNREADABLE", "Nie udało się odczytać pliku CSV");
         }
@@ -63,8 +65,10 @@ public class CsvReader {
         Objects.requireNonNull(csvParser, "csvParser");
         Objects.requireNonNull(rowConsumer, "rowConsumer");
         try {
+
             csvParser.forEach(rowConsumer);
         } catch (UncheckedIOException ex) {
+
             long line = csvParser.getCurrentLineNumber();
             log.warn("Odczyt pliku CSV przerwany w wierszu {}", line, ex);
             throw new ValidationException("CSV_UNREADABLE",

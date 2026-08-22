@@ -48,6 +48,7 @@ public class PlaylistController {
             djSlot = override DJ-a, a gdy go nie ma — wyliczenie z bpm/energy/\
             genre_family; null oznacza utwór jeszcze niewzbogacony.""")
     public PlaylistResponse get(@PathVariable Long id) {
+
         return mapper.toResponse(playlistService.get(id));
     }
 
@@ -55,6 +56,7 @@ public class PlaylistController {
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Nowa (pusta) playlista")
     public PlaylistSummaryResponse create(@Valid @RequestBody SavePlaylistRequest request) {
+
         return mapper.toResponse(playlistService.create(request.name()));
     }
 
@@ -70,6 +72,7 @@ public class PlaylistController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Usunięcie playlisty (utwory zostają w katalogu i bibliotece)")
     public void delete(@PathVariable Long id) {
+
         playlistService.delete(id);
     }
 
@@ -84,6 +87,7 @@ public class PlaylistController {
     @DeleteMapping("/{id}/tracks/{spotifyId}")
     @Operation(summary = "Usunięcie utworu z setu (pozostałe pozycje przenumerowane)")
     public PlaylistResponse removeTrack(@PathVariable Long id, @PathVariable String spotifyId) {
+
         return mapper.toResponse(playlistService.removeTrack(id, spotifyId));
     }
 
@@ -104,6 +108,7 @@ public class PlaylistController {
             kolejne nadpisują jej zawartość — kolejność na Spotify odpowiada setowi. \
             Wymaga połączonego konta (GET /music/api/v1/auth/spotify/login).""")
     public PlaylistExportResponse exportToSpotify(@PathVariable Long id) {
+
         return mapper.toResponse(playlistExportService.export(id));
     }
 }

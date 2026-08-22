@@ -35,6 +35,7 @@ public class EnrichmentCostEstimator {
 
         LlmProperties.Cost cost = llmProperties.cost();
         if (!cost.isKnown() || aiTracks <= 0) {
+
             return cost.isKnown() ? Optional.of(BigDecimal.ZERO.setScale(4)) : Optional.empty();
         }
         BigDecimal tracks = BigDecimal.valueOf(aiTracks);

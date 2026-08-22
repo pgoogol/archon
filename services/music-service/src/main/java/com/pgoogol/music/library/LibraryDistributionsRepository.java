@@ -138,6 +138,7 @@ public class LibraryDistributionsRepository {
     public List<Bucket> bpmHistogram() {
 
         return jdbcTemplate.query(BPM_HISTOGRAM, (resultSet, index) -> {
+
             int bucket = resultSet.getInt("bucket");
             return new Bucket("%d–%d".formatted(bucket, bucket + 9), resultSet.getLong("total"));
         });
@@ -171,6 +172,7 @@ public class LibraryDistributionsRepository {
 
         Map<String, Long> byLabel = new LinkedHashMap<>();
         rawKeys.forEach(bucket -> {
+
             Optional<CamelotKey> key = NO_KEY.equals(bucket.label())
                 ? Optional.empty()
                 : CamelotKey.ofMusicalKey(bucket.label());
@@ -192,6 +194,7 @@ public class LibraryDistributionsRepository {
     }
 
     private Bucket bucket(ResultSet resultSet, int index) throws SQLException {
+
         return new Bucket(resultSet.getString("label"), resultSet.getLong("total"));
     }
 }

@@ -51,30 +51,37 @@ public class Playlist {
     }
 
     public int getVersion() {
+
         return version;
     }
 
     public Long getId() {
+
         return id;
     }
 
     public String getName() {
+
         return name;
     }
 
     public void setName(String name) {
+
         this.name = Objects.requireNonNull(name, "name");
     }
 
     public String getSpotifyPlaylistId() {
+
         return spotifyPlaylistId;
     }
 
     public void setSpotifyPlaylistId(String spotifyPlaylistId) {
+
         this.spotifyPlaylistId = spotifyPlaylistId;
     }
 
     public Instant getCreatedAt() {
+
         return createdAt;
     }
 }

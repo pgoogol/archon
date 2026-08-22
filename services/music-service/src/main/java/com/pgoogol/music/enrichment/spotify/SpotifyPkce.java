@@ -38,9 +38,11 @@ public class SpotifyPkce {
     private String sha256(String verifier) {
 
         try {
+
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             return encoder.encodeToString(digest.digest(verifier.getBytes(StandardCharsets.US_ASCII)));
         } catch (NoSuchAlgorithmException ex) {
+
             throw new IllegalStateException("Brak SHA-256 w środowisku uruchomieniowym", ex);
         }
     }

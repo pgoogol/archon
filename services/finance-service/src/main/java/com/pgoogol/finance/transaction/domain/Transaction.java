@@ -157,6 +157,7 @@ public class Transaction {
     private void setAmountMinor(long amountMinor) {
 
         if (amountMinor <= 0) {
+
             throw new IllegalArgumentException("Kwota musi być dodatnia: " + amountMinor);
         }
         this.amountMinor = amountMinor;

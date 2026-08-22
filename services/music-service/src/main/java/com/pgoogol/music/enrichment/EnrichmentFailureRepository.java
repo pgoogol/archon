@@ -59,6 +59,7 @@ public class EnrichmentFailureRepository {
     }
 
     public List<EnrichmentFailure> byExecution(long jobExecutionId, int limit) {
+
         return jdbcTemplate.query(BY_EXECUTION, this::toFailure, jobExecutionId, limit);
     }
 

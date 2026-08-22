@@ -61,13 +61,16 @@ public class MyPlaylistsIngestionService {
                            List<FailedPlaylist> failed) {
 
         try {
+
             imported.add(playlistIngestionService.ingest(playlist, LibrarySource.PLAYLIST));
         } catch (AppException ex) {
+
             log.warn("Playlista '{}' ({}) pominięta: {} — {}", playlist.name(),
                 playlist.spotifyPlaylistId(), ex.getErrorCode(), ex.getMessage());
             failed.add(new FailedPlaylist(playlist.spotifyPlaylistId(), playlist.name(),
                 ex.getErrorCode(), ex.getMessage()));
         } catch (RuntimeException ex) {
+
             log.error("Playlista '{}' ({}) pominięta — nieoczekiwany błąd",
                 playlist.name(), playlist.spotifyPlaylistId(), ex);
             failed.add(new FailedPlaylist(playlist.spotifyPlaylistId(), playlist.name(),

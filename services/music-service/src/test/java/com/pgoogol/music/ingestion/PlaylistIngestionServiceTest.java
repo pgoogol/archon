@@ -269,6 +269,7 @@ class PlaylistIngestionServiceTest {
     }
 
     private SpotifyPlaylist playlist(String ownerId) {
+
         return new SpotifyPlaylist(PLAYLIST_ID, "Wesele 2026", ownerId, "DJ pgoogol", 1);
     }
 
@@ -319,6 +320,7 @@ class PlaylistIngestionServiceTest {
             .willAnswer(call -> new TrackCatalog(call.getArgument(0), "t", "a"));
         given(playlistRepository.findBySpotifyPlaylistId(PLAYLIST_ID)).willReturn(Optional.empty());
         given(playlistRepository.save(any())).willAnswer(call -> {
+
             Playlist saved = call.getArgument(0);
             ReflectionTestUtils.setField(saved, "id", 1L);
             return saved;

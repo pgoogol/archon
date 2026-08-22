@@ -59,6 +59,7 @@ public class ManualMetricsApplier {
 
         Objects.requireNonNull(energy, "energy");
         if (energy.compareTo(LOW_UPPER) < 0) {
+
             return LOW;
         }
         return energy.compareTo(MEDIUM_UPPER) < 0 ? MEDIUM : HIGH;

@@ -72,54 +72,67 @@ public class LibraryEntry {
     }
 
     public int getVersion() {
+
         return version;
     }
 
     public Long getId() {
+
         return id;
     }
 
     public TrackCatalog getTrack() {
+
         return track;
     }
 
     public LibrarySource getSource() {
+
         return source;
     }
 
     public Instant getAddedAt() {
+
         return addedAt;
     }
 
     public String getDjNotes() {
+
         return djNotes;
     }
 
     public void setDjNotes(String djNotes) {
+
         this.djNotes = djNotes;
     }
 
     public List<String> getCustomTags() {
+
         return customTags;
     }
 
     public void setCustomTags(List<String> customTags) {
+
         this.customTags = customTags;
     }
 
     public String getDjSlotOverride() {
+
         return djSlotOverride;
     }
 
     public void setDjSlotOverride(String djSlotOverride) {
+
         this.djSlotOverride = djSlotOverride;
     }
 
     public Integer getRating() {
+
         return rating;
     }
 
     public void setRating(Integer rating) {
+
         this.rating = rating;
     }
 }

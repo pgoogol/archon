@@ -27,8 +27,10 @@ public class TransactionValidator {
         requireCurrencyOfAccount(command, account);
         requireOriginalPair(command);
         if (Objects.equals(command.type(), TransactionType.TRANSFER)) {
+
             requireTransferShape(command, account, toAccount, category);
         } else {
+
             requireFlowShape(command, toAccount, category);
         }
     }
@@ -36,6 +38,7 @@ public class TransactionValidator {
     private void requireAmount(TransactionCommand command) {
 
         if (command.amountMinor() <= 0) {
+
             throw new ValidationException(ErrorCodes.AMOUNT_NOT_POSITIVE,
                 ExceptionMessageConstants.AMOUNT_NOT_POSITIVE);
         }
@@ -44,6 +47,7 @@ public class TransactionValidator {
     private void requireCurrencyOfAccount(TransactionCommand command, Account account) {
 
         if (!Objects.equals(command.currency(), account.getCurrency())) {
+
             throw new ValidationException(ErrorCodes.CURRENCY_MISMATCH,
                 ExceptionMessageConstants.CURRENCY_MISMATCH.formatted(
                     account.getName(), account.getCurrency(), command.currency()));
@@ -54,6 +58,7 @@ public class TransactionValidator {
 
         if (Objects.isNull(command.originalAmountMinor())
                 != Objects.isNull(command.originalCurrency())) {
+
             throw new ValidationException(ErrorCodes.ORIGINAL_AMOUNT_INCOMPLETE,
                 ExceptionMessageConstants.ORIGINAL_AMOUNT_INCOMPLETE);
         }
@@ -63,14 +68,17 @@ public class TransactionValidator {
                                       @Nullable Account toAccount, @Nullable Category category) {
 
         if (Objects.nonNull(category)) {
+
             throw new ValidationException(ErrorCodes.TRANSFER_WITH_CATEGORY,
                 ExceptionMessageConstants.TRANSFER_WITH_CATEGORY);
         }
         if (Objects.isNull(toAccount)) {
+
             throw new ValidationException(ErrorCodes.TRANSFER_WITHOUT_TARGET,
                 ExceptionMessageConstants.TRANSFER_WITHOUT_TARGET);
         }
         if (Objects.equals(toAccount.getId(), account.getId())) {
+
             throw new ValidationException(ErrorCodes.TRANSFER_TO_SAME_ACCOUNT,
                 ExceptionMessageConstants.TRANSFER_TO_SAME_ACCOUNT);
         }
@@ -88,11 +96,13 @@ public class TransactionValidator {
         boolean sameCurrency = Objects.equals(account.getCurrency(), toAccount.getCurrency());
         Long toAmountMinor = command.toAmountMinor();
         if (!sameCurrency && (Objects.isNull(toAmountMinor) || toAmountMinor <= 0)) {
+
             throw new ValidationException(ErrorCodes.TRANSFER_TARGET_AMOUNT_REQUIRED,
                 ExceptionMessageConstants.TRANSFER_TARGET_AMOUNT_REQUIRED
                     .formatted(account.getCurrency(), toAccount.getCurrency()));
         }
         if (Objects.nonNull(toAmountMinor) && toAmountMinor <= 0) {
+
             throw new ValidationException(ErrorCodes.AMOUNT_NOT_POSITIVE,
                 ExceptionMessageConstants.TARGET_AMOUNT_NOT_POSITIVE);
         }
@@ -102,10 +112,12 @@ public class TransactionValidator {
                                   @Nullable Category category) {
 
         if (Objects.nonNull(toAccount) || Objects.nonNull(command.toAmountMinor())) {
+
             throw new ValidationException(ErrorCodes.FLOW_WITH_TRANSFER_TARGET,
                 ExceptionMessageConstants.FLOW_WITH_TRANSFER_TARGET);
         }
         if (Objects.isNull(category)) {
+
             throw new ValidationException(ErrorCodes.CATEGORY_REQUIRED,
                 ExceptionMessageConstants.CATEGORY_REQUIRED);
         }
@@ -115,6 +127,7 @@ public class TransactionValidator {
     private CategoryDirection expectedDirection(TransactionType type) {
 
         if (Objects.equals(type, TransactionType.INCOME)) {
+
             return CategoryDirection.INCOME;
         }
         return CategoryDirection.EXPENSE;
@@ -124,6 +137,7 @@ public class TransactionValidator {
 
         CategoryDirection expected = expectedDirection(type);
         if (!Objects.equals(category.getDirection(), expected)) {
+
             throw new ValidationException(ErrorCodes.CATEGORY_DIRECTION_MISMATCH,
                 ExceptionMessageConstants.CATEGORY_DIRECTION_MISMATCH.formatted(
                     category.getName(), category.getDirection(), type));

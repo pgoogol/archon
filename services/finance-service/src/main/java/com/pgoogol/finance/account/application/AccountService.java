@@ -28,6 +28,7 @@ public class AccountService {
     public List<Account> list(boolean includeArchived) {
 
         if (includeArchived) {
+
             return accountRepository.findAllByOrderByNameAsc();
         }
         return accountRepository.findByArchivedFalseOrderByNameAsc();

@@ -70,6 +70,7 @@ public class SetSuggester {
     private SetSuggestion toSuggestion(SetCandidate candidate, @Nullable SetCandidate anchor) {
 
         if (Objects.isNull(anchor)) {
+
             return new SetSuggestion(candidate.track(), candidate.slot(), null, null);
         }
         Integer bpmDelta = anchor.bpm()
@@ -93,6 +94,7 @@ public class SetSuggester {
 
         String artist = candidate.artistKey();
         return IntStream.range(0, set.size()).noneMatch(index -> {
+
             SetCandidate onSet = set.get(index);
             return Objects.equals(onSet.spotifyId(), candidate.spotifyId())
                 || (!artist.isEmpty() && Objects.equals(onSet.artistKey(), artist)
@@ -111,6 +113,7 @@ public class SetSuggester {
         long[] starts = new long[set.size()];
         long elapsed = 0;
         for (int index = 0; index < set.size(); index++) {
+
             starts[index] = elapsed;
             elapsed += rules.durationMs(set.get(index));
         }
@@ -118,6 +121,7 @@ public class SetSuggester {
     }
 
     private long totalMs(List<SetCandidate> set) {
+
         return set.stream().mapToLong(rules::durationMs).sum();
     }
 }

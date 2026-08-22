@@ -50,11 +50,14 @@ public class IngestController {
     public IngestFileResponse ingestFile(@RequestParam("file") MultipartFile file) {
 
         if (file.isEmpty()) {
+
             throw new ValidationException("FILE_EMPTY", "Przesłany plik jest pusty");
         }
         try (InputStream input = file.getInputStream()) {
+
             return mapper.toResponse(fileIngestionService.ingestFile(input));
         } catch (IOException ex) {
+
             throw new ValidationException("FILE_UNREADABLE", "Nie udało się odczytać przesłanego pliku");
         }
     }
@@ -71,6 +74,7 @@ public class IngestController {
     public IngestMetricsResponse ingestMetrics(@RequestParam("file") List<MultipartFile> files) {
 
         if (files.stream().allMatch(MultipartFile::isEmpty)) {
+
             throw new ValidationException("FILE_EMPTY", "Przesłany plik jest pusty");
         }
         List<NamedCsv> uploads = files.stream()

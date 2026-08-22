@@ -54,6 +54,7 @@ public interface LibraryApiMapper {
     static String canonicalSlotOverride(String djSlotOverride) {
 
         if (Objects.isNull(djSlotOverride) || djSlotOverride.isBlank()) {
+
             return djSlotOverride;
         }
         return DjSlot.parse(djSlotOverride)

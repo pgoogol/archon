@@ -54,6 +54,7 @@ public class EnrichmentJobHistory {
     private final JdbcTemplate jdbcTemplate;
 
     public List<EnrichmentJobStatus> recent(String jobName, int limit) {
+
         return jdbcTemplate.query(RECENT, this::toStatus, jobName, limit);
     }
 

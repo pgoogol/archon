@@ -71,6 +71,7 @@ class OpenAiCompatibleLlmClientTest {
     }
 
     private LlmProperties properties(WireMockRuntimeInfo wireMock) {
+
         return new LlmProperties("openai", wireMock.getHttpBaseUrl(), "test-key", "test-model",
             "v1", 5, 100, 2048, 0.2, 500, null);
     }

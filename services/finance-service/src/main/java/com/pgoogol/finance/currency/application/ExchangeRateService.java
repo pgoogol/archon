@@ -46,6 +46,7 @@ public class ExchangeRateService {
         Objects.requireNonNull(onDate, "onDate");
         Currency currency = currencyService.get(code);
         if (currencyService.isBase(currency.getCode())) {
+
             return FxRate.identity(onDate);
         }
         return exchangeRateRepository
@@ -78,6 +79,7 @@ public class ExchangeRateService {
 
         Currency currency = currencyService.get(code);
         if (currencyService.isBase(currency.getCode())) {
+
             throw new ValidationException(ErrorCodes.BASE_CURRENCY_RATE,
                 ExceptionMessageConstants.BASE_CURRENCY_RATE.formatted(
                     currency.getCode()));
@@ -112,6 +114,7 @@ public class ExchangeRateService {
     private List<String> resolveTargets(List<String> codes) {
 
         if (Objects.isNull(codes) || codes.isEmpty()) {
+
             return currencyService.listAll().stream()
                 .map(Currency::getCode)
                 .filter(code -> !currencyService.isBase(code))
@@ -129,6 +132,7 @@ public class ExchangeRateService {
         return exchangeRateRepository
             .findById(new ExchangeRateId(code, rate.rateDate()))
             .map(existing -> {
+
                 existing.replaceRate(rate.rate(), source);
                 return existing;
             })
@@ -141,6 +145,7 @@ public class ExchangeRateService {
         Objects.requireNonNull(from, "from");
         Objects.requireNonNull(to, "to");
         if (from.isAfter(to)) {
+
             throw new ValidationException(ErrorCodes.INVALID_DATE_RANGE,
                 ExceptionMessageConstants.INVALID_DATE_RANGE.formatted(from, to));
         }

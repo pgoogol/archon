@@ -163,7 +163,23 @@ boolean hasRole = CollectionUtils.containsAny(roles, allowed);
 
 - 4-space indentation, never tabs.
 - Opening brace on the same line.
-- Leave one blank line after the opening brace of a class or method body.
+- **Leave one blank line after every opening brace** — not only a class or method
+  body, but `if`, `else`, `for`, `while`, `do`, `try`, `catch`, `finally`,
+  `switch` and a block-bodied lambda too. Two exceptions: an empty block (`{`
+  immediately followed by `}`) gets nothing, and `{` opening an array
+  initializer in an annotation (`@CsvSource({`) is not a block.
+  ```java
+  // WRONG
+  if (Objects.isNull(value)) {
+      return null;
+  }
+  // CORRECT
+  if (Objects.isNull(value)) {
+
+      return null;
+  }
+  ```
+  Spotless does not enforce this — it is on review.
 - Do not hand-format what a tool should format — Spotless (`./mvnw spotless:check`).
 
 ## Spring

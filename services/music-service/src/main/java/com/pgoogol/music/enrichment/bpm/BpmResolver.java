@@ -85,6 +85,7 @@ public class BpmResolver {
     private Optional<BigDecimal> searchFallback(TrackCatalog track) {
 
         if (Objects.isNull(track.getArtist()) || Objects.isNull(track.getTitle())) {
+
             return Optional.empty();
         }
         return deezerClient.findBpmByArtistTitle(track.getArtist(), track.getTitle());
@@ -99,6 +100,7 @@ public class BpmResolver {
     }
 
     private int round(BigDecimal bpm) {
+
         return bpm.setScale(0, RoundingMode.HALF_UP).intValueExact();
     }
 }

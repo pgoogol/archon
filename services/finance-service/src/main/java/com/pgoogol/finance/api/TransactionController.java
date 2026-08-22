@@ -93,6 +93,7 @@ public class TransactionController {
             przesunięcie daty zostawiłoby kwotę bazową policzoną dla starej.""")
     public TransactionResponse updateTransaction(@PathVariable long id,
                                                  @Valid @RequestBody TransactionRequest request) {
+
         TransactionCommand command = mapper.toCommand(request);
         Transaction updated = transactionService.update(id, command);
         return toResponse(updated);

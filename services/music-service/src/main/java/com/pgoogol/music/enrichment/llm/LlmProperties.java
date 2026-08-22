@@ -32,6 +32,7 @@ public record LlmProperties(
     private static final Pattern VERSION_DIGITS = Pattern.compile("\\d+");
 
     public LlmProperties {
+
         cost = Objects.requireNonNullElse(cost, Cost.UNKNOWN);
     }
 
@@ -45,6 +46,7 @@ public record LlmProperties(
         static final Cost UNKNOWN = new Cost(null, null);
 
         public boolean isKnown() {
+
             return Objects.nonNull(inputPer1m) && Objects.nonNull(outputPer1m);
         }
     }
@@ -63,9 +65,11 @@ public record LlmProperties(
     public String resolvedBaseUrl() {
 
         if (Objects.nonNull(baseUrl) && !baseUrl.isBlank()) {
+
             return baseUrl;
         }
         return switch (provider.toLowerCase(Locale.ROOT)) {
+
             case "anthropic" -> "https://api.anthropic.com";
             default -> "https://api.openai.com";
         };

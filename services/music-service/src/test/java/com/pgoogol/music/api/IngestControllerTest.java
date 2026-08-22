@@ -78,6 +78,7 @@ class IngestControllerTest {
 
         @Bean
         PlaylistRefreshProperties playlistRefreshProperties() {
+
             return new PlaylistRefreshProperties(true, Duration.ofMinutes(5), Duration.ofSeconds(10));
         }
     }

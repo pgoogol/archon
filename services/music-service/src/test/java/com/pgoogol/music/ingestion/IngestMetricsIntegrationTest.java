@@ -102,6 +102,7 @@ class IngestMetricsIntegrationTest {
 
         // then — 96 z pliku to half-time salsy; katalog dostaje realne 192
         assertThat(trackCatalogRepository.findById(LAMPARA)).hasValueSatisfying(track -> {
+
             assertThat(track.getBpm()).isEqualTo(192);
             assertThat(track.getBpmSource()).isEqualTo(BpmSource.MANUAL);
             assertThat(track.getTempoClass()).isEqualTo(TempoClass.VERY_FAST);
@@ -120,6 +121,7 @@ class IngestMetricsIntegrationTest {
 
         // then
         assertThat(trackCatalogRepository.findById(CARNAVAL)).hasValueSatisfying(track -> {
+
             assertThat(track.getBpm()).isEqualTo(104);
             assertThat(track.getBpmSource()).isEqualTo(BpmSource.MANUAL);
             assertThat(track.getMusicalKey()).isEqualTo("C minor");
@@ -157,6 +159,7 @@ class IngestMetricsIntegrationTest {
         // then — gatunek z pliku, a przez to również korekta half-time dla latino
         assertThat(trackCatalogRepository.findById("5aaaaaaaaaaaaaaaaaaaaa"))
             .hasValueSatisfying(track -> {
+
                 assertThat(track.getGenreFamily()).isEqualTo(GenreFamily.LATIN);
                 assertThat(track.getBpm()).isEqualTo(192);
             });

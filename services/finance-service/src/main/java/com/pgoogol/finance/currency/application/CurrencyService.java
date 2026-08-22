@@ -67,6 +67,7 @@ public class CurrencyService {
 
         String normalized = normalize(code);
         if (currencyRepository.existsById(normalized)) {
+
             throw new ConflictException(ErrorCodes.CURRENCY_EXISTS,
                 ExceptionMessageConstants.CURRENCY_EXISTS.formatted(normalized));
         }

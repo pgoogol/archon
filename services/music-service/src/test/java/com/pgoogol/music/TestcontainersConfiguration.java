@@ -23,6 +23,7 @@ public class TestcontainersConfiguration {
     @ConditionalOnProperty(name = "test.postgres.container", havingValue = "true",
         matchIfMissing = true)
     PostgreSQLContainer<?> postgresContainer() {
+
         return new PostgreSQLContainer<>("postgres:16-alpine");
     }
 }

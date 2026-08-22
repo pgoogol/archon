@@ -555,6 +555,7 @@ class CatalogApiIntegrationTest {
                              String liveness) {
 
         new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+
             ManualMetrics metrics = new ManualMetrics(
                 trackCatalogRepository.findById(spotifyId).orElseThrow());
             metrics.setValence(new BigDecimal(valence));
@@ -571,6 +572,7 @@ class CatalogApiIntegrationTest {
             trackCatalogRepository.findById(spotifyId).orElseThrow(), LibrarySource.FILE);
         entry.setRating(rating);
         if (tag != null) {
+
             entry.setCustomTags(List.of(tag));
         }
         libraryEntryRepository.save(entry);

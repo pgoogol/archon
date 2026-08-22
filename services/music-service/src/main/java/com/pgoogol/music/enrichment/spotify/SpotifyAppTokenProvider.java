@@ -40,11 +40,14 @@ public class SpotifyAppTokenProvider {
 
         CachedToken token = cachedToken.get();
         if (Objects.nonNull(token) && token.isValid()) {
+
             return token.value();
         }
         synchronized (cachedToken) {
+
             token = cachedToken.get();
             if (Objects.nonNull(token) && token.isValid()) {
+
                 return token.value();
             }
             TokenResponse response = requestToken();
@@ -58,6 +61,7 @@ public class SpotifyAppTokenProvider {
     private TokenResponse requestToken() {
 
         try {
+
             return authClient.post()
                 .uri("/api/token")
                 .headers(headers -> headers.setBasicAuth(properties.clientId(), properties.clientSecret()))
@@ -66,6 +70,7 @@ public class SpotifyAppTokenProvider {
                 .retrieve()
                 .body(TokenResponse.class);
         } catch (HttpServerErrorException | ResourceAccessException ex) {
+
             throw new ExternalServiceException("SPOTIFY_AUTH_UNAVAILABLE",
                 "Nie udało się pobrać tokenu Spotify", ex);
         }
@@ -74,6 +79,7 @@ public class SpotifyAppTokenProvider {
     private record CachedToken(String value, Instant expiresAt) {
 
         boolean isValid() {
+
             return Instant.now().isBefore(expiresAt);
         }
     }

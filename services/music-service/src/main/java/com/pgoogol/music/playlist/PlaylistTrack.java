@@ -47,22 +47,27 @@ public class PlaylistTrack {
     }
 
     public Long getId() {
+
         return id;
     }
 
     public Playlist getPlaylist() {
+
         return playlist;
     }
 
     public TrackCatalog getTrack() {
+
         return track;
     }
 
     public Integer getPosition() {
+
         return position;
     }
 
     public void setPosition(Integer position) {
+
         this.position = Objects.requireNonNull(position, "position");
     }
 }

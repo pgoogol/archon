@@ -59,9 +59,11 @@ public class PlaylistRefreshScheduler {
     public void refresh() {
 
         if (!properties.enabled()) {
+
             return;
         }
         if (accountService.connectedUserId().isEmpty()) {
+
             lastRun.set(PlaylistRefreshStatus.skipped(Instant.now()));
             log.debug("Odświeżanie playlist pominięte — konto Spotify nie jest połączone");
             return;
@@ -70,6 +72,7 @@ public class PlaylistRefreshScheduler {
     }
 
     public PlaylistRefreshStatus status() {
+
         return lastRun.get();
     }
 
@@ -82,6 +85,7 @@ public class PlaylistRefreshScheduler {
 
         Instant startedAt = Instant.now();
         try {
+
             MyPlaylistsIngestReport report = ingestionService.ingestMyPlaylists();
             lastRun.set(PlaylistRefreshStatus.refreshed(
                 startedAt, report.imported().size(), report.failed().size()));
@@ -90,6 +94,7 @@ public class PlaylistRefreshScheduler {
                 (następne za {})""",
                 report.imported().size(), report.failed().size(), properties.interval());
         } catch (RuntimeException ex) {
+
             lastRun.set(PlaylistRefreshStatus.failed(startedAt, reason(ex)));
             log.warn("Automatyczne odświeżanie playlist nie powiodło się — ponowię za {}",
                 properties.interval(), ex);
@@ -97,6 +102,7 @@ public class PlaylistRefreshScheduler {
     }
 
     private String reason(RuntimeException ex) {
+
         return Objects.toString(ex.getMessage(), ex.getClass().getSimpleName());
     }
 }

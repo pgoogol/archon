@@ -46,10 +46,12 @@ public class SpotifyAuthController {
                                            @RequestParam(required = false) String error) {
 
         if (Objects.nonNull(error)) {
+
             throw new ValidationException("SPOTIFY_AUTH_DENIED",
                 "Spotify odrzucił logowanie: %s".formatted(error));
         }
         if (Objects.isNull(code)) {
+
             throw new ValidationException("SPOTIFY_AUTH_CODE_MISSING",
                 "Brak parametru code w powrocie ze Spotify");
         }
@@ -59,6 +61,7 @@ public class SpotifyAuthController {
     @GetMapping("/status")
     @Operation(summary = "Czy konto Spotify jest połączone")
     public SpotifyAccountResponse status() {
+
         return mapper.toResponse(accountService.status());
     }
 }

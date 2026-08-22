@@ -15,6 +15,7 @@ import java.util.Objects;
 public record FinanceProperties(String baseCurrency) {
 
     public FinanceProperties {
+
         Objects.requireNonNull(baseCurrency, "baseCurrency");
     }
 

@@ -100,6 +100,7 @@ public class CatalogService {
 
     @Nullable
     private String name(@Nullable Enum<?> value) {
+
         return Optional.ofNullable(value).map(Enum::name).orElse(null);
     }
 
@@ -125,6 +126,7 @@ public class CatalogService {
     private String musicalKeys(@Nullable CatalogSearchCriteria.HarmonicFilter harmonic) {
 
         if (Objects.isNull(harmonic)) {
+
             return null;
         }
         Set<CamelotKey> keys = harmonic.compatible()

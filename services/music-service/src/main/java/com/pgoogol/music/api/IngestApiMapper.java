@@ -56,6 +56,7 @@ public interface IngestApiMapper {
     default IngestMetricsResponse.FileReportResponse toFileResponse(MetricsFileReport fileReport) {
 
         return switch (fileReport) {
+
             case MetricsFileReport.Imported imported -> new IngestMetricsResponse.FileReportResponse(
                 imported.file(), imported.report().applied(), imported.report().matchedByIsrc(),
                 toRowErrors(imported.report().skipped()), toRowErrors(imported.report().failed()),
