@@ -52,7 +52,7 @@ describe('JobHistory', () => {
 
     expect(within(failures).getByText('sp-1')).toBeInTheDocument()
     expect(within(failures).getByText(/429 Too Many Requests/)).toBeInTheDocument()
-    expect(String(fetchMock.mock.calls[0][0])).toContain('/api/enrich/jobs/7/failures')
+    expect(String(fetchMock.mock.calls[0][0])).toContain('/music/api/v1/enrich/jobs/7/failures')
   })
 
   it('mówi, ile powodów pokazano, gdy lista jest przycięta', async () => {

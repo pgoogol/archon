@@ -62,7 +62,7 @@ class SpotifyAuthApiIntegrationTest {
     void status_whenAccountNotConnected_reportsDisconnected() throws Exception {
 
         // when + then
-        mockMvc.perform(get("/api/auth/spotify/status"))
+        mockMvc.perform(get("/music/api/v1/auth/spotify/status"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.connected").value(false))
             .andExpect(jsonPath("$.spotifyUserId").doesNotExist());
@@ -72,7 +72,7 @@ class SpotifyAuthApiIntegrationTest {
     void login_whenStarted_redirectsToSpotifyConsentScreen() throws Exception {
 
         // when + then
-        mockMvc.perform(get("/api/auth/spotify/login"))
+        mockMvc.perform(get("/music/api/v1/auth/spotify/login"))
             .andExpect(status().isFound())
             .andExpect(header().string("Location",
                 org.hamcrest.Matchers.startsWith("https://accounts.spotify.com/authorize")))
@@ -91,7 +91,7 @@ class SpotifyAuthApiIntegrationTest {
         String state = startLoginAndReadState();
 
         // when + then
-        mockMvc.perform(get("/api/auth/spotify/callback")
+        mockMvc.perform(get("/music/api/v1/auth/spotify/callback")
                 .param("code", "kod-zgody").param("state", state))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.connected").value(true))
@@ -105,7 +105,7 @@ class SpotifyAuthApiIntegrationTest {
             assertThat(account.getId()).isEqualTo(SpotifyAccount.SINGLE_ROW_ID);
         });
 
-        mockMvc.perform(get("/api/auth/spotify/status"))
+        mockMvc.perform(get("/music/api/v1/auth/spotify/status"))
             .andExpect(jsonPath("$.connected").value(true));
     }
 
@@ -113,7 +113,7 @@ class SpotifyAuthApiIntegrationTest {
     void callback_whenUserDeniedConsent_returns400() throws Exception {
 
         // when + then
-        mockMvc.perform(get("/api/auth/spotify/callback").param("error", "access_denied"))
+        mockMvc.perform(get("/music/api/v1/auth/spotify/callback").param("error", "access_denied"))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.errorCode").value("SPOTIFY_AUTH_DENIED"));
     }
@@ -125,7 +125,7 @@ class SpotifyAuthApiIntegrationTest {
         startLoginAndReadState();
 
         // when + then
-        mockMvc.perform(get("/api/auth/spotify/callback")
+        mockMvc.perform(get("/music/api/v1/auth/spotify/callback")
                 .param("code", "kod").param("state", "podrobiony"))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.errorCode").value("SPOTIFY_AUTH_STATE_MISMATCH"));
@@ -134,7 +134,7 @@ class SpotifyAuthApiIntegrationTest {
 
     private String startLoginAndReadState() throws Exception {
 
-        MvcResult result = mockMvc.perform(get("/api/auth/spotify/login")).andReturn();
+        MvcResult result = mockMvc.perform(get("/music/api/v1/auth/spotify/login")).andReturn();
         String location = result.getResponse().getHeader("Location");
         return Arrays.stream(URI.create(location).getQuery().split("&"))
             .filter(param -> param.startsWith("state="))

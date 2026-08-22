@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Size;
 import java.util.List;
 
 /**
- * Zlecenia zmian playlisty — kontrakty {@code /api/playlists*}.
+ * Zlecenia zmian playlisty — kontrakty {@code /music/api/v1/playlists*}.
  *
  * <p>{@code version} jedzie w ciele, nie w nagłówku {@code If-Match}:
  * front trzyma cały obiekt w stanie widoku, więc wersja jedzie z nim za darmo,

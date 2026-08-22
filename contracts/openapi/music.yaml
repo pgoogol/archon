@@ -10,7 +10,7 @@ info:
 
 servers:
   - url: /
-    description: aplikacja za proxy /api
+    description: aplikacja za proxy — ścieżki niosą własny prefiks serwisu
   - url: http://localhost:8080
     description: serwis uruchomiony lokalnie
 
@@ -32,7 +32,7 @@ tags:
 
 paths:
 
-  /api/catalog/tracks:
+  /music/api/v1/catalog/tracks:
     get:
       tags: [catalog]
       operationId: searchTracks
@@ -79,7 +79,7 @@ paths:
               schema: { $ref: '#/components/schemas/PageCatalogRowResponse' }
         '400': { $ref: '#/components/responses/BadRequest' }
 
-  /api/catalog/tracks/{spotifyId}:
+  /music/api/v1/catalog/tracks/{spotifyId}:
     get:
       tags: [catalog]
       operationId: getTrack
@@ -93,7 +93,7 @@ paths:
               schema: { $ref: '#/components/schemas/TrackResponse' }
         '404': { $ref: '#/components/responses/NotFound' }
 
-  /api/catalog/tracks/{spotifyId}/metrics:
+  /music/api/v1/catalog/tracks/{spotifyId}/metrics:
     get:
       tags: [catalog]
       operationId: getTrackMetrics
@@ -108,7 +108,7 @@ paths:
         '404':
           description: Utwór nie dostał metryk
 
-  /api/catalog/metrics-coverage:
+  /music/api/v1/catalog/metrics-coverage:
     get:
       tags: [catalog]
       operationId: getMetricsCoverage
@@ -120,7 +120,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/MetricsCoverageResponse' }
 
-  /api/library/tracks:
+  /music/api/v1/library/tracks:
     get:
       tags: [library]
       operationId: listLibraryTracks
@@ -152,7 +152,7 @@ paths:
         '400': { $ref: '#/components/responses/BadRequest' }
         '409': { $ref: '#/components/responses/Conflict' }
 
-  /api/library/tracks/{spotifyId}:
+  /music/api/v1/library/tracks/{spotifyId}:
     get:
       tags: [library]
       operationId: getLibraryTrack
@@ -195,7 +195,7 @@ paths:
         '204': { description: Usunięto }
         '404': { $ref: '#/components/responses/NotFound' }
 
-  /api/library/overview:
+  /music/api/v1/library/overview:
     get:
       tags: [library]
       operationId: getLibraryOverview
@@ -207,7 +207,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/LibraryOverviewResponse' }
 
-  /api/library/tags:
+  /music/api/v1/library/tags:
     get:
       tags: [library]
       operationId: listLibraryTags
@@ -221,7 +221,7 @@ paths:
                 type: array
                 items: { type: string }
 
-  /api/playlists:
+  /music/api/v1/playlists:
     get:
       tags: [playlists]
       operationId: listPlaylists
@@ -249,7 +249,7 @@ paths:
               schema: { $ref: '#/components/schemas/PlaylistSummaryResponse' }
         '400': { $ref: '#/components/responses/BadRequest' }
 
-  /api/playlists/{id}:
+  /music/api/v1/playlists/{id}:
     get:
       tags: [playlists]
       operationId: getPlaylist
@@ -285,7 +285,7 @@ paths:
         '204': { description: Usunięto }
         '404': { $ref: '#/components/responses/NotFound' }
 
-  /api/playlists/{id}/tracks:
+  /music/api/v1/playlists/{id}/tracks:
     post:
       tags: [playlists]
       operationId: addPlaylistTrack
@@ -323,7 +323,7 @@ paths:
         '400': { $ref: '#/components/responses/BadRequest' }
         '409': { $ref: '#/components/responses/Conflict' }
 
-  /api/playlists/{id}/tracks/{spotifyId}:
+  /music/api/v1/playlists/{id}/tracks/{spotifyId}:
     delete:
       tags: [playlists]
       operationId: removePlaylistTrack
@@ -339,7 +339,7 @@ paths:
               schema: { $ref: '#/components/schemas/PlaylistResponse' }
         '404': { $ref: '#/components/responses/NotFound' }
 
-  /api/playlists/{id}/export-to-spotify:
+  /music/api/v1/playlists/{id}/export-to-spotify:
     post:
       tags: [playlists]
       operationId: exportPlaylistToSpotify
@@ -354,7 +354,7 @@ paths:
         '400': { $ref: '#/components/responses/BadRequest' }
         '404': { $ref: '#/components/responses/NotFound' }
 
-  /api/sets/propose:
+  /music/api/v1/sets/propose:
     post:
       tags: [sets]
       operationId: proposeSet
@@ -372,7 +372,7 @@ paths:
               schema: { $ref: '#/components/schemas/SetProposalResponse' }
         '400': { $ref: '#/components/responses/BadRequest' }
 
-  /api/sets/{playlistId}/fill:
+  /music/api/v1/sets/{playlistId}/fill:
     post:
       tags: [sets]
       operationId: fillSet
@@ -392,7 +392,7 @@ paths:
         '400': { $ref: '#/components/responses/BadRequest' }
         '404': { $ref: '#/components/responses/NotFound' }
 
-  /api/sets/{playlistId}/suggest:
+  /music/api/v1/sets/{playlistId}/suggest:
     post:
       tags: [sets]
       operationId: suggestForSet
@@ -411,7 +411,7 @@ paths:
               schema: { $ref: '#/components/schemas/SetSuggestionResponse' }
         '400': { $ref: '#/components/responses/BadRequest' }
 
-  /api/enrich:
+  /music/api/v1/enrich:
     post:
       tags: [enrich]
       operationId: startEnrichment
@@ -429,7 +429,7 @@ paths:
               schema: { $ref: '#/components/schemas/ExecutionIdResponse' }
         '400': { $ref: '#/components/responses/BadRequest' }
 
-  /api/enrich/estimate:
+  /music/api/v1/enrich/estimate:
     post:
       tags: [enrich]
       operationId: estimateEnrichment
@@ -447,7 +447,7 @@ paths:
               schema: { $ref: '#/components/schemas/EnrichmentEstimateResponse' }
         '400': { $ref: '#/components/responses/BadRequest' }
 
-  /api/enrich/jobs:
+  /music/api/v1/enrich/jobs:
     get:
       tags: [enrich]
       operationId: listEnrichJobs
@@ -462,7 +462,7 @@ paths:
                 type: array
                 items: { $ref: '#/components/schemas/EnrichJobResponse' }
 
-  /api/enrich/jobs/{executionId}:
+  /music/api/v1/enrich/jobs/{executionId}:
     get:
       tags: [enrich]
       operationId: getEnrichJob
@@ -475,7 +475,7 @@ paths:
               schema: { $ref: '#/components/schemas/EnrichJobResponse' }
         '404': { $ref: '#/components/responses/NotFound' }
 
-  /api/enrich/jobs/{executionId}/failures:
+  /music/api/v1/enrich/jobs/{executionId}/failures:
     get:
       tags: [enrich]
       operationId: getEnrichJobFailures
@@ -493,7 +493,7 @@ paths:
                 items: { $ref: '#/components/schemas/EnrichFailureResponse' }
         '404': { $ref: '#/components/responses/NotFound' }
 
-  /api/enrich/jobs/{executionId}/restart:
+  /music/api/v1/enrich/jobs/{executionId}/restart:
     post:
       tags: [enrich]
       operationId: restartEnrichJob
@@ -508,7 +508,7 @@ paths:
         '400': { $ref: '#/components/responses/BadRequest' }
         '404': { $ref: '#/components/responses/NotFound' }
 
-  /api/enrich/missing-count:
+  /music/api/v1/enrich/missing-count:
     get:
       tags: [enrich]
       operationId: getMissingCount
@@ -520,7 +520,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/MissingFieldsCount' }
 
-  /api/ingest/file:
+  /music/api/v1/ingest/file:
     post:
       tags: [ingest]
       operationId: ingestFile
@@ -542,7 +542,7 @@ paths:
               schema: { $ref: '#/components/schemas/IngestFileResponse' }
         '400': { $ref: '#/components/responses/BadRequest' }
 
-  /api/ingest/metrics:
+  /music/api/v1/ingest/metrics:
     post:
       tags: [ingest]
       operationId: ingestMetrics
@@ -566,7 +566,7 @@ paths:
               schema: { $ref: '#/components/schemas/IngestMetricsResponse' }
         '400': { $ref: '#/components/responses/BadRequest' }
 
-  /api/ingest/playlist:
+  /music/api/v1/ingest/playlist:
     post:
       tags: [ingest]
       operationId: ingestPlaylist
@@ -585,7 +585,7 @@ paths:
         '400': { $ref: '#/components/responses/BadRequest' }
         '502': { $ref: '#/components/responses/ExternalServiceError' }
 
-  /api/ingest/my-playlists:
+  /music/api/v1/ingest/my-playlists:
     post:
       tags: [ingest]
       operationId: ingestMyPlaylists
@@ -599,7 +599,7 @@ paths:
               schema: { $ref: '#/components/schemas/IngestMyPlaylistsResponse' }
         '400': { $ref: '#/components/responses/BadRequest' }
 
-  /api/ingest/my-playlists/refresh-status:
+  /music/api/v1/ingest/my-playlists/refresh-status:
     get:
       tags: [ingest]
       operationId: getPlaylistRefreshStatus
@@ -611,7 +611,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/PlaylistRefreshStatusResponse' }
 
-  /api/auth/spotify/login:
+  /music/api/v1/auth/spotify/login:
     get:
       tags: [auth]
       operationId: spotifyLogin
@@ -623,7 +623,7 @@ paths:
             Location:
               schema: { type: string }
 
-  /api/auth/spotify/callback:
+  /music/api/v1/auth/spotify/callback:
     get:
       tags: [auth]
       operationId: spotifyCallback
@@ -640,7 +640,7 @@ paths:
               schema: { $ref: '#/components/schemas/SpotifyAccountResponse' }
         '400': { $ref: '#/components/responses/BadRequest' }
 
-  /api/auth/spotify/status:
+  /music/api/v1/auth/spotify/status:
     get:
       tags: [auth]
       operationId: spotifyStatus

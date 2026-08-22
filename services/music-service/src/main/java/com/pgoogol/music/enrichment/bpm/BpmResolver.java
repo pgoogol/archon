@@ -7,6 +7,7 @@ import com.pgoogol.music.catalog.ManualMetrics;
 import com.pgoogol.music.catalog.ManualMetricsRepository;
 import com.pgoogol.music.catalog.TrackCatalog;
 import com.pgoogol.music.enrichment.deezer.DeezerClient;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -26,22 +27,13 @@ import java.util.stream.Collectors;
  * do bazy — persystencja należy do writera joba wzbogacania (M1.6).
  */
 @Component
+@RequiredArgsConstructor
 public class BpmResolver {
 
     private final ManualMetricsRepository manualMetricsRepository;
     private final AudioFeaturesRepository audioFeaturesRepository;
     private final DeezerClient deezerClient;
     private final HalfTimeCorrector halfTimeCorrector;
-
-    public BpmResolver(ManualMetricsRepository manualMetricsRepository,
-                       AudioFeaturesRepository audioFeaturesRepository, DeezerClient deezerClient,
-                       HalfTimeCorrector halfTimeCorrector) {
-
-        this.manualMetricsRepository = manualMetricsRepository;
-        this.audioFeaturesRepository = audioFeaturesRepository;
-        this.deezerClient = deezerClient;
-        this.halfTimeCorrector = halfTimeCorrector;
-    }
 
     public Optional<BpmResolution> resolve(TrackCatalog track) {
 

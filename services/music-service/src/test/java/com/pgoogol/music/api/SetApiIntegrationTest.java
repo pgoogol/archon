@@ -95,7 +95,7 @@ class SetApiIntegrationTest {
             .andExpect(jsonPath("$.tracks[0].djSlot").value("WARMUP"));
 
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                .get("/api/playlists"))
+                .get("/music/api/v1/playlists"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.length()").value(0));
     }
@@ -224,7 +224,7 @@ class SetApiIntegrationTest {
                     org.hamcrest.Matchers.not(org.hamcrest.Matchers.oneOf("sp-00", "sp-01")))));
 
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                .get("/api/playlists/{id}", playlistId))
+                .get("/music/api/v1/playlists/{id}", playlistId))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.tracks.length()").value(2));
     }
@@ -312,14 +312,14 @@ class SetApiIntegrationTest {
 
     private long createSet(String name, String... spotifyIds) throws Exception {
 
-        String created = mockMvc.perform(post("/api/playlists")
+        String created = mockMvc.perform(post("/music/api/v1/playlists")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(Map.of("name", name))))
             .andExpect(status().isCreated())
             .andReturn().getResponse().getContentAsString();
         long playlistId = objectMapper.readTree(created).get("id").asLong();
         for (String spotifyId : spotifyIds) {
-            mockMvc.perform(post("/api/playlists/{id}/tracks", playlistId)
+            mockMvc.perform(post("/music/api/v1/playlists/{id}/tracks", playlistId)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(Map.of("spotifyId", spotifyId))))
                 .andExpect(status().isOk());
@@ -330,7 +330,7 @@ class SetApiIntegrationTest {
     private org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder propose(
             Map<String, Object> body) throws Exception {
 
-        return post("/api/sets/propose")
+        return post("/music/api/v1/sets/propose")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(body));
     }
@@ -338,7 +338,7 @@ class SetApiIntegrationTest {
     private org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder fill(
             long playlistId, Map<String, Object> body) throws Exception {
 
-        return post("/api/sets/{id}/fill", playlistId)
+        return post("/music/api/v1/sets/{id}/fill", playlistId)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(body));
     }
@@ -346,7 +346,7 @@ class SetApiIntegrationTest {
     private org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder suggest(
             long playlistId, Map<String, Object> body) throws Exception {
 
-        return post("/api/sets/{id}/suggest", playlistId)
+        return post("/music/api/v1/sets/{id}/suggest", playlistId)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(body));
     }

@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping("/api/finance/transactions")
+@RequestMapping("/finance/api/v1/transactions")
 @Tag(name = "transactions", description = "Wydatki, przychody i transfery")
 @RequiredArgsConstructor
 public class TransactionController {

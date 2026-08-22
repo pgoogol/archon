@@ -1,5 +1,6 @@
 package com.pgoogol.music.playlist;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -31,15 +32,12 @@ import java.util.Set;
  * set, więc po pierwszym uruchomieniu byłby bezużyteczny.</p>
  */
 @Component
+@RequiredArgsConstructor
 public class SetGenerator {
 
     static final int SHORTLIST = 5;
 
     private final SetRules rules;
-
-    public SetGenerator(SetRules rules) {
-        this.rules = rules;
-    }
 
     public SetProposal generate(List<SetCandidate> candidates, Duration target, SetCurve curve,
                                 @Nullable Long seed) {

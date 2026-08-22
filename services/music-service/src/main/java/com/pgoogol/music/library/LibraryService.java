@@ -5,6 +5,7 @@ import com.pgoogol.music.catalog.TrackCatalogRepository;
 import com.pgoogol.music.common.ConflictException;
 import com.pgoogol.music.common.NotFoundException;
 import com.pgoogol.music.common.ValidationException;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -21,6 +22,7 @@ import java.util.Objects;
  * dane deterministyczne deduplikują koszt wzbogacania).
  */
 @Service
+@RequiredArgsConstructor
 public class LibraryService {
 
     private static final Logger log = LoggerFactory.getLogger(LibraryService.class);
@@ -30,15 +32,6 @@ public class LibraryService {
     private final LibraryEntryRepository libraryEntryRepository;
     private final TrackCatalogRepository trackCatalogRepository;
     private final LibraryOverviewRepository libraryOverviewRepository;
-
-    public LibraryService(LibraryEntryRepository libraryEntryRepository,
-                          TrackCatalogRepository trackCatalogRepository,
-                          LibraryOverviewRepository libraryOverviewRepository) {
-
-        this.libraryEntryRepository = libraryEntryRepository;
-        this.trackCatalogRepository = trackCatalogRepository;
-        this.libraryOverviewRepository = libraryOverviewRepository;
-    }
 
     @Transactional(readOnly = true)
     public Page<LibraryEntry> list(Pageable pageable) {

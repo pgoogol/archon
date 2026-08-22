@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Pełny stos HTTP dla POST /api/ingest/file na realnym Postgresie —
+ * Pełny stos HTTP dla POST /music/api/v1/ingest/file na realnym Postgresie —
  * próbka w stylu Exportify: 4 poprawne utwory, duplikat w pliku, wiersz odrzucany.
  */
 @SpringBootTest
@@ -57,7 +57,7 @@ class IngestFileIntegrationTest {
         MockMultipartFile file = sampleCsv();
 
         // when + then
-        mockMvc.perform(multipart("/api/ingest/file").file(file))
+        mockMvc.perform(multipart("/music/api/v1/ingest/file").file(file))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.imported").value(4))
             .andExpect(jsonPath("$.alreadyExisted").value(1))
@@ -79,11 +79,11 @@ class IngestFileIntegrationTest {
     void ingestFile_whenSameFileUploadedTwice_secondImportAddsNothing() throws Exception {
 
         // given
-        mockMvc.perform(multipart("/api/ingest/file").file(sampleCsv()))
+        mockMvc.perform(multipart("/music/api/v1/ingest/file").file(sampleCsv()))
             .andExpect(status().isOk());
 
         // when + then
-        mockMvc.perform(multipart("/api/ingest/file").file(sampleCsv()))
+        mockMvc.perform(multipart("/music/api/v1/ingest/file").file(sampleCsv()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.imported").value(0))
             .andExpect(jsonPath("$.alreadyExisted").value(5));
@@ -98,7 +98,7 @@ class IngestFileIntegrationTest {
         MockMultipartFile file = new MockMultipartFile("file", "empty.csv", "text/csv", new byte[0]);
 
         // when + then
-        mockMvc.perform(multipart("/api/ingest/file").file(file))
+        mockMvc.perform(multipart("/music/api/v1/ingest/file").file(file))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.errorCode").value("FILE_EMPTY"));
     }
@@ -114,7 +114,7 @@ class IngestFileIntegrationTest {
             ("Track URI,Track Name,Artist Name(s),Album Name\n" + rows).getBytes(StandardCharsets.UTF_8));
 
         // when + then
-        mockMvc.perform(multipart("/api/ingest/file").file(file))
+        mockMvc.perform(multipart("/music/api/v1/ingest/file").file(file))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.imported").value(2500))
             .andExpect(jsonPath("$.failed.length()").value(0));

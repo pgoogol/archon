@@ -1,6 +1,7 @@
 package com.pgoogol.music.enrichment.spotify;
 
 import com.pgoogol.music.common.ValidationException;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * w pamięci — po restarcie aplikacji trzeba je po prostu powtórzyć.
  */
 @Service
+@RequiredArgsConstructor
 public class SpotifyAccountService {
 
     private static final Duration AUTHORIZATION_TTL = Duration.ofMinutes(10);
@@ -33,15 +35,6 @@ public class SpotifyAccountService {
     private final SpotifyPkce pkce;
     private final SpotifyAccountRepository accountRepository;
     private final AtomicReference<PendingAuthorization> pending = new AtomicReference<>();
-
-    public SpotifyAccountService(SpotifyProperties properties, SpotifyOAuthClient oauthClient,
-                                 SpotifyPkce pkce, SpotifyAccountRepository accountRepository) {
-
-        this.properties = properties;
-        this.oauthClient = oauthClient;
-        this.pkce = pkce;
-        this.accountRepository = accountRepository;
-    }
 
     /** Adres zgody Spotify; równolegle zapamiętuje verifier i state do weryfikacji powrotu. */
     public URI authorizationUri() {
@@ -97,7 +90,7 @@ public class SpotifyAccountService {
 
         SpotifyAccount account = accountRepository.findConnected()
             .orElseThrow(() -> new ValidationException("SPOTIFY_NOT_CONNECTED",
-                "Konto Spotify nie jest połączone — otwórz /api/auth/spotify/login"));
+                "Konto Spotify nie jest połączone — otwórz /music/api/v1/auth/spotify/login"));
         if (!account.isExpiredAt(Instant.now().plus(EXPIRY_MARGIN))) {
             return account.getAccessToken();
         }
@@ -112,7 +105,7 @@ public class SpotifyAccountService {
         PendingAuthorization authorization = pending.getAndSet(null);
         if (Objects.isNull(authorization) || authorization.isExpired()) {
             throw new ValidationException("SPOTIFY_AUTH_EXPIRED",
-                "Logowanie wygasło lub nie zostało rozpoczęte — otwórz /api/auth/spotify/login");
+                "Logowanie wygasło lub nie zostało rozpoczęte — otwórz /music/api/v1/auth/spotify/login");
         }
         if (!Objects.equals(authorization.state(), state)) {
             throw new ValidationException("SPOTIFY_AUTH_STATE_MISMATCH",

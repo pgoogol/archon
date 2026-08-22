@@ -17,7 +17,7 @@ info:
 
 servers:
   - url: /
-    description: aplikacja za proxy /api
+    description: aplikacja za proxy — ścieżki niosą własny prefiks serwisu
   - url: http://localhost:8081
     description: serwis uruchomiony lokalnie
 
@@ -33,7 +33,7 @@ tags:
 
 paths:
 
-  /api/finance/currencies:
+  /finance/api/v1/currencies:
     get:
       tags: [currencies]
       operationId: listCurrencies
@@ -64,7 +64,7 @@ paths:
         '400': { $ref: '#/components/responses/BadRequest' }
         '409': { $ref: '#/components/responses/Conflict' }
 
-  /api/finance/exchange-rates:
+  /finance/api/v1/exchange-rates:
     get:
       tags: [currencies]
       operationId: listExchangeRates
@@ -108,7 +108,7 @@ paths:
         '400': { $ref: '#/components/responses/BadRequest' }
         '404': { $ref: '#/components/responses/NotFound' }
 
-  /api/finance/exchange-rates/sync:
+  /finance/api/v1/exchange-rates/sync:
     post:
       tags: [currencies]
       operationId: syncExchangeRates
@@ -130,7 +130,7 @@ paths:
         '400': { $ref: '#/components/responses/BadRequest' }
         '502': { $ref: '#/components/responses/BadGateway' }
 
-  /api/finance/accounts:
+  /finance/api/v1/accounts:
     get:
       tags: [accounts]
       operationId: listAccounts
@@ -163,7 +163,7 @@ paths:
         '400': { $ref: '#/components/responses/BadRequest' }
         '404': { $ref: '#/components/responses/NotFound' }
 
-  /api/finance/accounts/{id}:
+  /finance/api/v1/accounts/{id}:
     put:
       tags: [accounts]
       operationId: updateAccount
@@ -197,7 +197,7 @@ paths:
           description: Konto zarchiwizowane
         '404': { $ref: '#/components/responses/NotFound' }
 
-  /api/finance/accounts/{id}/balance:
+  /finance/api/v1/accounts/{id}/balance:
     get:
       tags: [accounts]
       operationId: getAccountBalance
@@ -216,7 +216,7 @@ paths:
               schema: { $ref: '#/components/schemas/AccountBalanceResponse' }
         '404': { $ref: '#/components/responses/NotFound' }
 
-  /api/finance/categories:
+  /finance/api/v1/categories:
     get:
       tags: [categories]
       operationId: listCategories
@@ -255,7 +255,7 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/Conflict' }
 
-  /api/finance/categories/{id}:
+  /finance/api/v1/categories/{id}:
     put:
       tags: [categories]
       operationId: updateCategory
@@ -290,7 +290,7 @@ paths:
           description: Kategoria zarchiwizowana
         '404': { $ref: '#/components/responses/NotFound' }
 
-  /api/finance/transactions:
+  /finance/api/v1/transactions:
     get:
       tags: [transactions]
       operationId: searchTransactions
@@ -347,7 +347,7 @@ paths:
         '400': { $ref: '#/components/responses/BadRequest' }
         '404': { $ref: '#/components/responses/NotFound' }
 
-  /api/finance/transactions/{id}:
+  /finance/api/v1/transactions/{id}:
     get:
       tags: [transactions]
       operationId: getTransaction

@@ -19,15 +19,15 @@ cd frontend && npm install && npm run dev   # http://localhost:5173
 Przez UI (panel „Import CSV") albo:
 
 ```bash
-curl -X POST -F "file=@moja-biblioteka.csv;type=text/csv" http://localhost:8080/api/ingest/file
+curl -X POST -F "file=@moja-biblioteka.csv;type=text/csv" http://localhost:8080/music/api/v1/ingest/file
 ```
 
 ## 3. Wzbogacenie METADATA (Spotify → ISRC) — potrzebne przed ETL AB
 
 ```bash
 curl -X POST -H 'Content-Type: application/json' \
-  -d '{"scope":"MISSING","fields":["METADATA"]}' http://localhost:8080/api/enrich
-watch -n5 curl -s http://localhost:8080/api/enrich/jobs?limit=1
+  -d '{"scope":"MISSING","fields":["METADATA"]}' http://localhost:8080/music/api/v1/enrich
+watch -n5 curl -s http://localhost:8080/music/api/v1/enrich/jobs?limit=1
 ```
 
 ## 4. Lookupy MB + ETL dumpa AcousticBrainz
@@ -42,10 +42,10 @@ uzupełni bpm/tonację/taneczność z AB.
 
 ```bash
 curl -X POST -H 'Content-Type: application/json' \
-  -d '{"scope":"MISSING","fields":["METADATA","AUDIO","AI"]}' http://localhost:8080/api/enrich
+  -d '{"scope":"MISSING","fields":["METADATA","AUDIO","AI"]}' http://localhost:8080/music/api/v1/enrich
 ```
 
-Job w razie awarii: `POST /api/enrich/jobs/{id}/restart` (dokańcza od checkpointu).
+Job w razie awarii: `POST /music/api/v1/enrich/jobs/{id}/restart` (dokańcza od checkpointu).
 
 ## 6. Raport pokrycia + koszt
 

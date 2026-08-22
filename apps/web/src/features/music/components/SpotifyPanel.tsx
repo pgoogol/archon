@@ -78,7 +78,7 @@ export default function SpotifyPanel({ onImported }: Props) {
 
       <div className="row">
         {/* pełne przeładowanie, bo /login kończy się przekierowaniem na ekran zgody Spotify */}
-        <a className="button-link" href="/api/auth/spotify/login" data-testid="spotify-connect">
+        <a className="button-link" href="/music/api/v1/auth/spotify/login" data-testid="spotify-connect">
           {account?.connected ? 'Połącz ponownie' : 'Połącz konto'}
         </a>
         <button onClick={importMine} disabled={busy || !account?.connected} data-testid="import-my-playlists">

@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/finance/categories")
+@RequestMapping("/finance/api/v1/categories")
 @Tag(name = "categories", description = "Drzewo kategorii")
 @RequiredArgsConstructor
 public class CategoryController {

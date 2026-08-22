@@ -83,7 +83,7 @@ describe('SetFillPanel', () => {
     await userEvent.click(screen.getByTestId('fill-set'))
 
     await waitFor(() => expect(fillCalls()).toHaveLength(1))
-    expect(String(fillCalls()[0][0])).toContain('/api/sets/42/fill')
+    expect(String(fillCalls()[0][0])).toContain('/music/api/v1/sets/42/fill')
     expect(bodyOf(fillCalls()[0]).targetMinutes).toBe(240)
     expect(bodyOf(fillCalls()[0]).curve).toBe('CLUB')
   })

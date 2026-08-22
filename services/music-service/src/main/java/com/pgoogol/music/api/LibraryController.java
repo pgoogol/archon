@@ -4,6 +4,7 @@ import com.pgoogol.music.library.LibraryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -21,18 +22,13 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/library")
+@RequestMapping("/music/api/v1/library")
 @Tag(name = "Library", description = "Biblioteka DJ-a — dane prywatne")
+@RequiredArgsConstructor
 public class LibraryController {
 
     private final LibraryService libraryService;
     private final LibraryApiMapper mapper;
-
-    public LibraryController(LibraryService libraryService, LibraryApiMapper mapper) {
-
-        this.libraryService = libraryService;
-        this.mapper = mapper;
-    }
 
     @GetMapping("/tracks")
     @Operation(summary = "Lista biblioteki z pełnym rekordem katalogu (join)")

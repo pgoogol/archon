@@ -7,11 +7,11 @@ ze Spotify, D6).
 ## Jak wgrać
 
 - **UI:** zakładka *Import* → panel „Metryki utworów (CSV)" → wybierz pliki → *Wgraj metryki*.
-- **API:** `POST /api/ingest/metrics`, multipart, pole `file` — można je podać wiele razy.
+- **API:** `POST /music/api/v1/ingest/metrics`, multipart, pole `file` — można je podać wiele razy.
 
 ```bash
-curl -F file=@metryki.csv http://localhost:8080/api/ingest/metrics
-curl -F file=@wesela.csv -F file=@salsa.csv http://localhost:8080/api/ingest/metrics
+curl -F file=@metryki.csv http://localhost:8080/music/api/v1/ingest/metrics
+curl -F file=@wesela.csv -F file=@salsa.csv http://localhost:8080/music/api/v1/ingest/metrics
 ```
 
 Odpowiedź to sumy całej partii — `applied` (utwory uzupełnione), `matchedByIsrc` (wiersze

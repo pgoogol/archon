@@ -1,6 +1,7 @@
 package com.pgoogol.music.ingestion;
 
 import com.pgoogol.music.common.ValidationException;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.springframework.stereotype.Component;
@@ -21,6 +22,7 @@ import java.util.Optional;
  * Wiersze niepoprawne trafiają do {@link RowError}, nie przerywają importu.
  */
 @Component
+@RequiredArgsConstructor
 public class CsvTrackParser {
 
     private static final List<String> URI_COLUMNS =
@@ -32,14 +34,6 @@ public class CsvTrackParser {
     private final CsvReader csvReader;
     private final SpotifyTrackIdParser trackIdParser;
     private final CsvHeaderResolver headerResolver;
-
-    public CsvTrackParser(CsvReader csvReader, SpotifyTrackIdParser trackIdParser,
-                          CsvHeaderResolver headerResolver) {
-
-        this.csvReader = csvReader;
-        this.trackIdParser = trackIdParser;
-        this.headerResolver = headerResolver;
-    }
 
     public CsvParseResult parse(InputStream input) {
 

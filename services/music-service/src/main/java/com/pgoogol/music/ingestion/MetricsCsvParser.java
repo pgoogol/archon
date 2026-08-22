@@ -3,6 +3,7 @@ package com.pgoogol.music.ingestion;
 import com.pgoogol.music.catalog.GenreFamily;
 import com.pgoogol.music.catalog.GenreFamilyMapper;
 import com.pgoogol.music.common.ValidationException;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.springframework.stereotype.Component;
@@ -26,6 +27,7 @@ import java.util.Optional;
  * trafia do {@link RowError} i nie przerywa importu.
  */
 @Component
+@RequiredArgsConstructor
 public class MetricsCsvParser {
 
     private static final List<String> ID_COLUMNS =
@@ -60,17 +62,6 @@ public class MetricsCsvParser {
     private final SpotifyTrackIdParser trackIdParser;
     private final MetricValueParser valueParser;
     private final GenreFamilyMapper genreFamilyMapper;
-
-    public MetricsCsvParser(CsvReader csvReader, CsvHeaderResolver headerResolver,
-                            SpotifyTrackIdParser trackIdParser, MetricValueParser valueParser,
-                            GenreFamilyMapper genreFamilyMapper) {
-
-        this.csvReader = csvReader;
-        this.headerResolver = headerResolver;
-        this.trackIdParser = trackIdParser;
-        this.valueParser = valueParser;
-        this.genreFamilyMapper = genreFamilyMapper;
-    }
 
     public MetricsParseResult parse(InputStream input) {
 

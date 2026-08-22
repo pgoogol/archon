@@ -8,6 +8,7 @@ import com.pgoogol.music.playlist.PlaylistService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,22 +24,14 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/playlists")
+@RequestMapping("/music/api/v1/playlists")
 @Tag(name = "Playlists", description = "Playlisty i planowanie setów")
+@RequiredArgsConstructor
 public class PlaylistController {
 
     private final PlaylistService playlistService;
     private final PlaylistExportService playlistExportService;
     private final PlaylistApiMapper mapper;
-
-    public PlaylistController(PlaylistService playlistService,
-                              PlaylistExportService playlistExportService,
-                              PlaylistApiMapper mapper) {
-
-        this.playlistService = playlistService;
-        this.playlistExportService = playlistExportService;
-        this.mapper = mapper;
-    }
 
     @GetMapping
     @Operation(summary = "Lista playlist z liczbą utworów")
@@ -109,7 +102,7 @@ public class PlaylistController {
         description = """
             Pierwszy eksport zakłada prywatną playlistę na koncie właściciela, \
             kolejne nadpisują jej zawartość — kolejność na Spotify odpowiada setowi. \
-            Wymaga połączonego konta (GET /api/auth/spotify/login).""")
+            Wymaga połączonego konta (GET /music/api/v1/auth/spotify/login).""")
     public PlaylistExportResponse exportToSpotify(@PathVariable Long id) {
         return mapper.toResponse(playlistExportService.export(id));
     }

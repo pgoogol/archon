@@ -19,6 +19,7 @@ import com.pgoogol.music.common.ValidationException;
 import com.pgoogol.music.library.LibrarySearchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
@@ -32,8 +33,9 @@ import java.math.BigDecimal;
 import java.util.Objects;
 
 @RestController
-@RequestMapping("/api/catalog")
+@RequestMapping("/music/api/v1/catalog")
 @Tag(name = "Catalog", description = "Katalog utworów — dane deterministyczne")
+@RequiredArgsConstructor
 public class CatalogController {
 
     static final int DEFAULT_PAGE_SIZE = 20;
@@ -48,15 +50,6 @@ public class CatalogController {
     private final CatalogService catalogService;
     private final LibrarySearchService librarySearchService;
     private final CatalogApiMapper mapper;
-
-    public CatalogController(CatalogService catalogService,
-                             LibrarySearchService librarySearchService,
-                             CatalogApiMapper mapper) {
-
-        this.catalogService = catalogService;
-        this.librarySearchService = librarySearchService;
-        this.mapper = mapper;
-    }
 
     @GetMapping("/tracks/{spotifyId}")
     @Operation(summary = "Pełny rekord utworu z katalogu")
@@ -100,7 +93,7 @@ public class CatalogController {
             filtry biblioteki DJ-a: inLibrary (true = tylko z biblioteki, \
             false = tylko spoza), ratingMin, tag; \
             filtry metryk: valenceMin/valenceMax, instrumentalMin, livenessMax — \
-            odsiewają utwory bez metryk, por. /api/catalog/metrics-coverage; \
+            odsiewają utwory bez metryk, por. /music/api/v1/catalog/metrics-coverage; \
             filtry kompletności danych: bpmSource (MANUAL/ACOUSTICBRAINZ/DEEZER/LLM, \
             kryterium jakości tempa) i missing (METADATA/AUDIO/AI/ANY); \
             sortowanie: sort (RELEVANCE domyślnie, TITLE, ARTIST, ALBUM, YEAR, BPM, \

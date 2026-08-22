@@ -50,7 +50,7 @@ class LibraryApiIntegrationTest {
     @Test
     void addTrack_whenNewTrack_createsCatalogSkeletonAndEntry() throws Exception {
 
-        mockMvc.perform(post("/api/library/tracks")
+        mockMvc.perform(post("/music/api/v1/library/tracks")
                 .contentType(MediaType.APPLICATION_JSON).content(ADD_VIVIR_JSON))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.spotifyId").value("sp-vivir"))
@@ -65,11 +65,11 @@ class LibraryApiIntegrationTest {
     @Test
     void addTrack_whenAlreadyInLibrary_returns409() throws Exception {
 
-        mockMvc.perform(post("/api/library/tracks")
+        mockMvc.perform(post("/music/api/v1/library/tracks")
                 .contentType(MediaType.APPLICATION_JSON).content(ADD_VIVIR_JSON))
             .andExpect(status().isCreated());
 
-        mockMvc.perform(post("/api/library/tracks")
+        mockMvc.perform(post("/music/api/v1/library/tracks")
                 .contentType(MediaType.APPLICATION_JSON).content(ADD_VIVIR_JSON))
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.errorCode").value("LIBRARY_ENTRY_EXISTS"));
@@ -78,7 +78,7 @@ class LibraryApiIntegrationTest {
     @Test
     void addTrack_whenBlankTitle_returns400WithValidationError() throws Exception {
 
-        mockMvc.perform(post("/api/library/tracks")
+        mockMvc.perform(post("/music/api/v1/library/tracks")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"spotifyId\": \"sp-x\", \"title\": \"\", \"artist\": \"Ktoś\"}"))
             .andExpect(status().isBadRequest())
@@ -88,16 +88,16 @@ class LibraryApiIntegrationTest {
     @Test
     void getTrack_whenEntryExists_returnsEntryJoinedWithCatalog() throws Exception {
 
-        mockMvc.perform(post("/api/library/tracks")
+        mockMvc.perform(post("/music/api/v1/library/tracks")
                 .contentType(MediaType.APPLICATION_JSON).content(ADD_VIVIR_JSON))
             .andExpect(status().isCreated());
 
-        mockMvc.perform(get("/api/library/tracks/sp-vivir"))
+        mockMvc.perform(get("/music/api/v1/library/tracks/sp-vivir"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.spotifyId").value("sp-vivir"))
             .andExpect(jsonPath("$.track.title").value("Vivir Mi Vida"));
 
-        mockMvc.perform(get("/api/library/tracks/sp-nieistnieje"))
+        mockMvc.perform(get("/music/api/v1/library/tracks/sp-nieistnieje"))
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.errorCode").value("LIBRARY_ENTRY_NOT_FOUND"));
     }
@@ -105,11 +105,11 @@ class LibraryApiIntegrationTest {
     @Test
     void listTracks_whenEntryExists_returnsEntryJoinedWithCatalog() throws Exception {
 
-        mockMvc.perform(post("/api/library/tracks")
+        mockMvc.perform(post("/music/api/v1/library/tracks")
                 .contentType(MediaType.APPLICATION_JSON).content(ADD_VIVIR_JSON))
             .andExpect(status().isCreated());
 
-        mockMvc.perform(get("/api/library/tracks"))
+        mockMvc.perform(get("/music/api/v1/library/tracks"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.totalElements").value(1))
             .andExpect(jsonPath("$.content[0].spotifyId").value("sp-vivir"))
@@ -119,12 +119,12 @@ class LibraryApiIntegrationTest {
     @Test
     void updateTrack_whenPrivateFieldsPatched_updatesAndClearsSelectively() throws Exception {
 
-        mockMvc.perform(post("/api/library/tracks")
+        mockMvc.perform(post("/music/api/v1/library/tracks")
                 .contentType(MediaType.APPLICATION_JSON).content(ADD_VIVIR_JSON))
             .andExpect(status().isCreated());
 
         // ustawienie pól prywatnych
-        mockMvc.perform(patch("/api/library/tracks/sp-vivir")
+        mockMvc.perform(patch("/music/api/v1/library/tracks/sp-vivir")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                     {"djNotes": "pewniak na parkiet", "customTags": ["wesele", "opener"],
@@ -136,7 +136,7 @@ class LibraryApiIntegrationTest {
             .andExpect(jsonPath("$.rating").value(5));
 
         // czyszczenie notatki pustym stringiem; rating i tagi bez zmian (null)
-        mockMvc.perform(patch("/api/library/tracks/sp-vivir")
+        mockMvc.perform(patch("/music/api/v1/library/tracks/sp-vivir")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"djNotes\": \"\", \"version\": 1}"))
             .andExpect(status().isOk())
@@ -147,15 +147,15 @@ class LibraryApiIntegrationTest {
     @Test
     void listTags_whenEntriesHaveCustomTags_returnsSortedDictionaryWithoutDuplicates() throws Exception {
 
-        mockMvc.perform(post("/api/library/tracks")
+        mockMvc.perform(post("/music/api/v1/library/tracks")
                 .contentType(MediaType.APPLICATION_JSON).content(ADD_VIVIR_JSON))
             .andExpect(status().isCreated());
-        mockMvc.perform(patch("/api/library/tracks/sp-vivir")
+        mockMvc.perform(patch("/music/api/v1/library/tracks/sp-vivir")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"customTags\": [\"wesele\", \"opener\", \"wesele\"], \"version\": 0}"))
             .andExpect(status().isOk());
 
-        mockMvc.perform(get("/api/library/tags"))
+        mockMvc.perform(get("/music/api/v1/library/tags"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.length()").value(2))
             .andExpect(jsonPath("$[0]").value("opener"))
@@ -165,7 +165,7 @@ class LibraryApiIntegrationTest {
     @Test
     void listTags_whenLibraryHasNoTags_returnsEmptyList() throws Exception {
 
-        mockMvc.perform(get("/api/library/tags"))
+        mockMvc.perform(get("/music/api/v1/library/tags"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.length()").value(0));
     }
@@ -173,11 +173,11 @@ class LibraryApiIntegrationTest {
     @Test
     void updateTrack_whenRatingOutOfRange_returns400() throws Exception {
 
-        mockMvc.perform(post("/api/library/tracks")
+        mockMvc.perform(post("/music/api/v1/library/tracks")
                 .contentType(MediaType.APPLICATION_JSON).content(ADD_VIVIR_JSON))
             .andExpect(status().isCreated());
 
-        mockMvc.perform(patch("/api/library/tracks/sp-vivir")
+        mockMvc.perform(patch("/music/api/v1/library/tracks/sp-vivir")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"rating\": 7, \"version\": 0}"))
             .andExpect(status().isBadRequest())
@@ -187,7 +187,7 @@ class LibraryApiIntegrationTest {
     @Test
     void updateTrack_whenEntryMissing_returns404() throws Exception {
 
-        mockMvc.perform(patch("/api/library/tracks/sp-nieistnieje")
+        mockMvc.perform(patch("/music/api/v1/library/tracks/sp-nieistnieje")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"rating\": 3, \"version\": 0}"))
             .andExpect(status().isNotFound())
@@ -197,17 +197,17 @@ class LibraryApiIntegrationTest {
     @Test
     void deleteTrack_whenEntryExists_removesEntryButKeepsCatalogRecord() throws Exception {
 
-        mockMvc.perform(post("/api/library/tracks")
+        mockMvc.perform(post("/music/api/v1/library/tracks")
                 .contentType(MediaType.APPLICATION_JSON).content(ADD_VIVIR_JSON))
             .andExpect(status().isCreated());
 
-        mockMvc.perform(delete("/api/library/tracks/sp-vivir"))
+        mockMvc.perform(delete("/music/api/v1/library/tracks/sp-vivir"))
             .andExpect(status().isNoContent());
 
         assertThat(libraryEntryRepository.count()).isZero();
         assertThat(trackCatalogRepository.existsById("sp-vivir")).isTrue();
 
-        mockMvc.perform(delete("/api/library/tracks/sp-vivir"))
+        mockMvc.perform(delete("/music/api/v1/library/tracks/sp-vivir"))
             .andExpect(status().isNotFound());
     }
 }

@@ -11,6 +11,7 @@ import com.pgoogol.music.library.LibraryEntryRepository;
 import com.pgoogol.music.library.TrackSlotOverride;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
@@ -33,6 +34,7 @@ import java.util.stream.IntStream;
  * (M2.4) czytały to samo.
  */
 @Service
+@RequiredArgsConstructor
 public class PlaylistService {
 
     private static final Logger log = LoggerFactory.getLogger(PlaylistService.class);
@@ -44,23 +46,6 @@ public class PlaylistService {
     private final ManualMetricsRepository manualMetricsRepository;
     private final DjSlotCalculator djSlotCalculator;
     private final EntityManager entityManager;
-
-    public PlaylistService(PlaylistRepository playlistRepository,
-                           PlaylistTrackRepository playlistTrackRepository,
-                           TrackCatalogRepository trackCatalogRepository,
-                           LibraryEntryRepository libraryEntryRepository,
-                           ManualMetricsRepository manualMetricsRepository,
-                           DjSlotCalculator djSlotCalculator,
-                           EntityManager entityManager) {
-
-        this.playlistRepository = playlistRepository;
-        this.playlistTrackRepository = playlistTrackRepository;
-        this.trackCatalogRepository = trackCatalogRepository;
-        this.libraryEntryRepository = libraryEntryRepository;
-        this.manualMetricsRepository = manualMetricsRepository;
-        this.djSlotCalculator = djSlotCalculator;
-        this.entityManager = entityManager;
-    }
 
     @Transactional
     public PlaylistSummary create(String name) {

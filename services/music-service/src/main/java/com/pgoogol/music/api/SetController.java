@@ -18,6 +18,7 @@ import com.pgoogol.music.playlist.SetSuggestions;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,18 +29,13 @@ import java.util.Locale;
 import java.util.Objects;
 
 @RestController
-@RequestMapping("/api/sets")
+@RequestMapping("/music/api/v1/sets")
 @Tag(name = "Sets", description = "Generator setu i domykanie gotowego setu")
+@RequiredArgsConstructor
 public class SetController {
 
     private final SetProposalService setProposalService;
     private final CatalogApiMapper catalogApiMapper;
-
-    public SetController(SetProposalService setProposalService, CatalogApiMapper catalogApiMapper) {
-
-        this.setProposalService = setProposalService;
-        this.catalogApiMapper = catalogApiMapper;
-    }
 
     @PostMapping("/propose")
     @Operation(summary = "Propozycja setu na zadany czas",
@@ -49,7 +45,7 @@ public class SetController {
             CLUB 15/25/45/15, EVEN 25/25/25/25 — udziały faz wieczoru), \
             utwór raz w secie, ten sam wykonawca nie częściej niż raz na 30 minut, \
             kary za skok BPM, zderzenie tonacji i brak oceny. \
-            NICZEGO NIE ZAPISUJE — playlistę zakłada DJ przez /api/playlists. \
+            NICZEGO NIE ZAPISUJE — playlistę zakłada DJ przez /music/api/v1/playlists. \
             Ten sam seed daje tę samą propozycję.""")
     public SetProposalResponse propose(@Valid @RequestBody SetProposalRequest request) {
 
@@ -71,7 +67,7 @@ public class SetController {
             początek wieczoru (liczą się do czasu, blokują powtórkę utworu i odstęp \
             wykonawcy), a wynikiem jest sama końcówka. targetMinutes to długość CAŁEGO \
             wieczoru, nie tego, co dochodzi. NICZEGO NIE ZAPISUJE — utwory dopisuje \
-            DJ przez /api/playlists/{id}/tracks. Ten sam seed daje ten sam dalszy ciąg.""")
+            DJ przez /music/api/v1/playlists/{id}/tracks. Ten sam seed daje ten sam dalszy ciąg.""")
     public SetFillResponse fill(@PathVariable Long playlistId,
                                 @Valid @RequestBody SetFillRequest request) {
 

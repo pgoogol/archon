@@ -3,7 +3,7 @@
 Przebieg DoD Etapu 2 na realnym koncie. Wymagania: `.env` z `SPOTIFY_CLIENT_ID`
 i `SPOTIFY_CLIENT_SECRET`, aplikacja zarejestrowana w
 [dashboardzie Spotify](https://developer.spotify.com/dashboard) z **Redirect URI**
-ustawionym dokładnie na `http://127.0.0.1:8080/api/auth/spotify/callback`
+ustawionym dokładnie na `http://127.0.0.1:8080/music/api/v1/auth/spotify/callback`
 (albo na wartość, którą podasz w `SPOTIFY_REDIRECT_URI`).
 
 ## 1. Start
@@ -17,12 +17,12 @@ cd frontend && npm install && npm run dev   # http://localhost:5173
 
 ## 2. Połączenie konta (M2.2)
 
-Otwórz w przeglądarce `http://localhost:8080/api/auth/spotify/login` (albo
+Otwórz w przeglądarce `http://localhost:8080/music/api/v1/auth/spotify/login` (albo
 przycisk „Połącz konto" w panelu *Konto Spotify*). Po zatwierdzeniu zgód Spotify
 wraca na `/callback`, a aplikacja zapisuje konto i tokeny w bazie.
 
 ```bash
-curl -s http://localhost:8080/api/auth/spotify/status
+curl -s http://localhost:8080/music/api/v1/auth/spotify/status
 # {"connected":true,"spotifyUserId":"…","displayName":"…", …}  — bez tokenów (D20)
 ```
 
@@ -35,10 +35,10 @@ Zgody nadawane raz: `playlist-read-private`, `playlist-read-collaborative`
 # pojedyncza playlista — własna albo cudza (link, URI albo samo id)
 curl -X POST -H 'Content-Type: application/json' \
   -d '{"url":"https://open.spotify.com/playlist/37i9dQZF1DX10zKzsJ2jva"}' \
-  http://localhost:8080/api/ingest/playlist
+  http://localhost:8080/music/api/v1/ingest/playlist
 
 # wszystkie własne playlisty konta (tryb C) — obserwowane cudze są pomijane
-curl -X POST http://localhost:8080/api/ingest/my-playlists
+curl -X POST http://localhost:8080/music/api/v1/ingest/my-playlists
 ```
 
 W raporcie: `tracks` (unikalne utwory), `imported` (nowe w bibliotece),
@@ -54,7 +54,7 @@ Import playlisty wypełnia grupę METADATA od ręki, więc zwykle wystarczy:
 
 ```bash
 curl -X POST -H 'Content-Type: application/json' \
-  -d '{"scope":"MISSING","fields":["AUDIO","AI"]}' http://localhost:8080/api/enrich
+  -d '{"scope":"MISSING","fields":["AUDIO","AI"]}' http://localhost:8080/music/api/v1/enrich
 ```
 
 Bez pól AUDIO/AI sloty wieczoru zostaną puste — kaskada D9 potrzebuje bpm i energii.
@@ -71,11 +71,11 @@ Z konsoli to samo:
 
 ```bash
 curl -X POST -H 'Content-Type: application/json' \
-  -d '{"name":"Wesele Kowalskich"}' http://localhost:8080/api/playlists
+  -d '{"name":"Wesele Kowalskich"}' http://localhost:8080/music/api/v1/playlists
 curl -X POST -H 'Content-Type: application/json' \
-  -d '{"spotifyId":"4uLU6hMCjMI75M1A2tKUQC"}' http://localhost:8080/api/playlists/1/tracks
+  -d '{"spotifyId":"4uLU6hMCjMI75M1A2tKUQC"}' http://localhost:8080/music/api/v1/playlists/1/tracks
 curl -X PUT -H 'Content-Type: application/json' \
-  -d '{"spotifyIds":["…","…"]}' http://localhost:8080/api/playlists/1/tracks
+  -d '{"spotifyIds":["…","…"]}' http://localhost:8080/music/api/v1/playlists/1/tracks
 ```
 
 `PUT` wymaga permutacji obecnego składu — pominięty utwór to błąd
@@ -84,7 +84,7 @@ curl -X PUT -H 'Content-Type: application/json' \
 ## 6. Eksport na Spotify (M2.4)
 
 ```bash
-curl -X POST http://localhost:8080/api/playlists/1/export-to-spotify
+curl -X POST http://localhost:8080/music/api/v1/playlists/1/export-to-spotify
 # {"spotifyPlaylistId":"…","exportedTracks":42,"created":true,
 #  "spotifyUrl":"https://open.spotify.com/playlist/…"}
 ```

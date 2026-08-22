@@ -7,7 +7,7 @@ import java.util.List;
 
 /**
  * Przegląd biblioteki (M4.3, rozbudowa M5.4) — kontrakt
- * {@code GET /api/library/overview}. Pola siedzą w pięciu grupach, bo tyle
+ * {@code GET /music/api/v1/library/overview}. Pola siedzą w pięciu grupach, bo tyle
  * stref czytania ma ekran przeglądu; rozkłady w obrębie grupy mają
  * wspólny kształt {@link BucketResponse}, więc front rysuje je jednym
  * komponentem zamiast kilkunastu prawie identycznych.

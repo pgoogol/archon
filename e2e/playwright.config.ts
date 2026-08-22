@@ -4,7 +4,8 @@ import { defineConfig, devices } from '@playwright/test'
  * Test E2E przepływu (M5.3) — przeciw DWÓM OSOBNYM APLIKACJOM, tak jak
  * działają na produkcji: zbudowany front podany statycznie (`vite preview`,
  * odpowiednik nginksa z obrazu) i backend jako osobny proces, z API pod
- * względnym /api przez proxy. Nie serwer dev z HMR-em i nie jeden artefakt.
+ * względnym /music/api/v1 przez proxy. Nie serwer dev z HMR-em i nie jeden
+ * artefakt.
  *
  * Zakres to jeden przepływ, nie siatka przypadków: od E2E chcemy sygnału
  * „całość się rozpięła", a szczegóły pokrywają testy jednostkowe i integracyjne.
@@ -79,7 +80,8 @@ export default defineConfig({
     },
     {
       // Druga aplikacja: statyki z `npm run build` podane przez podgląd Vite,
-      // który przekazuje /api na backend — tak samo jak nginx w obrazie frontu.
+      // który przekazuje /music/api/v1 na backend — tak samo jak nginx
+      // w obrazie frontu.
       //
       // `--host 127.0.0.1` jest istotne: bez niego Vite wiąże się z „localhost",
       // a na runnerach CI ta nazwa rozwiązuje się najpierw na ::1 — pętla IPv4,
