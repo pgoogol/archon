@@ -1,6 +1,7 @@
 package com.pgoogol.finance.currency.application;
 
 import com.pgoogol.finance.common.ConflictException;
+import com.pgoogol.finance.common.ErrorCodes;
 import com.pgoogol.finance.common.ExceptionMessageConstants;
 import com.pgoogol.finance.common.NotFoundException;
 import com.pgoogol.finance.currency.domain.Currency;
@@ -36,7 +37,7 @@ public class CurrencyService {
 
         String normalized = normalize(code);
         return currencyRepository.findById(normalized)
-            .orElseThrow(() -> new NotFoundException("CURRENCY_NOT_FOUND",
+            .orElseThrow(() -> new NotFoundException(ErrorCodes.CURRENCY_NOT_FOUND,
                 ExceptionMessageConstants.CURRENCY_NOT_FOUND.formatted(normalized)));
     }
 
@@ -66,7 +67,7 @@ public class CurrencyService {
 
         String normalized = normalize(code);
         if (currencyRepository.existsById(normalized)) {
-            throw new ConflictException("CURRENCY_EXISTS",
+            throw new ConflictException(ErrorCodes.CURRENCY_EXISTS,
                 ExceptionMessageConstants.CURRENCY_EXISTS.formatted(normalized));
         }
         return currencyRepository.save(new Currency(normalized, name, minorUnit));

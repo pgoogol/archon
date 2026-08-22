@@ -1,5 +1,6 @@
 package com.pgoogol.finance.currency.application;
 
+import com.pgoogol.finance.common.ErrorCodes;
 import com.pgoogol.finance.common.ExceptionMessageConstants;
 import com.pgoogol.finance.common.NotFoundException;
 import com.pgoogol.finance.common.ValidationException;
@@ -51,7 +52,7 @@ public class ExchangeRateService {
             .findTopByIdCodeAndIdRateDateLessThanEqualOrderByIdRateDateDesc(
                 currency.getCode(), onDate)
             .map(ExchangeRate::toFxRate)
-            .orElseThrow(() -> new NotFoundException("EXCHANGE_RATE_NOT_FOUND",
+            .orElseThrow(() -> new NotFoundException(ErrorCodes.EXCHANGE_RATE_NOT_FOUND,
                 ExceptionMessageConstants.EXCHANGE_RATE_NOT_FOUND.formatted(
                     currency.getCode(), onDate)));
     }
@@ -77,7 +78,7 @@ public class ExchangeRateService {
 
         Currency currency = currencyService.get(code);
         if (currencyService.isBase(currency.getCode())) {
-            throw new ValidationException("BASE_CURRENCY_RATE",
+            throw new ValidationException(ErrorCodes.BASE_CURRENCY_RATE,
                 ExceptionMessageConstants.BASE_CURRENCY_RATE.formatted(
                     currency.getCode()));
         }
@@ -140,7 +141,7 @@ public class ExchangeRateService {
         Objects.requireNonNull(from, "from");
         Objects.requireNonNull(to, "to");
         if (from.isAfter(to)) {
-            throw new ValidationException("INVALID_DATE_RANGE",
+            throw new ValidationException(ErrorCodes.INVALID_DATE_RANGE,
                 ExceptionMessageConstants.INVALID_DATE_RANGE.formatted(from, to));
         }
     }

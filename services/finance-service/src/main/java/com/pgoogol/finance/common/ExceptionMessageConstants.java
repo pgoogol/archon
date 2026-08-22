@@ -1,5 +1,7 @@
 package com.pgoogol.finance.common;
 
+import lombok.experimental.UtilityClass;
+
 /**
  * Treści komunikatów błędów w jednym miejscu. Rozsypane po serwisach różniły się
  * tonem i szczegółowością, a przy tłumaczeniu albo zmianie brzmienia trzeba je
@@ -10,7 +12,8 @@ package com.pgoogol.finance.common;
  * rzucenia wyjątku: to one są kontraktem dla klienta, treść jest tylko dla
  * człowieka.</p>
  */
-public final class ExceptionMessageConstants {
+@UtilityClass
+public class ExceptionMessageConstants {
 
     public static final String ACCOUNT_NOT_FOUND = "Konto %d nie istnieje";
     public static final String CATEGORY_NOT_FOUND = "Kategoria %d nie istnieje";
@@ -62,8 +65,4 @@ public final class ExceptionMessageConstants {
 
     public static final String NBP_RATE_LIMITED = "NBP ograniczył liczbę zapytań";
     public static final String NBP_UNAVAILABLE = "API NBP niedostępne";
-
-    private ExceptionMessageConstants() {
-
-    }
 }

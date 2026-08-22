@@ -5,6 +5,7 @@ import com.pgoogol.finance.category.domain.CategoryDirection;
 import com.pgoogol.finance.category.domain.CategoryNode;
 import com.pgoogol.finance.category.infrastructure.CategoryRepository;
 import com.pgoogol.finance.common.ConflictException;
+import com.pgoogol.finance.common.ErrorCodes;
 import com.pgoogol.finance.common.ExceptionMessageConstants;
 import com.pgoogol.finance.common.NotFoundException;
 import com.pgoogol.finance.common.ValidationException;
@@ -62,7 +63,7 @@ public class CategoryService {
     public Category get(long id) {
 
         return categoryRepository.findById(id)
-            .orElseThrow(() -> new NotFoundException("CATEGORY_NOT_FOUND",
+            .orElseThrow(() -> new NotFoundException(ErrorCodes.CATEGORY_NOT_FOUND,
                 ExceptionMessageConstants.CATEGORY_NOT_FOUND.formatted(id)));
     }
 
@@ -118,7 +119,7 @@ public class CategoryService {
     private void requireUniqueName(@Nullable Long parentId, String name, @Nullable Long excludeId) {
 
         if (categoryRepository.existsSibling(parentId, name, excludeId)) {
-            throw new ConflictException("CATEGORY_EXISTS",
+            throw new ConflictException(ErrorCodes.CATEGORY_EXISTS,
                 ExceptionMessageConstants.CATEGORY_EXISTS.formatted(name));
         }
     }
@@ -127,7 +128,7 @@ public class CategoryService {
                                                CategoryDirection direction) {
 
         if (Objects.nonNull(parent) && !Objects.equals(parent.getDirection(), direction)) {
-            throw new ValidationException("CATEGORY_DIRECTION_MISMATCH",
+            throw new ValidationException(ErrorCodes.CATEGORY_DIRECTION_MISMATCH,
                 ExceptionMessageConstants.CATEGORY_PARENT_DIRECTION_MISMATCH.formatted(
                     parent.getDirection()));
         }
@@ -142,7 +143,7 @@ public class CategoryService {
         Category ancestor = newParent;
         while (Objects.nonNull(ancestor)) {
             if (Objects.equals(ancestor.getId(), category.getId())) {
-                throw new ValidationException("CATEGORY_CYCLE",
+                throw new ValidationException(ErrorCodes.CATEGORY_CYCLE,
                     ExceptionMessageConstants.CATEGORY_CYCLE);
             }
             ancestor = ancestor.getParent();

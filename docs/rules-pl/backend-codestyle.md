@@ -63,7 +63,9 @@ paths:
   obejmuje także komentarze, więc edycja wywala walidację na istniejących bazach.
 - Żadnych statycznych klas narzędziowych — używaj beanów Springa. Wyjątki:
   fixtures testowe (Object Mother) oraz klasa ze stałymi bez żadnego zachowania,
-  jak `ExceptionMessageConstants`.
+  jak `ExceptionMessageConstants` albo `ErrorCodes`. Taką klasę oznacz Lombokowym
+  **`@UtilityClass`** — robi klasę finalną, każdy składnik statycznym i generuje
+  prywatny konstruktor, więc nie zostaje to do zapamiętania.
 - **Nigdy nie używaj operatora warunkowego (ternary).** Zamiast tego `if`
   z wczesnym wyjściem — warunek schowany w wyrażeniu czyta się dwa razy,
   a zagnieżdżony trzy.

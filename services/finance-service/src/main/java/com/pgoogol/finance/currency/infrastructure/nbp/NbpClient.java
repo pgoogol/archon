@@ -1,6 +1,7 @@
 package com.pgoogol.finance.currency.infrastructure.nbp;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.pgoogol.finance.common.ErrorCodes;
 import com.pgoogol.finance.common.ExceptionMessageConstants;
 import com.pgoogol.finance.common.ExternalServiceException;
 import com.pgoogol.finance.common.RateLimitedException;
@@ -104,10 +105,10 @@ public class NbpClient implements ExchangeRateProvider {
                 // brak tabeli w zakresie — dzień wolny, nie awaria
                 return null;
             } catch (HttpClientErrorException.TooManyRequests ex) {
-                throw new RateLimitedException("NBP_RATE_LIMITED",
+                throw new RateLimitedException(ErrorCodes.NBP_RATE_LIMITED,
                     ExceptionMessageConstants.NBP_RATE_LIMITED, null);
             } catch (HttpServerErrorException | ResourceAccessException ex) {
-                throw new ExternalServiceException("NBP_UNAVAILABLE",
+                throw new ExternalServiceException(ErrorCodes.NBP_UNAVAILABLE,
                     ExceptionMessageConstants.NBP_UNAVAILABLE, ex);
             }
         });

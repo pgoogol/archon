@@ -3,6 +3,7 @@ package com.pgoogol.finance.account.application;
 import com.pgoogol.finance.account.domain.Account;
 import com.pgoogol.finance.account.domain.AccountType;
 import com.pgoogol.finance.account.infrastructure.AccountRepository;
+import com.pgoogol.finance.common.ErrorCodes;
 import com.pgoogol.finance.common.ExceptionMessageConstants;
 import com.pgoogol.finance.common.NotFoundException;
 import com.pgoogol.finance.currency.application.CurrencyService;
@@ -35,7 +36,7 @@ public class AccountService {
     public Account get(long id) {
 
         Optional<Account> account = accountRepository.findById(id);
-        return account.orElseThrow(() -> new NotFoundException("ACCOUNT_NOT_FOUND",
+        return account.orElseThrow(() -> new NotFoundException(ErrorCodes.ACCOUNT_NOT_FOUND,
             ExceptionMessageConstants.ACCOUNT_NOT_FOUND.formatted(id)));
     }
 

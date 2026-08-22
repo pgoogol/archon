@@ -77,6 +77,12 @@
       <groupId>org.mapstruct</groupId>
       <artifactId>mapstruct</artifactId>
     </dependency>
+    <!--
+      Potrzebna mimo wpisu w root POM: tam jest dependencyManagement (sama wersja)
+      i annotationProcessorPaths (sam procesor). Ścieżka procesora nie trafia na
+      classpath kompilacji, więc bez tej zależności `import lombok.…` się nie
+      kompiluje. Scope `provided` z root POM — do jara aplikacji nic nie wchodzi.
+    -->
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>

@@ -22,6 +22,10 @@ AppException (abstract, RuntimeException)
 
 - Every exception carries a machine-readable `errorCode` field (`TRACK_NOT_FOUND`),
   not just a message string.
+- **Keep the codes themselves in one `ErrorCodes` class per service**, never as a
+  literal at the throw site. The code is the contract the frontend switches on, so
+  a literal typed from memory is a contract written from memory — and one list is
+  the only answer to "which codes can this service return" that isn't `grep`.
 - Never throw a raw `RuntimeException` or `Exception` from business code.
 - **Keep the message texts in one `ExceptionMessageConstants` class per service**,
   not inline at the throw site. Scattered texts drift apart in tone and detail,

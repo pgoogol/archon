@@ -447,8 +447,16 @@ components:
       properties:
         errorCode:
           type: string
-          description: Kod maszynowy — po nim klient rozpoznaje przypadek, nie po treści
-          examples: [CURRENCY_MISMATCH, TRANSFER_WITHOUT_TARGET, EXCHANGE_RATE_NOT_FOUND]
+          description: |
+            Kod maszynowy — po nim klient rozpoznaje przypadek, nie po treści.
+
+            Przykłady:
+            * `CURRENCY_MISMATCH` — waluta transakcji nie zgadza się z walutą konta
+            * `TRANSFER_WITHOUT_TARGET` — transfer bez konta docelowego
+            * `EXCHANGE_RATE_NOT_FOUND` — brak kursu na dzień księgowania
+
+            Pełna lista kodów: `com.pgoogol.finance.common.ErrorCodes`.
+          example: CURRENCY_MISMATCH
         message: { type: string }
         timestamp: { type: string, format: date-time }
         traceId: { type: [string, 'null'] }

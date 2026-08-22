@@ -63,7 +63,9 @@ paths:
   too, so editing one breaks validation on every existing database.
 - No static utility classes — use Spring beans. Exceptions: test fixtures
   (Object Mother) and a constants holder with no behaviour, such as
-  `ExceptionMessageConstants`.
+  `ExceptionMessageConstants` or `ErrorCodes`. Mark such a holder with Lombok's
+  **`@UtilityClass`** — it makes the class final, makes every member static and
+  generates the private constructor, so none of that is left to remember.
 - **Never use the ternary operator.** Write `if` with an early return instead —
   a conditional buried inside an expression is read twice, and a nested one is
   read three times.

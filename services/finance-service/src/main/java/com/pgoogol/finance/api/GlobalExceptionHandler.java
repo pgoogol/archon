@@ -1,6 +1,7 @@
 package com.pgoogol.finance.api;
 
 import com.pgoogol.finance.common.ConflictException;
+import com.pgoogol.finance.common.ErrorCodes;
 import com.pgoogol.finance.common.ExceptionMessageConstants;
 import com.pgoogol.finance.common.ExternalServiceException;
 import com.pgoogol.finance.common.NotFoundException;
@@ -46,7 +47,7 @@ public class GlobalExceptionHandler {
             .sorted()
             .collect(Collectors.joining("; "));
         log.warn("Walidacja ciała żądania nie przeszła: {}", details);
-        return ErrorResponse.of("VALIDATION_FAILED", details);
+        return ErrorResponse.of(ErrorCodes.VALIDATION_FAILED, details);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
@@ -55,7 +56,7 @@ public class GlobalExceptionHandler {
 
         // np. type=WYDATEK albo from=wczoraj — wartość spoza typu to błąd klienta
         log.warn("Niepoprawny parametr '{}': {}", ex.getName(), ex.getValue());
-        return ErrorResponse.of("INVALID_PARAMETER",
+        return ErrorResponse.of(ErrorCodes.INVALID_PARAMETER,
             ExceptionMessageConstants.INVALID_PARAMETER.formatted(ex.getName(), ex.getValue()));
     }
 
@@ -77,7 +78,7 @@ public class GlobalExceptionHandler {
     public ErrorResponse handleDataIntegrity(DataIntegrityViolationException ex) {
 
         log.error("Naruszenie więzów bazy przepuszczone przez walidację domenową", ex);
-        return ErrorResponse.of("DATA_INTEGRITY_VIOLATION",
+        return ErrorResponse.of(ErrorCodes.DATA_INTEGRITY_VIOLATION,
             ExceptionMessageConstants.DATA_INTEGRITY_VIOLATION);
     }
 
@@ -86,7 +87,7 @@ public class GlobalExceptionHandler {
     public ErrorResponse handleOptimisticLock(OptimisticLockingFailureException ex) {
 
         log.info("Konflikt zapisu (blokada optymistyczna): {}", ex.getMessage());
-        return ErrorResponse.of("RESOURCE_MODIFIED",
+        return ErrorResponse.of(ErrorCodes.RESOURCE_MODIFIED,
             ExceptionMessageConstants.RESOURCE_MODIFIED);
     }
 
@@ -111,6 +112,6 @@ public class GlobalExceptionHandler {
     public ErrorResponse handleUnexpected(Exception ex) {
 
         log.error("Nieoczekiwany błąd", ex);
-        return ErrorResponse.of("INTERNAL_ERROR", ExceptionMessageConstants.INTERNAL_ERROR);
+        return ErrorResponse.of(ErrorCodes.INTERNAL_ERROR, ExceptionMessageConstants.INTERNAL_ERROR);
     }
 }

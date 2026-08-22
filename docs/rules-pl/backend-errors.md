@@ -22,6 +22,10 @@ AppException (abstract, RuntimeException)
 
 - Każdy wyjątek niesie pole `errorCode` czytelne maszynowo (`TRACK_NOT_FOUND`),
   nie sam komunikat tekstowy.
+- **Same kody trzymaj w jednej klasie `ErrorCodes` na serwis**, nigdy jako literał
+  w miejscu rzucenia. Kod jest kontraktem, po którym front rozgałęzia logikę, więc
+  literał wpisany z pamięci jest kontraktem pisanym z pamięci — a jedna lista to
+  jedyna odpowiedź na pytanie „jakie kody może zwrócić ten serwis" inna niż `grep`.
 - Nigdy nie rzucaj gołego `RuntimeException` ani `Exception` z kodu biznesowego.
 - **Treści komunikatów trzymaj w jednej klasie `ExceptionMessageConstants`
   na serwis**, nie w miejscu rzucenia. Rozsypane po kodzie rozjeżdżają się tonem

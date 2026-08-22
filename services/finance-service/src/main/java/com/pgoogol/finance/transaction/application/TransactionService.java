@@ -4,6 +4,7 @@ import com.pgoogol.finance.account.application.AccountService;
 import com.pgoogol.finance.account.domain.Account;
 import com.pgoogol.finance.category.application.CategoryService;
 import com.pgoogol.finance.category.domain.Category;
+import com.pgoogol.finance.common.ErrorCodes;
 import com.pgoogol.finance.common.ExceptionMessageConstants;
 import com.pgoogol.finance.common.NotFoundException;
 import com.pgoogol.finance.currency.application.CurrencyService;
@@ -50,7 +51,7 @@ public class TransactionService {
     public Transaction get(long id) {
 
         return transactionRepository.findDetailedById(id)
-            .orElseThrow(() -> new NotFoundException("TRANSACTION_NOT_FOUND",
+            .orElseThrow(() -> new NotFoundException(ErrorCodes.TRANSACTION_NOT_FOUND,
                 ExceptionMessageConstants.TRANSACTION_NOT_FOUND.formatted(id)));
     }
 

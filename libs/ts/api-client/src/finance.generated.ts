@@ -213,10 +213,15 @@ export interface components {
     schemas: {
         ErrorResponse: {
             /**
-             * @description Kod maszynowy — po nim klient rozpoznaje przypadek, nie po treści
+             * @description Kod maszynowy — po nim klient rozpoznaje przypadek, nie po treści.
+             *
+             *     Przykłady:
+             *     * `CURRENCY_MISMATCH` — waluta transakcji nie zgadza się z walutą konta
+             *     * `TRANSFER_WITHOUT_TARGET` — transfer bez konta docelowego
+             *     * `EXCHANGE_RATE_NOT_FOUND` — brak kursu na dzień księgowania
+             *
+             *     Pełna lista kodów: `com.pgoogol.finance.common.ErrorCodes`.
              * @example CURRENCY_MISMATCH
-             * @example TRANSFER_WITHOUT_TARGET
-             * @example EXCHANGE_RATE_NOT_FOUND
              */
             errorCode: string;
             message: string;
