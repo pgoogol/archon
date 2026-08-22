@@ -33,7 +33,7 @@ import java.math.BigDecimal;
 import java.util.Objects;
 
 @RestController
-@RequestMapping("/api/catalog")
+@RequestMapping("/music/api/v1/catalog")
 @Tag(name = "Catalog", description = "Katalog utworów — dane deterministyczne")
 @RequiredArgsConstructor
 public class CatalogController {
@@ -93,7 +93,7 @@ public class CatalogController {
             filtry biblioteki DJ-a: inLibrary (true = tylko z biblioteki, \
             false = tylko spoza), ratingMin, tag; \
             filtry metryk: valenceMin/valenceMax, instrumentalMin, livenessMax — \
-            odsiewają utwory bez metryk, por. /api/catalog/metrics-coverage; \
+            odsiewają utwory bez metryk, por. /music/api/v1/catalog/metrics-coverage; \
             filtry kompletności danych: bpmSource (MANUAL/ACOUSTICBRAINZ/DEEZER/LLM, \
             kryterium jakości tempa) i missing (METADATA/AUDIO/AI/ANY); \
             sortowanie: sort (RELEVANCE domyślnie, TITLE, ARTIST, ALBUM, YEAR, BPM, \

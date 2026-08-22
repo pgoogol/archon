@@ -19,7 +19,7 @@ import java.util.Objects;
  * kont aplikacji: logowania do samego music-view nie ma.
  */
 @RestController
-@RequestMapping("/api/auth/spotify")
+@RequestMapping("/music/api/v1/auth/spotify")
 @Tag(name = "Auth Spotify", description = "Połączenie konta właściciela (OAuth PKCE)")
 @RequiredArgsConstructor
 public class SpotifyAuthController {
@@ -31,7 +31,7 @@ public class SpotifyAuthController {
     @Operation(summary = "Start logowania — przekierowanie na ekran zgody Spotify",
         description = """
             Otwórz ten adres w przeglądarce; po zatwierdzeniu zgód Spotify wróci \
-            na /api/auth/spotify/callback i konto zostanie zapisane.""")
+            na /music/api/v1/auth/spotify/callback i konto zostanie zapisane.""")
     public ResponseEntity<Void> login() {
 
         return ResponseEntity.status(HttpStatus.FOUND)

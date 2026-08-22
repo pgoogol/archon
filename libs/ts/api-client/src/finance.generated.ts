@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/api/finance/currencies": {
+    "/finance/api/v1/currencies": {
         parameters: {
             query?: never;
             header?: never;
@@ -22,7 +22,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/finance/exchange-rates": {
+    "/finance/api/v1/exchange-rates": {
         parameters: {
             query?: never;
             header?: never;
@@ -43,7 +43,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/finance/exchange-rates/sync": {
+    "/finance/api/v1/exchange-rates/sync": {
         parameters: {
             query?: never;
             header?: never;
@@ -63,7 +63,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/finance/accounts": {
+    "/finance/api/v1/accounts": {
         parameters: {
             query?: never;
             header?: never;
@@ -81,7 +81,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/finance/accounts/{id}": {
+    "/finance/api/v1/accounts/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -102,7 +102,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/finance/accounts/{id}/balance": {
+    "/finance/api/v1/accounts/{id}/balance": {
         parameters: {
             query?: never;
             header?: never;
@@ -122,7 +122,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/finance/categories": {
+    "/finance/api/v1/categories": {
         parameters: {
             query?: never;
             header?: never;
@@ -143,7 +143,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/finance/categories/{id}": {
+    "/finance/api/v1/categories/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -164,7 +164,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/finance/transactions": {
+    "/finance/api/v1/transactions": {
         parameters: {
             query?: never;
             header?: never;
@@ -185,7 +185,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/finance/transactions/{id}": {
+    "/finance/api/v1/transactions/{id}": {
         parameters: {
             query?: never;
             header?: never;

@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 /**
- * Zlecenie importu playlisty — {@code POST /api/ingest/playlist}.
+ * Zlecenie importu playlisty — {@code POST /music/api/v1/ingest/playlist}.
  */
 public record IngestPlaylistRequest(
     @NotBlank

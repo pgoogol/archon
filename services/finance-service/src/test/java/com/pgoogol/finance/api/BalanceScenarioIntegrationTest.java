@@ -87,12 +87,12 @@ class BalanceScenarioIntegrationTest {
             .formatted(TODAY, zlotyAccount, euroAccount));
 
         // then: 5000 − 200 − 1000 = 3800,00 zł oraz 230,00 EUR po kursie 4,00 = 920,00 zł
-        mockMvc.perform(get("/api/finance/accounts/{id}/balance", zlotyAccount))
+        mockMvc.perform(get("/finance/api/v1/accounts/{id}/balance", zlotyAccount))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.balanceMinor").value(380000))
             .andExpect(jsonPath("$.baseBalanceMinor").value(380000));
 
-        mockMvc.perform(get("/api/finance/accounts/{id}/balance", euroAccount))
+        mockMvc.perform(get("/finance/api/v1/accounts/{id}/balance", euroAccount))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.balanceMinor").value(23000))
             .andExpect(jsonPath("$.baseBalanceMinor").value(92000));
@@ -128,7 +128,7 @@ class BalanceScenarioIntegrationTest {
         long food = createCategory("Zakupy", "EXPENSE");
 
         // when & then
-        mockMvc.perform(post("/api/finance/transactions")
+        mockMvc.perform(post("/finance/api/v1/transactions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                     {"type":"TRANSFER","bookedOn":"%s","amountMinor":10000,"currency":"PLN",
@@ -146,7 +146,7 @@ class BalanceScenarioIntegrationTest {
         long zlotyAccount = createAccount("Bieżące bez kategorii", "PLN");
 
         // when & then
-        mockMvc.perform(post("/api/finance/transactions")
+        mockMvc.perform(post("/finance/api/v1/transactions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                     {"type":"EXPENSE","bookedOn":"%s","amountMinor":10000,"currency":"PLN",
@@ -157,7 +157,7 @@ class BalanceScenarioIntegrationTest {
 
     private void addEuroRate(String rate) throws Exception {
 
-        mockMvc.perform(post("/api/finance/exchange-rates")
+        mockMvc.perform(post("/finance/api/v1/exchange-rates")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                     {"code":"EUR","rateDate":"%s","rate":"%s"}""".formatted(TODAY, rate)))
@@ -166,7 +166,7 @@ class BalanceScenarioIntegrationTest {
 
     private long createAccount(String name, String currency) throws Exception {
 
-        String body = mockMvc.perform(post("/api/finance/accounts")
+        String body = mockMvc.perform(post("/finance/api/v1/accounts")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                     {"name":"%s","type":"BANK","currency":"%s","openingBalanceMinor":0,
@@ -178,7 +178,7 @@ class BalanceScenarioIntegrationTest {
 
     private long createCategory(String name, String direction) throws Exception {
 
-        String body = mockMvc.perform(post("/api/finance/categories")
+        String body = mockMvc.perform(post("/finance/api/v1/categories")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                     {"name":"%s","direction":"%s"}""".formatted(name, direction)))
@@ -189,7 +189,7 @@ class BalanceScenarioIntegrationTest {
 
     private JsonNode createTransaction(String body) throws Exception {
 
-        String response = mockMvc.perform(post("/api/finance/transactions")
+        String response = mockMvc.perform(post("/finance/api/v1/transactions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body))
             .andExpect(status().isCreated())

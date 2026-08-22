@@ -62,7 +62,7 @@ beforeEach(() => {
     if (target.includes('/tracks') && init?.method === 'PUT') {
       return Promise.resolve(jsonResponse(afterAdd))
     }
-    if (/\/api\/playlists\/\d+$/.test(target)) return Promise.resolve(jsonResponse(detail))
+    if (/\/music\/api\/v1\/playlists\/\d+$/.test(target)) return Promise.resolve(jsonResponse(detail))
     return Promise.resolve(jsonResponse(summaries))
   })
   globalThis.fetch = fetchMock as unknown as typeof fetch

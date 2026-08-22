@@ -4,7 +4,7 @@ import java.time.Instant;
 
 /**
  * Stan automatycznego odświeżania playlist (M4.7) — kontrakt
- * {@code GET /api/ingest/my-playlists/refresh-status}. Bez tego odświeżanie
+ * {@code GET /music/api/v1/ingest/my-playlists/refresh-status}. Bez tego odświeżanie
  * w tle jest niewidoczne: DJ nie wie, czy patrzy na świeże dane, czy na takie,
  * których nikt nie ruszył od godziny.
  *

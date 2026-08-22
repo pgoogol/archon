@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/finance/currencies")
+@RequestMapping("/finance/api/v1/currencies")
 @Tag(name = "currencies", description = "Waluty i kursy wymiany")
 @RequiredArgsConstructor
 public class CurrencyController {

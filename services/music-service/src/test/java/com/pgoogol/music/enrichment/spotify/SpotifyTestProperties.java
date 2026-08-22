@@ -10,7 +10,7 @@ public final class SpotifyTestProperties {
 
     public static final String CLIENT_ID = "test-client-id";
     public static final String CLIENT_SECRET = "test-client-secret";
-    public static final String REDIRECT_URI = "http://127.0.0.1:8080/api/auth/spotify/callback";
+    public static final String REDIRECT_URI = "http://127.0.0.1:8080/music/api/v1/auth/spotify/callback";
     public static final String SCOPES = "playlist-read-private playlist-modify-private";
 
     private SpotifyTestProperties() {

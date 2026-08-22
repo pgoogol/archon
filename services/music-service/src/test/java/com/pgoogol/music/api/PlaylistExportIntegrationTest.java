@@ -104,7 +104,7 @@ class PlaylistExportIntegrationTest {
     void export_whenSetExportedFirstTime_createsPlaylistAndRemembersItsId() throws Exception {
 
         // when + then
-        mockMvc.perform(post("/api/playlists/%d/export-to-spotify".formatted(playlistId)))
+        mockMvc.perform(post("/music/api/v1/playlists/%d/export-to-spotify".formatted(playlistId)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.spotifyPlaylistId").value("spotify-nowa"))
             .andExpect(jsonPath("$.exportedTracks").value(2))
@@ -125,11 +125,11 @@ class PlaylistExportIntegrationTest {
     void export_whenSetAlreadyExported_overwritesSamePlaylist() throws Exception {
 
         // given
-        mockMvc.perform(post("/api/playlists/%d/export-to-spotify".formatted(playlistId)))
+        mockMvc.perform(post("/music/api/v1/playlists/%d/export-to-spotify".formatted(playlistId)))
             .andExpect(status().isOk());
 
         // when + then
-        mockMvc.perform(post("/api/playlists/%d/export-to-spotify".formatted(playlistId)))
+        mockMvc.perform(post("/music/api/v1/playlists/%d/export-to-spotify".formatted(playlistId)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.spotifyPlaylistId").value("spotify-nowa"))
             .andExpect(jsonPath("$.created").value(false));
@@ -144,7 +144,7 @@ class PlaylistExportIntegrationTest {
         Playlist empty = playlistRepository.save(new Playlist("Pusty set"));
 
         // when + then
-        mockMvc.perform(post("/api/playlists/%d/export-to-spotify".formatted(empty.getId())))
+        mockMvc.perform(post("/music/api/v1/playlists/%d/export-to-spotify".formatted(empty.getId())))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.errorCode").value("PLAYLIST_EMPTY"));
         then(playlistClient).should(never())
@@ -158,7 +158,7 @@ class PlaylistExportIntegrationTest {
         accountRepository.deleteAll();
 
         // when + then
-        mockMvc.perform(post("/api/playlists/%d/export-to-spotify".formatted(playlistId)))
+        mockMvc.perform(post("/music/api/v1/playlists/%d/export-to-spotify".formatted(playlistId)))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.errorCode").value("SPOTIFY_NOT_CONNECTED"));
     }
@@ -167,7 +167,7 @@ class PlaylistExportIntegrationTest {
     void export_whenPlaylistMissing_returns404() throws Exception {
 
         // when + then
-        mockMvc.perform(post("/api/playlists/424242/export-to-spotify"))
+        mockMvc.perform(post("/music/api/v1/playlists/424242/export-to-spotify"))
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.errorCode").value("PLAYLIST_NOT_FOUND"));
     }

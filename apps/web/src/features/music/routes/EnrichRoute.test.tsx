@@ -11,7 +11,7 @@ let fetchMock: ReturnType<typeof vi.fn>
 let estimate: EnrichmentEstimateResponse
 
 function estimateCalls() {
-  return fetchMock.mock.calls.filter((call) => String(call[0]).includes('/api/enrich/estimate'))
+  return fetchMock.mock.calls.filter((call) => String(call[0]).includes('/music/api/v1/enrich/estimate'))
 }
 
 function lastEstimateBody(): Record<string, unknown> {
@@ -23,11 +23,11 @@ beforeEach(() => {
   estimate = { trackCount: 340, aiTracks: 340, estimatedCost: 0.2516, limit: 500, withinLimit: true }
   fetchMock = vi.fn().mockImplementation((url: string) => {
     const target = String(url)
-    if (target.includes('/api/enrich/estimate')) return Promise.resolve(jsonResponse(estimate))
-    if (target.includes('/api/enrich/missing-count')) {
+    if (target.includes('/music/api/v1/enrich/estimate')) return Promise.resolve(jsonResponse(estimate))
+    if (target.includes('/music/api/v1/enrich/missing-count')) {
       return Promise.resolve(jsonResponse({ metadata: 4, audio: 380, ai: 340 }))
     }
-    if (target.includes('/api/enrich/jobs')) return Promise.resolve(jsonResponse([]))
+    if (target.includes('/music/api/v1/enrich/jobs')) return Promise.resolve(jsonResponse([]))
     return Promise.resolve(jsonResponse(aPage([], { totalElements: 2500 })))
   })
   globalThis.fetch = fetchMock as unknown as typeof fetch
@@ -43,7 +43,7 @@ describe('EnrichRoute — szacunek przed startem (M5.1)', () => {
 
     await waitFor(() => expect(box).toHaveTextContent('340'))
     expect(box).toHaveTextContent('$0.2516')
-    expect(fetchMock.mock.calls.some((call) => String(call[0]).match(/\/api\/enrich$/))).toBe(false)
+    expect(fetchMock.mock.calls.some((call) => String(call[0]).match(/\/music\/api\/v1\/enrich$/))).toBe(false)
   })
 
   it('gdy brak stawek w konfiguracji, mówi „nieznany" zamiast zera', async () => {

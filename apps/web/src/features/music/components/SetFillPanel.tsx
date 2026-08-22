@@ -1,6 +1,6 @@
 // Uzupełnianie gotowego setu (M4.4): dalszy ciąg wieczoru do obejrzenia,
 // nie zapis. Utwory dopisuje dopiero „Dopisz do setu" — istniejącą drogą przez
-// POST /api/playlists/{id}/tracks, więc domykanie zostaje bezstanowe.
+// POST /music/api/v1/playlists/{id}/tracks, więc domykanie zostaje bezstanowe.
 
 import { useEffect, useState } from 'react'
 import {

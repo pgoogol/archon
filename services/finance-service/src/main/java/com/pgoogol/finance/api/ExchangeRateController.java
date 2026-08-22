@@ -21,7 +21,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/finance/exchange-rates")
+@RequestMapping("/finance/api/v1/exchange-rates")
 @Tag(name = "currencies", description = "Waluty i kursy wymiany")
 @RequiredArgsConstructor
 public class ExchangeRateController {

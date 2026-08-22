@@ -90,7 +90,7 @@ public class SpotifyAccountService {
 
         SpotifyAccount account = accountRepository.findConnected()
             .orElseThrow(() -> new ValidationException("SPOTIFY_NOT_CONNECTED",
-                "Konto Spotify nie jest połączone — otwórz /api/auth/spotify/login"));
+                "Konto Spotify nie jest połączone — otwórz /music/api/v1/auth/spotify/login"));
         if (!account.isExpiredAt(Instant.now().plus(EXPIRY_MARGIN))) {
             return account.getAccessToken();
         }
@@ -105,7 +105,7 @@ public class SpotifyAccountService {
         PendingAuthorization authorization = pending.getAndSet(null);
         if (Objects.isNull(authorization) || authorization.isExpired()) {
             throw new ValidationException("SPOTIFY_AUTH_EXPIRED",
-                "Logowanie wygasło lub nie zostało rozpoczęte — otwórz /api/auth/spotify/login");
+                "Logowanie wygasło lub nie zostało rozpoczęte — otwórz /music/api/v1/auth/spotify/login");
         }
         if (!Objects.equals(authorization.state(), state)) {
             throw new ValidationException("SPOTIFY_AUTH_STATE_MISMATCH",
