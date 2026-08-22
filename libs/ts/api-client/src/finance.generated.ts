@@ -212,7 +212,12 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         ErrorResponse: {
-            /** @example ACCOUNT_NOT_FOUND */
+            /**
+             * @description Kod maszynowy — po nim klient rozpoznaje przypadek, nie po treści
+             * @example CURRENCY_MISMATCH
+             * @example TRANSFER_WITHOUT_TARGET
+             * @example EXCHANGE_RATE_NOT_FOUND
+             */
             errorCode: string;
             message: string;
             /** Format: date-time */
