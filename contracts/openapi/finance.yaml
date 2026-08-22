@@ -34,6 +34,17 @@ tags:
     description: Import wyciągów bankowych
   - name: recurring
     description: Rachunki cykliczne i terminarz płatności
+  - name: reports
+    description: |
+      Zestawienia i raporty.
+
+      `TRANSFER` jest wykluczony z **każdego** raportu przychodów i wydatków —
+      przelew na własne konto oszczędnościowe nie jest wydatkiem, a policzony
+      zawyżałby naraz obie strony.
+
+      Kwoty zbiorcze podawane są w walucie bazowej, po kursie zapisanym na
+      transakcji w chwili jej powstania. Żaden raport nie przelicza kwot
+      historycznych kursem bieżącym.
 
 paths:
 
@@ -674,6 +685,75 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/Conflict' }
 
+  /finance/api/v1/reports/by-category:
+    get:
+      tags: [reports]
+      operationId: reportByCategory
+      summary: Wydatki w podziale na kategorie i okresy
+      description: >-
+        Kategoria nadrzędna zawiera sumę swoich podkategorii, a same podkategorie
+        są w odpowiedzi obok niej — dzięki temu klient rozwija gałąź bez
+        drugiego zapytania.
+      parameters:
+        - { $ref: '#/components/parameters/ReportFrom' }
+        - { $ref: '#/components/parameters/ReportTo' }
+        - { $ref: '#/components/parameters/Granularity' }
+        - { $ref: '#/components/parameters/AccountIds' }
+        - { $ref: '#/components/parameters/CategoryIds' }
+        - name: direction
+          in: query
+          description: Domyślnie wydatki
+          schema: { $ref: '#/components/schemas/CategoryDirection' }
+      responses:
+        '200':
+          description: Kwoty w walucie bazowej
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ByCategoryReportResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /finance/api/v1/reports/cashflow:
+    get:
+      tags: [reports]
+      operationId: reportCashflow
+      summary: Przychody, wydatki i bilans w podziale na okresy
+      parameters:
+        - { $ref: '#/components/parameters/ReportFrom' }
+        - { $ref: '#/components/parameters/ReportTo' }
+        - { $ref: '#/components/parameters/Granularity' }
+        - { $ref: '#/components/parameters/AccountIds' }
+        - { $ref: '#/components/parameters/CategoryIds' }
+      responses:
+        '200':
+          description: Kwoty w walucie bazowej
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CashflowReportResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /finance/api/v1/reports/balances:
+    get:
+      tags: [reports]
+      operationId: reportBalances
+      summary: Saldo każdego konta na koniec każdego okresu
+      description: >-
+        Saldo podawane jest w walucie konta. Nie przeliczamy go na walutę bazową,
+        bo dla okresu zamkniętego w przeszłości nie ma jednego uczciwego kursu:
+        bieżący zmieniałby historię, a historyczny nie opisuje dzisiejszego stanu
+        majątku. Wartość bieżąca całości jest w `/reports/currency-exposure`.
+      parameters:
+        - { $ref: '#/components/parameters/ReportFrom' }
+        - { $ref: '#/components/parameters/ReportTo' }
+        - { $ref: '#/components/parameters/Granularity' }
+        - { $ref: '#/components/parameters/AccountIds' }
+      responses:
+        '200':
+          description: Salda kont po okresach
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BalancesReportResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
 components:
 
   parameters:
@@ -697,6 +777,39 @@ components:
       in: query
       description: Domyślnie zarchiwizowane pozycje są pomijane
       schema: { type: boolean, default: false }
+    ReportFrom:
+      name: from
+      in: query
+      required: true
+      description: Początek zakresu raportu, włącznie
+      schema: { type: string, format: date }
+    ReportTo:
+      name: to
+      in: query
+      required: true
+      description: Koniec zakresu raportu, włącznie
+      schema: { type: string, format: date }
+    Granularity:
+      name: granularity
+      in: query
+      description: Podział osi czasu; domyślnie miesiąc
+      schema: { $ref: '#/components/schemas/Granularity' }
+    AccountIds:
+      name: accountIds
+      in: query
+      description: Puste znaczy wszystkie konta
+      schema:
+        type: array
+        items: { type: integer, format: int64 }
+    CategoryIds:
+      name: categoryIds
+      in: query
+      description: >-
+        Puste znaczy wszystkie kategorie. Filtr obejmuje wskazaną kategorię
+        wraz z jej podkategoriami.
+      schema:
+        type: array
+        items: { type: integer, format: int64 }
 
   responses:
     BadRequest:
@@ -1229,3 +1342,98 @@ components:
           type: boolean
           description: Fałsz także wtedy, gdy wyciąg nie podał salda końcowego
       required: [matched]
+
+    Granularity:
+      type: string
+      enum: [DAY, MONTH, YEAR]
+      default: MONTH
+      description: Podział osi czasu raportu
+
+    ByCategoryReportResponse:
+      type: object
+      properties:
+        baseCurrency: { type: string, minLength: 3, maxLength: 3 }
+        rows:
+          type: array
+          items: { $ref: '#/components/schemas/ByCategoryRow' }
+        totals:
+          type: array
+          items: { $ref: '#/components/schemas/PeriodTotal' }
+      required: [baseCurrency, rows, totals]
+
+    ByCategoryRow:
+      type: object
+      properties:
+        period:
+          type: string
+          format: date
+          description: Pierwszy dzień okresu
+        categoryId: { type: integer, format: int64 }
+        categoryName: { type: string }
+        parentCategoryId: { type: [integer, 'null'], format: int64 }
+        amountMinor:
+          type: integer
+          format: int64
+          description: >-
+            Suma w walucie bazowej wraz z podkategoriami tej kategorii
+        ownAmountMinor:
+          type: integer
+          format: int64
+          description: Kwota zapisana wprost na tej kategorii, bez podkategorii
+        transactionCount: { type: integer, format: int32 }
+      required:
+        - period
+        - categoryId
+        - categoryName
+        - amountMinor
+        - ownAmountMinor
+        - transactionCount
+
+    PeriodTotal:
+      type: object
+      properties:
+        period: { type: string, format: date }
+        amountMinor: { type: integer, format: int64 }
+      required: [period, amountMinor]
+
+    CashflowReportResponse:
+      type: object
+      properties:
+        baseCurrency: { type: string, minLength: 3, maxLength: 3 }
+        rows:
+          type: array
+          items: { $ref: '#/components/schemas/CashflowRow' }
+      required: [baseCurrency, rows]
+
+    CashflowRow:
+      type: object
+      properties:
+        period: { type: string, format: date }
+        incomeMinor: { type: integer, format: int64 }
+        expenseMinor: { type: integer, format: int64 }
+        netMinor:
+          type: integer
+          format: int64
+          description: Przychody minus wydatki; bywa ujemny
+      required: [period, incomeMinor, expenseMinor, netMinor]
+
+    BalancesReportResponse:
+      type: object
+      properties:
+        rows:
+          type: array
+          items: { $ref: '#/components/schemas/AccountBalanceRow' }
+      required: [rows]
+
+    AccountBalanceRow:
+      type: object
+      properties:
+        period: { type: string, format: date }
+        accountId: { type: integer, format: int64 }
+        accountName: { type: string }
+        currency: { type: string, minLength: 3, maxLength: 3 }
+        balanceMinor:
+          type: integer
+          format: int64
+          description: Saldo na ostatni dzień okresu, w walucie konta
+      required: [period, accountId, accountName, currency, balanceMinor]

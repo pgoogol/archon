@@ -149,6 +149,24 @@ class ArchitectureTest {
     }
 
     @Test
+    @DisplayName("raporty nie sięgają po encje JPA ani po repozytoria Spring Data")
+    void reports_workWithoutEntities() {
+
+        // given: agregat raportu przechodzi przez wiele domen naraz i nie
+        // odpowiada żadnemu agregatowi domenowemu — encja byłaby tu kosztem
+        // bez zysku, a wciągnięta raz zaczyna dyktować kształt zapytań
+        ArchRule rule = noClasses()
+            .that().resideInAPackage(BASE + ".report..")
+            .should().dependOnClassesThat().areAnnotatedWith("jakarta.persistence.Entity")
+            .orShould().dependOnClassesThat()
+            .areAssignableTo("org.springframework.data.repository.Repository")
+            .because("report/ pracuje na JdbcClient i projekcjach rekordowych");
+
+        // when & then
+        rule.check(classesUnderTest);
+    }
+
+    @Test
     @DisplayName("encje JPA mieszkają w domain")
     void entities_liveInDomainPackages() {
 
