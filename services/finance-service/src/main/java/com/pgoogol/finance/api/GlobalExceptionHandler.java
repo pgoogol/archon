@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.stream.Collectors;
 
@@ -105,6 +106,19 @@ public class GlobalExceptionHandler {
 
         log.error("Zewnętrzne API zawiodło: {} — {}", ex.getErrorCode(), ex.getMessage());
         return ErrorResponse.of(ex.getErrorCode(), ex.getMessage());
+    }
+
+    /**
+     * Za duży plik to błąd wejścia, nie awaria — bez tego wgranie wyciągu ponad
+     * limit dawałoby 500 i żadnej wskazówki, co poprawić.
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleMaxUploadSize(MaxUploadSizeExceededException ex) {
+
+        log.warn("Przesłany plik przekracza limit: {}", ex.getMessage());
+        return ErrorResponse.of(ErrorCodes.FILE_TOO_LARGE,
+            ExceptionMessageConstants.FILE_TOO_LARGE);
     }
 
     @ExceptionHandler(Exception.class)

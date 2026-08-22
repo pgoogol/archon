@@ -20,7 +20,11 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Zapis i odczyt transakcji.
@@ -46,6 +50,24 @@ public class TransactionService {
 
         return transactionRepository.search(criteria.from(), criteria.to(), criteria.accountId(),
             criteria.categoryId(), criteria.type(), criteria.currency(), pageable);
+    }
+
+    /**
+     * Które wiersze wyciągu stały się którymi transakcjami. Jedno zapytanie
+     * na partię — podgląd zaimportowanego wyciągu potrzebuje tego dla każdego
+     * wiersza naraz, nie po jednym.
+     */
+    public Map<Long, Long> transactionIdsByImportRow(Collection<Long> rowIds) {
+
+        if (rowIds.isEmpty()) {
+
+            return Map.of();
+        }
+        List<TransactionRepository.ImportedTransactionRef> refs =
+            transactionRepository.findRefsByImportRowIds(rowIds);
+        return refs.stream().collect(Collectors.toMap(
+            TransactionRepository.ImportedTransactionRef::getImportRowId,
+            TransactionRepository.ImportedTransactionRef::getTransactionId));
     }
 
     public Transaction get(long id) {

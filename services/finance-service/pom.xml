@@ -72,6 +72,11 @@
       <artifactId>postgresql</artifactId>
       <scope>runtime</scope>
     </dependency>
+    <!-- wyciągi bankowe przychodzą jako CSV z cudzysłowami i średnikiem -->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-csv</artifactId>
+    </dependency>
     <!-- mappery encja → DTO generuje procesor adnotacji (ścieżka w root POM) -->
     <dependency>
       <groupId>org.mapstruct</groupId>

@@ -65,4 +65,21 @@ public class ExceptionMessageConstants {
 
     public static final String NBP_RATE_LIMITED = "NBP ograniczył liczbę zapytań";
     public static final String NBP_UNAVAILABLE = "API NBP niedostępne";
+
+    public static final String IMPORT_BATCH_NOT_FOUND = "Partia importu %d nie istnieje";
+    public static final String IMPORT_BATCH_ALREADY_COMMITTED =
+        "Partia importu %d została już zatwierdzona";
+    public static final String IMPORT_ROW_WITHOUT_CATEGORY =
+        "Wiersz %d wyciągu nie ma przypisanej kategorii";
+    public static final String STATEMENT_ALREADY_IMPORTED =
+        "Plik %s został już zaimportowany na to konto";
+    public static final String STATEMENT_FORMAT_UNKNOWN =
+        "Nie rozpoznano formatu pliku %s";
+    public static final String STATEMENT_UNREADABLE = "Nie udało się odczytać pliku %s: %s";
+    public static final String STATEMENT_EMPTY = "Plik %s nie zawiera żadnej operacji";
+    public static final String STATEMENT_CURRENCY_MISMATCH =
+        "Wyciąg jest w walucie %s, a konto prowadzone jest w %s";
+    public static final String STATEMENT_FILE_EMPTY = "Przesłany plik wyciągu jest pusty";
+    public static final String IMPORT_ROW_ASSIGNED_TWICE =
+        "Wiersz %d dostał dwie różne kategorie w jednym żądaniu";
 }

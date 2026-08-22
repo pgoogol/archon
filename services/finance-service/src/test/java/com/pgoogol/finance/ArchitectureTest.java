@@ -115,6 +115,23 @@ class ArchitectureTest {
     }
 
     @Test
+    @DisplayName("model parsowania wyciągów nie zna Springa ani JPA")
+    void statementParsing_staysFreeOfFrameworks() {
+
+        // given: parsowanie kwot, dat i klucz deduplikacji to logika, którą
+        // chcemy uruchamiać bez kontekstu aplikacji i bez bazy — a raz wpuszczona
+        // adnotacja frameworka zamienia test jednostkowy w integracyjny
+        ArchRule rule = noClasses()
+            .that().resideInAPackage(BASE + ".imports.statement..")
+            .should().dependOnClassesThat()
+            .resideInAnyPackage("org.springframework..", "jakarta.persistence..", "org.hibernate..")
+            .because("model parsowania ma się dać testować jak zwykły kod");
+
+        // when & then
+        rule.check(classesUnderTest);
+    }
+
+    @Test
     @DisplayName("encje JPA mieszkają w domain")
     void entities_liveInDomainPackages() {
 

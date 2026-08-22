@@ -30,6 +30,8 @@ tags:
     description: Drzewo kategorii
   - name: transactions
     description: Wydatki, przychody i transfery
+  - name: imports
+    description: Import wyciągów bankowych
 
 paths:
 
@@ -394,6 +396,107 @@ paths:
           description: Transakcja usunięta
         '404': { $ref: '#/components/responses/NotFound' }
 
+  /finance/api/v1/imports:
+    get:
+      tags: [imports]
+      operationId: listImportBatches
+      summary: Wgrane wyciągi, najnowsze pierwsze
+      parameters:
+        - name: accountId
+          in: query
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: Lista partii importu
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/ImportBatchResponse' }
+    post:
+      tags: [imports]
+      operationId: uploadStatement
+      summary: Wgranie wyciągu i jego sparsowanie
+      description: >-
+        Pierwszy z dwóch kroków: plik jest liczony, parsowany i deduplikowany,
+        ale ŻADNA transakcja jeszcze nie powstaje. Ten sam plik wgrany drugi raz
+        jest odrzucany po skrócie SHA-256 jego zawartości, zanim ktokolwiek go
+        sparsuje. Wiersze pokrywające się z już zaimportowanymi dostają status
+        `DUPLICATE` i nie wejdą przy zatwierdzeniu.
+      parameters:
+        - name: accountId
+          in: query
+          required: true
+          description: Konto, którego dotyczy wyciąg
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Wyciąg sparsowany, gotowy do podglądu
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ImportBatchResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /finance/api/v1/imports/{id}:
+    get:
+      tags: [imports]
+      operationId: getImportBatch
+      summary: Podgląd partii wraz z wierszami
+      description: >-
+        Wiersze wracają w kolejności z pliku, każdy ze statusem i sugerowaną
+        kategorią. Sugestia jest zawsze do potwierdzenia — nic nie zapisuje się
+        samo.
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+      responses:
+        '200':
+          description: Partia z wierszami
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ImportBatchDetailResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /finance/api/v1/imports/{id}/commit:
+    post:
+      tags: [imports]
+      operationId: commitImportBatch
+      summary: Zatwierdzenie partii — wiersze stają się transakcjami
+      description: >-
+        Wszystko w jednej transakcji bazodanowej: albo powstają wszystkie
+        transakcje, albo żadna. Wiersze ze statusem `DUPLICATE` są pomijane.
+        Odpowiedź niesie uzgodnienie salda: rozjazd między saldem końcowym
+        z wyciągu a saldem wyliczonym na `periodTo` jest pokazywany wprost
+        i NIE jest poprawiany automatycznie.
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CommitImportRequest' }
+      responses:
+        '200':
+          description: Partia zatwierdzona
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CommitImportResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
 components:
 
   parameters:
@@ -691,3 +794,129 @@ components:
         totalElements: { type: integer, format: int64 }
         totalPages: { type: integer, format: int32 }
       required: [content, page, size, totalElements, totalPages]
+
+    ImportBatchStatus:
+      type: string
+      enum: [PARSED, COMMITTED]
+      description: |
+        * `PARSED` — plik sparsowany, żadna transakcja jeszcze nie powstała
+        * `COMMITTED` — wiersze zamienione na transakcje
+
+    ImportRowStatus:
+      type: string
+      enum: [NEW, DUPLICATE, COMMITTED]
+      description: |
+        * `NEW` — wiersz wejdzie przy zatwierdzeniu
+        * `DUPLICATE` — ta sama operacja jest już w bazie; wiersz zostanie pominięty
+        * `COMMITTED` — wiersz ma już swoją transakcję
+
+    ImportBatchResponse:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        accountId: { type: integer, format: int64 }
+        accountName: { type: string }
+        fileName: { type: string }
+        status: { $ref: '#/components/schemas/ImportBatchStatus' }
+        periodFrom: { type: [string, 'null'], format: date }
+        periodTo: { type: [string, 'null'], format: date }
+        openingBalanceMinor: { type: [integer, 'null'], format: int64 }
+        closingBalanceMinor: { type: [integer, 'null'], format: int64 }
+        rowCount: { type: integer, format: int32 }
+        newCount:
+          type: integer
+          format: int32
+          description: Wiersze, które wejdą przy zatwierdzeniu
+        duplicateCount:
+          type: integer
+          format: int32
+          description: Wiersze rozpoznane jako już zaimportowane
+        uploadedAt: { type: string, format: date-time }
+        committedAt: { type: [string, 'null'], format: date-time }
+      required:
+        - id
+        - accountId
+        - accountName
+        - fileName
+        - status
+        - rowCount
+        - newCount
+        - duplicateCount
+        - uploadedAt
+
+    ImportRowResponse:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        ordinal:
+          type: integer
+          format: int32
+          description: Pozycja wiersza w pliku, liczona od zera
+        bookedOn: { type: string, format: date }
+        amountMinor:
+          type: integer
+          format: int64
+          description: >-
+            Kwota ZE ZNAKIEM, dokładnie jak na wyciągu. Znak zamienia się
+            na typ transakcji dopiero przy zatwierdzeniu.
+        currency: { type: string, minLength: 3, maxLength: 3 }
+        originalAmountMinor: { type: [integer, 'null'], format: int64 }
+        originalCurrency: { type: [string, 'null'], minLength: 3, maxLength: 3 }
+        description: { type: [string, 'null'] }
+        counterparty: { type: [string, 'null'] }
+        bankReference: { type: [string, 'null'] }
+        status: { $ref: '#/components/schemas/ImportRowStatus' }
+        suggestedCategoryId: { type: [integer, 'null'], format: int64 }
+        suggestedCategoryName: { type: [string, 'null'] }
+        transactionId: { type: [integer, 'null'], format: int64 }
+      required: [id, ordinal, bookedOn, amountMinor, currency, status]
+
+    ImportBatchDetailResponse:
+      type: object
+      properties:
+        batch: { $ref: '#/components/schemas/ImportBatchResponse' }
+        rows:
+          type: array
+          items: { $ref: '#/components/schemas/ImportRowResponse' }
+      required: [batch, rows]
+
+    CommitImportRequest:
+      type: object
+      properties:
+        categoryAssignments:
+          type: array
+          description: >-
+            Kategoria dla wierszy, które jej wymagają. Wpływ i wydatek muszą
+            mieć kategorię — wiersz bez niej wywala zatwierdzenie całej partii.
+          items: { $ref: '#/components/schemas/ImportCategoryAssignment' }
+      required: [categoryAssignments]
+
+    ImportCategoryAssignment:
+      type: object
+      properties:
+        rowId: { type: integer, format: int64 }
+        categoryId: { type: integer, format: int64 }
+      required: [rowId, categoryId]
+
+    CommitImportResponse:
+      type: object
+      properties:
+        batchId: { type: integer, format: int64 }
+        committedCount: { type: integer, format: int32 }
+        skippedDuplicateCount: { type: integer, format: int32 }
+        reconciliation: { $ref: '#/components/schemas/ReconciliationResponse' }
+      required: [batchId, committedCount, skippedDuplicateCount, reconciliation]
+
+    ReconciliationResponse:
+      type: object
+      description: >-
+        Porównanie salda końcowego z wyciągu z saldem wyliczonym na `periodTo`.
+        Rozjazd jest pokazywany, nigdy poprawiany automatycznie.
+      properties:
+        statementClosingBalanceMinor: { type: [integer, 'null'], format: int64 }
+        computedBalanceMinor: { type: [integer, 'null'], format: int64 }
+        differenceMinor: { type: [integer, 'null'], format: int64 }
+        matched:
+          type: boolean
+          description: Fałsz także wtedy, gdy wyciąg nie podał salda końcowego
+      required: [matched]

@@ -3,6 +3,7 @@ package com.pgoogol.finance.transaction.domain;
 import com.pgoogol.finance.account.domain.Account;
 import com.pgoogol.finance.category.domain.Category;
 import com.pgoogol.finance.currency.domain.FxRate;
+import com.pgoogol.finance.imports.domain.ImportRow;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -90,6 +91,15 @@ public class Transaction {
     @Column(length = 255)
     private String counterparty;
 
+    /**
+     * Wiersz wyciągu, z którego powstała ta transakcja. Puste dla transakcji
+     * wpisanych ręcznie. Ślad pochodzenia jest tu jedynym sposobem, żeby po
+     * miesiącach odpowiedzieć, skąd wzięła się dana kwota.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "import_row_id")
+    private ImportRow importRow;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -129,6 +139,11 @@ public class Transaction {
     public void assignCategory(@Nullable Category category) {
 
         this.category = category;
+    }
+
+    public void assignImportRow(@Nullable ImportRow importRow) {
+
+        this.importRow = importRow;
     }
 
     public void assignTransferTarget(@Nullable Account toAccount, @Nullable Long toAmountMinor) {
@@ -253,5 +268,11 @@ public class Transaction {
     public Instant getCreatedAt() {
 
         return createdAt;
+    }
+
+    @Nullable
+    public ImportRow getImportRow() {
+
+        return importRow;
     }
 }

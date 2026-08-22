@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,4 +38,29 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
         from {h-schema}account a \
         where a.id = :accountId""", nativeQuery = true)
     Optional<Long> findBalanceMinor(@Param("accountId") long accountId);
+
+    /**
+     * To samo saldo, ale na koniec wskazanego dnia — potrzebne do uzgodnienia
+     * z saldem zamknięcia z wyciągu. Osobne zapytanie zamiast parametru
+     * opcjonalnego, bo saldo bieżące jest wołane na każdym ekranie i nie ma
+     * powodu, żeby niosło warunek, którego wtedy nie używa.
+     */
+    @Query(value = """
+        select a.opening_balance_minor \
+        + coalesce((select sum(case t.type when 'INCOME' then t.amount_minor \
+                                           else -t.amount_minor end) \
+                    from {h-schema}transaction t \
+                    where t.account_id = a.id \
+                      and t.booked_on >= a.opening_balance_on \
+                      and t.booked_on <= :onDate), 0) \
+        + coalesce((select sum(coalesce(t.to_amount_minor, t.amount_minor)) \
+                    from {h-schema}transaction t \
+                    where t.to_account_id = a.id \
+                      and t.type = 'TRANSFER' \
+                      and t.booked_on >= a.opening_balance_on \
+                      and t.booked_on <= :onDate), 0) \
+        from {h-schema}account a \
+        where a.id = :accountId""", nativeQuery = true)
+    Optional<Long> findBalanceMinorAsOf(@Param("accountId") long accountId,
+                                        @Param("onDate") LocalDate onDate);
 }

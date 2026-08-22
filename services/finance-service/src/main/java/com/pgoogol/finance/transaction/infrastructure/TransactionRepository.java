@@ -10,6 +10,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.lang.Nullable;
 
 import java.time.LocalDate;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
@@ -57,4 +59,23 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
         left join fetch t.category \
         where t.id = :id""")
     Optional<Transaction> findDetailedById(@Param("id") long id);
+
+    /**
+     * Powiązania wierszy wyciągu z transakcjami, które z nich powstały.
+     * Jedno zapytanie na całą partię zamiast jednego na wiersz — wyciąg
+     * miesięczny ma ich kilkaset.
+     */
+    @Query("""
+        select t.importRow.id as importRowId, t.id as transactionId \
+        from Transaction t \
+        where t.importRow.id in :rowIds""")
+    List<ImportedTransactionRef> findRefsByImportRowIds(@Param("rowIds") Collection<Long> rowIds);
+
+    /** Projekcja: który wiersz wyciągu stał się którą transakcją. */
+    interface ImportedTransactionRef {
+
+        Long getImportRowId();
+
+        Long getTransactionId();
+    }
 }

@@ -7,6 +7,10 @@ import com.pgoogol.finance.category.domain.CategoryDirection;
 import com.pgoogol.finance.currency.domain.Currency;
 import com.pgoogol.finance.currency.domain.ExchangeRate;
 import com.pgoogol.finance.currency.domain.RateSource;
+import com.pgoogol.finance.imports.domain.ImportBatch;
+import com.pgoogol.finance.imports.domain.ImportRow;
+import com.pgoogol.finance.imports.domain.ImportRowStatus;
+import com.pgoogol.finance.imports.statement.RawRow;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
@@ -68,5 +72,20 @@ public final class FinanceFixtures {
     public static ExchangeRate rate(String code, LocalDate date, String value) {
 
         return new ExchangeRate(code, date, new BigDecimal(value), RateSource.NBP);
+    }
+
+    public static ImportBatch importBatch(long id, Account account, String fileHash) {
+
+        ImportBatch batch = new ImportBatch(account, "wyciag.csv", fileHash);
+        ReflectionTestUtils.setField(batch, "id", id);
+        return batch;
+    }
+
+    public static ImportRow importRow(long id, ImportBatch batch, RawRow raw, String dedupKey,
+                                      ImportRowStatus status) {
+
+        ImportRow row = new ImportRow(batch, raw, PLN, dedupKey, status);
+        ReflectionTestUtils.setField(row, "id", id);
+        return row;
     }
 }

@@ -38,6 +38,14 @@ public class ErrorCodes {
     public static final String TRANSFER_TARGET_AMOUNT_REQUIRED = "TRANSFER_TARGET_AMOUNT_REQUIRED";
     public static final String FLOW_WITH_TRANSFER_TARGET = "FLOW_WITH_TRANSFER_TARGET";
 
+    public static final String IMPORT_BATCH_NOT_FOUND = "IMPORT_BATCH_NOT_FOUND";
+    public static final String IMPORT_BATCH_ALREADY_COMMITTED = "IMPORT_BATCH_ALREADY_COMMITTED";
+    public static final String STATEMENT_ALREADY_IMPORTED = "STATEMENT_ALREADY_IMPORTED";
+    public static final String STATEMENT_FORMAT_UNKNOWN = "STATEMENT_FORMAT_UNKNOWN";
+    public static final String STATEMENT_UNREADABLE = "STATEMENT_UNREADABLE";
+    public static final String STATEMENT_EMPTY = "STATEMENT_EMPTY";
+    public static final String FILE_TOO_LARGE = "FILE_TOO_LARGE";
+
     public static final String NBP_RATE_LIMITED = "NBP_RATE_LIMITED";
     public static final String NBP_UNAVAILABLE = "NBP_UNAVAILABLE";
 

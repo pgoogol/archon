@@ -207,6 +207,67 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/finance/api/v1/imports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Wgrane wyciągi, najnowsze pierwsze */
+        get: operations["listImportBatches"];
+        put?: never;
+        /**
+         * Wgranie wyciągu i jego sparsowanie
+         * @description Pierwszy z dwóch kroków: plik jest liczony, parsowany i deduplikowany, ale ŻADNA transakcja jeszcze nie powstaje. Ten sam plik wgrany drugi raz jest odrzucany po skrócie SHA-256 jego zawartości, zanim ktokolwiek go sparsuje. Wiersze pokrywające się z już zaimportowanymi dostają status `DUPLICATE` i nie wejdą przy zatwierdzeniu.
+         */
+        post: operations["uploadStatement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/finance/api/v1/imports/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Podgląd partii wraz z wierszami
+         * @description Wiersze wracają w kolejności z pliku, każdy ze statusem i sugerowaną kategorią. Sugestia jest zawsze do potwierdzenia — nic nie zapisuje się samo.
+         */
+        get: operations["getImportBatch"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/finance/api/v1/imports/{id}/commit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Zatwierdzenie partii — wiersze stają się transakcjami
+         * @description Wszystko w jednej transakcji bazodanowej: albo powstają wszystkie transakcje, albo żadna. Wiersze ze statusem `DUPLICATE` są pomijane. Odpowiedź niesie uzgodnienie salda: rozjazd między saldem końcowym z wyciągu a saldem wyliczonym na `periodTo` jest pokazywany wprost i NIE jest poprawiany automatycznie.
+         */
+        post: operations["commitImportBatch"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -428,6 +489,115 @@ export interface components {
             totalElements: number;
             /** Format: int32 */
             totalPages: number;
+        };
+        /**
+         * @description * `PARSED` — plik sparsowany, żadna transakcja jeszcze nie powstała
+         *     * `COMMITTED` — wiersze zamienione na transakcje
+         * @enum {string}
+         */
+        ImportBatchStatus: "PARSED" | "COMMITTED";
+        /**
+         * @description * `NEW` — wiersz wejdzie przy zatwierdzeniu
+         *     * `DUPLICATE` — ta sama operacja jest już w bazie; wiersz zostanie pominięty
+         *     * `COMMITTED` — wiersz ma już swoją transakcję
+         * @enum {string}
+         */
+        ImportRowStatus: "NEW" | "DUPLICATE" | "COMMITTED";
+        ImportBatchResponse: {
+            /** Format: int64 */
+            id: number;
+            /** Format: int64 */
+            accountId: number;
+            accountName: string;
+            fileName: string;
+            status: components["schemas"]["ImportBatchStatus"];
+            /** Format: date */
+            periodFrom?: string | null;
+            /** Format: date */
+            periodTo?: string | null;
+            /** Format: int64 */
+            openingBalanceMinor?: number | null;
+            /** Format: int64 */
+            closingBalanceMinor?: number | null;
+            /** Format: int32 */
+            rowCount: number;
+            /**
+             * Format: int32
+             * @description Wiersze, które wejdą przy zatwierdzeniu
+             */
+            newCount: number;
+            /**
+             * Format: int32
+             * @description Wiersze rozpoznane jako już zaimportowane
+             */
+            duplicateCount: number;
+            /** Format: date-time */
+            uploadedAt: string;
+            /** Format: date-time */
+            committedAt?: string | null;
+        };
+        ImportRowResponse: {
+            /** Format: int64 */
+            id: number;
+            /**
+             * Format: int32
+             * @description Pozycja wiersza w pliku, liczona od zera
+             */
+            ordinal: number;
+            /** Format: date */
+            bookedOn: string;
+            /**
+             * Format: int64
+             * @description Kwota ZE ZNAKIEM, dokładnie jak na wyciągu. Znak zamienia się na typ transakcji dopiero przy zatwierdzeniu.
+             */
+            amountMinor: number;
+            currency: string;
+            /** Format: int64 */
+            originalAmountMinor?: number | null;
+            originalCurrency?: string | null;
+            description?: string | null;
+            counterparty?: string | null;
+            bankReference?: string | null;
+            status: components["schemas"]["ImportRowStatus"];
+            /** Format: int64 */
+            suggestedCategoryId?: number | null;
+            suggestedCategoryName?: string | null;
+            /** Format: int64 */
+            transactionId?: number | null;
+        };
+        ImportBatchDetailResponse: {
+            batch: components["schemas"]["ImportBatchResponse"];
+            rows: components["schemas"]["ImportRowResponse"][];
+        };
+        CommitImportRequest: {
+            /** @description Kategoria dla wierszy, które jej wymagają. Wpływ i wydatek muszą mieć kategorię — wiersz bez niej wywala zatwierdzenie całej partii. */
+            categoryAssignments: components["schemas"]["ImportCategoryAssignment"][];
+        };
+        ImportCategoryAssignment: {
+            /** Format: int64 */
+            rowId: number;
+            /** Format: int64 */
+            categoryId: number;
+        };
+        CommitImportResponse: {
+            /** Format: int64 */
+            batchId: number;
+            /** Format: int32 */
+            committedCount: number;
+            /** Format: int32 */
+            skippedDuplicateCount: number;
+            reconciliation: components["schemas"]["ReconciliationResponse"];
+        };
+        /** @description Porównanie salda końcowego z wyciągu z saldem wyliczonym na `periodTo`. Rozjazd jest pokazywany, nigdy poprawiany automatycznie. */
+        ReconciliationResponse: {
+            /** Format: int64 */
+            statementClosingBalanceMinor?: number | null;
+            /** Format: int64 */
+            computedBalanceMinor?: number | null;
+            /** Format: int64 */
+            differenceMinor?: number | null;
+            /** @description Fałsz także wtedy, gdy wyciąg nie podał salda końcowego */
+            matched: boolean;
         };
     };
     responses: {
@@ -963,6 +1133,113 @@ export interface operations {
                 content?: never;
             };
             404: components["responses"]["NotFound"];
+        };
+    };
+    listImportBatches: {
+        parameters: {
+            query?: {
+                accountId?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Lista partii importu */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportBatchResponse"][];
+                };
+            };
+        };
+    };
+    uploadStatement: {
+        parameters: {
+            query: {
+                /** @description Konto, którego dotyczy wyciąg */
+                accountId: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Wyciąg sparsowany, gotowy do podglądu */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportBatchResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    getImportBatch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Partia z wierszami */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportBatchDetailResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    commitImportBatch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommitImportRequest"];
+            };
+        };
+        responses: {
+            /** @description Partia zatwierdzona */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommitImportResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
         };
     };
 }
