@@ -132,6 +132,23 @@ class ArchitectureTest {
     }
 
     @Test
+    @DisplayName("arytmetyka terminów nie zna Springa ani JPA")
+    void occurrenceScheduling_staysFreeOfFrameworks() {
+
+        // given: przesunięcie 31 dnia na koniec krótkiego miesiąca to logika,
+        // którą sprawdza się przez podanie daty, nie przez postawienie kontekstu
+        // i przewinięcie zegara
+        ArchRule rule = noClasses()
+            .that().resideInAPackage(BASE + ".recurring.schedule..")
+            .should().dependOnClassesThat()
+            .resideInAnyPackage("org.springframework..", "jakarta.persistence..", "org.hibernate..")
+            .because("liczenie dat ma się dać testować jak zwykły kod");
+
+        // when & then
+        rule.check(classesUnderTest);
+    }
+
+    @Test
     @DisplayName("encje JPA mieszkają w domain")
     void entities_liveInDomainPackages() {
 

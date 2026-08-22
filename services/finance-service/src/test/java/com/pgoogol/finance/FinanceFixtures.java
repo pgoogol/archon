@@ -11,6 +11,10 @@ import com.pgoogol.finance.imports.domain.ImportBatch;
 import com.pgoogol.finance.imports.domain.ImportRow;
 import com.pgoogol.finance.imports.domain.ImportRowStatus;
 import com.pgoogol.finance.imports.statement.RawRow;
+import com.pgoogol.finance.recurring.domain.RecurringFrequency;
+import com.pgoogol.finance.recurring.domain.RecurringRule;
+import com.pgoogol.finance.recurring.domain.ScheduledOccurrence;
+import com.pgoogol.finance.transaction.domain.TransactionType;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
@@ -87,5 +91,23 @@ public final class FinanceFixtures {
         ImportRow row = new ImportRow(batch, raw, PLN, dedupKey, status);
         ReflectionTestUtils.setField(row, "id", id);
         return row;
+    }
+
+    public static RecurringRule recurringRule(long id, Account account, Category category,
+                                              long amountMinor, LocalDate startsOn) {
+
+        RecurringRule rule = new RecurringRule("Prąd", account, category, TransactionType.EXPENSE,
+            amountMinor, account.getCurrency(), RecurringFrequency.MONTHLY, startsOn.getDayOfMonth(),
+            startsOn);
+        ReflectionTestUtils.setField(rule, "id", id);
+        return rule;
+    }
+
+    public static ScheduledOccurrence occurrence(long id, RecurringRule rule, LocalDate dueDate) {
+
+        ScheduledOccurrence occurrence = new ScheduledOccurrence(rule, dueDate,
+            rule.getAmountMinor(), rule.getCurrency());
+        ReflectionTestUtils.setField(occurrence, "id", id);
+        return occurrence;
     }
 }

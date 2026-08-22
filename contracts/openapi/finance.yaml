@@ -32,6 +32,8 @@ tags:
     description: Wydatki, przychody i transfery
   - name: imports
     description: Import wyciągów bankowych
+  - name: recurring
+    description: Rachunki cykliczne i terminarz płatności
 
 paths:
 
@@ -497,6 +499,181 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/Conflict' }
 
+  /finance/api/v1/recurring-rules:
+    get:
+      tags: [recurring]
+      operationId: listRecurringRules
+      summary: Reguły cykliczne, także wyłączone
+      parameters:
+        - name: activeOnly
+          in: query
+          schema: { type: boolean, default: false }
+      responses:
+        '200':
+          description: Lista reguł
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/RecurringRuleResponse' }
+    post:
+      tags: [recurring]
+      operationId: createRecurringRule
+      summary: Nowa reguła cykliczna
+      description: >-
+        Zapisanie reguły od razu generuje pozycje terminarza na 12 miesięcy
+        w przód. Dzień miesiąca większy niż długość miesiąca przesuwa się na jego
+        ostatni dzień — rachunek z 31 dnia w lutym wypada 28 albo 29.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RecurringRuleRequest' }
+      responses:
+        '201':
+          description: Reguła zapisana wraz z terminarzem
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RecurringRuleResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /finance/api/v1/recurring-rules/{id}:
+    get:
+      tags: [recurring]
+      operationId: getRecurringRule
+      summary: Pojedyncza reguła
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+      responses:
+        '200':
+          description: Reguła
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RecurringRuleResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [recurring]
+      operationId: updateRecurringRule
+      summary: Zmiana reguły
+      description: >-
+        Zmiana przelicza pozycje `PENDING` o terminie od dzisiaj. Pozycje `PAID`
+        i `SKIPPED` zostają nietknięte — historii nie przepisujemy.
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RecurringRuleRequest' }
+      responses:
+        '200':
+          description: Reguła po zmianie
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RecurringRuleResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+    delete:
+      tags: [recurring]
+      operationId: deactivateRecurringRule
+      summary: Wyłączenie reguły
+      description: >-
+        Reguła przestaje generować terminarz, a jej pozycje `PENDING` o terminie
+        od dzisiaj znikają. Zapłacone i pominięte zostają — to już historia.
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+      responses:
+        '204':
+          description: Reguła wyłączona
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /finance/api/v1/recurring-rules/generate:
+    post:
+      tags: [recurring]
+      operationId: generateOccurrences
+      summary: Ręczne uzupełnienie terminarza
+      description: >-
+        To samo, co robi nocny przebieg. Wywołanie jest idempotentne — drugi
+        przebieg nie zmienia liczby pozycji.
+      responses:
+        '200':
+          description: Ile pozycji dołożono
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenerateOccurrencesResponse' }
+
+  /finance/api/v1/occurrences:
+    get:
+      tags: [recurring]
+      operationId: listOccurrences
+      summary: Terminarz płatności
+      description: >-
+        Status `OVERDUE` nie jest przechowywany — to pozycja `PENDING` z terminem
+        wcześniejszym niż dziś, wyliczana przy odczycie. Przechowywany wymagałby
+        joba przepisującego statusy o północy.
+      parameters:
+        - { $ref: '#/components/parameters/From' }
+        - { $ref: '#/components/parameters/To' }
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/OccurrenceStatus' }
+        - name: ruleId
+          in: query
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: Pozycje terminarza, najbliższe pierwsze
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/OccurrenceResponse' }
+
+  /finance/api/v1/occurrences/{id}/pay:
+    post:
+      tags: [recurring]
+      operationId: payOccurrence
+      summary: Oznaczenie pozycji jako zapłaconej
+      description: >-
+        Powstaje transakcja na faktyczną kwotę i datę, a pozycja terminarza
+        dostaje do niej odsyłacz. Kwota faktyczna bywa inna niż oczekiwana —
+        rachunek za prąd rzadko wychodzi co do grosza tak samo.
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PayOccurrenceRequest' }
+      responses:
+        '200':
+          description: Pozycja zapłacona
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OccurrenceResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /finance/api/v1/occurrences/{id}/skip:
+    post:
+      tags: [recurring]
+      operationId: skipOccurrence
+      summary: Pominięcie pozycji terminarza
+      description: Żadna transakcja nie powstaje — rachunek po prostu nie przyszedł.
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+      responses:
+        '200':
+          description: Pozycja pominięta
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OccurrenceResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
 components:
 
   parameters:
@@ -794,6 +971,138 @@ components:
         totalElements: { type: integer, format: int64 }
         totalPages: { type: integer, format: int32 }
       required: [content, page, size, totalElements, totalPages]
+
+    RecurringFrequency:
+      type: string
+      enum: [MONTHLY, QUARTERLY, YEARLY]
+      description: >-
+        Częstotliwość liczona od `startsOn`. Wszystkie warianty kotwiczą się
+        na dniu miesiąca, więc `dayOfMonth` obowiązuje w każdym z nich.
+
+    OccurrenceStatus:
+      type: string
+      enum: [PENDING, PAID, SKIPPED, OVERDUE]
+      description: |
+        * `PENDING` — czeka na termin
+        * `PAID` — zapłacona, ma swoją transakcję
+        * `SKIPPED` — świadomie pominięta, bez transakcji
+        * `OVERDUE` — **nie jest przechowywany**: to `PENDING` z terminem
+          wcześniejszym niż dziś, wyliczany przy odczycie
+
+    RecurringRuleRequest:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 100 }
+        accountId: { type: integer, format: int64 }
+        categoryId: { type: integer, format: int64 }
+        type: { $ref: '#/components/schemas/TransactionType' }
+        amountMinor:
+          type: integer
+          format: int64
+          minimum: 1
+          description: Kwota oczekiwana; faktyczna podawana jest przy płatności
+        frequency: { $ref: '#/components/schemas/RecurringFrequency' }
+        dayOfMonth:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 31
+          description: >-
+            Dzień większy niż długość miesiąca przesuwa się na jego ostatni dzień
+        startsOn: { type: string, format: date }
+        endsOn: { type: [string, 'null'], format: date }
+        matchPattern:
+          type: [string, 'null']
+          maxLength: 255
+          description: Fragment opisu, po którym import rozpoznaje tę płatność
+      required: [name, accountId, categoryId, type, amountMinor, frequency, dayOfMonth, startsOn]
+
+    RecurringRuleResponse:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        accountId: { type: integer, format: int64 }
+        accountName: { type: string }
+        categoryId: { type: integer, format: int64 }
+        categoryName: { type: string }
+        type: { $ref: '#/components/schemas/TransactionType' }
+        amountMinor: { type: integer, format: int64 }
+        currency: { type: string, minLength: 3, maxLength: 3 }
+        frequency: { $ref: '#/components/schemas/RecurringFrequency' }
+        dayOfMonth: { type: integer, format: int32 }
+        startsOn: { type: string, format: date }
+        endsOn: { type: [string, 'null'], format: date }
+        matchPattern: { type: [string, 'null'] }
+        active: { type: boolean }
+      required:
+        - id
+        - name
+        - accountId
+        - accountName
+        - categoryId
+        - categoryName
+        - type
+        - amountMinor
+        - currency
+        - frequency
+        - dayOfMonth
+        - startsOn
+        - active
+
+    OccurrenceResponse:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        ruleId: { type: integer, format: int64 }
+        ruleName: { type: string }
+        accountId: { type: integer, format: int64 }
+        categoryId: { type: integer, format: int64 }
+        dueDate: { type: string, format: date }
+        expectedAmountMinor: { type: integer, format: int64 }
+        currency: { type: string, minLength: 3, maxLength: 3 }
+        status: { $ref: '#/components/schemas/OccurrenceStatus' }
+        paidOn: { type: [string, 'null'], format: date }
+        paidAmountMinor: { type: [integer, 'null'], format: int64 }
+        transactionId: { type: [integer, 'null'], format: int64 }
+      required:
+        - id
+        - ruleId
+        - ruleName
+        - accountId
+        - categoryId
+        - dueDate
+        - expectedAmountMinor
+        - currency
+        - status
+
+    PayOccurrenceRequest:
+      type: object
+      properties:
+        paidOn: { type: string, format: date }
+        paidAmountMinor:
+          type: integer
+          format: int64
+          minimum: 1
+          description: Kwota faktyczna; bywa inna niż oczekiwana
+        accountId:
+          type: [integer, 'null']
+          format: int64
+          description: Konto obciążone, gdy inne niż z reguły
+      required: [paidOn, paidAmountMinor]
+
+    GenerateOccurrencesResponse:
+      type: object
+      properties:
+        createdCount:
+          type: integer
+          format: int32
+          description: Ile pozycji dołożono; drugi przebieg daje zero
+        horizonTo:
+          type: string
+          format: date
+          description: Do kiedy sięga wygenerowany terminarz
+      required: [createdCount, horizonTo]
 
     ImportBatchStatus:
       type: string
