@@ -21,6 +21,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Kursy wymiany: zapis, odczyt i wybór kursu właściwego dla daty.
@@ -62,6 +63,24 @@ public class ExchangeRateService {
     public FxRate current(String code) {
 
         return resolve(code, LocalDate.now());
+    }
+
+    /**
+     * Kurs bieżący, gdy brak kursu nie jest błędem. Raport ekspozycji walutowej
+     * ma pokazać saldo w walucie obcej także wtedy, gdy nikt jeszcze nie pobrał
+     * dla niej kursu — z pustą wyceną, nie z pustą stroną.
+     */
+    public Optional<FxRate> currentIfKnown(String code) {
+
+        Currency currency = currencyService.get(code);
+        if (currencyService.isBase(currency.getCode())) {
+
+            return Optional.of(FxRate.identity(LocalDate.now()));
+        }
+        return exchangeRateRepository
+            .findTopByIdCodeAndIdRateDateLessThanEqualOrderByIdRateDateDesc(
+                currency.getCode(), LocalDate.now())
+            .map(ExchangeRate::toFxRate);
     }
 
     public List<ExchangeRate> list(String code, LocalDate from, LocalDate to) {

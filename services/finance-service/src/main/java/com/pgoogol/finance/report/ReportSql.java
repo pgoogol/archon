@@ -116,13 +116,43 @@ public class ReportSql {
         """;
 
     /**
-     * Saldo konta na koniec każdego okresu, w walucie konta.
+     * Wzór salda konta z jednym miejscem na moment odcięcia.
      *
-     * <p>Wzór jest ten sam co w {@code AccountRepository.findBalanceMinor}:
-     * saldo otwarcia plus ruchy własne, plus przychodzące transfery po stronie
-     * konta docelowego. Transfery <b>wchodzą</b> tutaj świadomie — wykluczamy
-     * je z zestawień wydatków, ale saldo bez nich byłoby po prostu błędne.</p>
+     * <p>Ten sam wzór co w {@code AccountRepository.findBalanceMinor}: saldo
+     * otwarcia plus ruchy własne, plus przychodzące transfery po stronie konta
+     * docelowego. Transfery <b>wchodzą</b> tu świadomie — wykluczamy je
+     * z zestawień wydatków, ale saldo bez nich byłoby po prostu błędne.</p>
+     *
+     * <p>Odcięcie jest podstawiane, a nie parametrem, bo raz jest nim wartość
+     * ze złączenia bocznego, a raz zwykły parametr. Wzór na pieniądze
+     * przepisany trzeci raz to trzecie miejsce, w którym może się rozjechać;
+     * podstawienie dotyczy wyłącznie stałych z tej klasy, nigdy danych
+     * z zewnątrz.</p>
      */
+    private static final String BALANCE_TEMPLATE = """
+        case when a.opening_balance_on <= {asOf}
+             then a.opening_balance_minor else 0 end
+        + coalesce((select sum(case t.type when 'INCOME' then t.amount_minor
+                                           else -t.amount_minor end)
+                      from finance.transaction t
+                     where t.account_id = a.id
+                       and t.booked_on >= a.opening_balance_on
+                       and t.booked_on <= {asOf}), 0)
+        + coalesce((select sum(coalesce(t.to_amount_minor, t.amount_minor))
+                      from finance.transaction t
+                     where t.to_account_id = a.id
+                       and t.type = 'TRANSFER'
+                       and t.booked_on >= a.opening_balance_on
+                       and t.booked_on <= {asOf}), 0)
+        """;
+
+    /** Saldo konta na wskazany moment; {@code cutoff} to wyrażenie SQL z tej klasy. */
+    static String balanceAsOf(String cutoff) {
+
+        return BALANCE_TEMPLATE.replace("{asOf}", cutoff);
+    }
+
+    /** Saldo konta na koniec każdego okresu, w walucie konta. */
     static final String BALANCES = """
         with periods as (
             select generate_series(date_trunc(:granularity, cast(:from as timestamp)),
@@ -134,20 +164,7 @@ public class ReportSql {
              where (:allAccounts = true or a.id in (:accountIds))
         )
         select p.period, a.id as account_id, a.name as account_name, a.currency,
-               case when a.opening_balance_on <= period_end.value
-                    then a.opening_balance_minor else 0 end
-               + coalesce((select sum(case t.type when 'INCOME' then t.amount_minor
-                                                  else -t.amount_minor end)
-                             from finance.transaction t
-                            where t.account_id = a.id
-                              and t.booked_on >= a.opening_balance_on
-                              and t.booked_on <= period_end.value), 0)
-               + coalesce((select sum(coalesce(t.to_amount_minor, t.amount_minor))
-                             from finance.transaction t
-                            where t.to_account_id = a.id
-                              and t.type = 'TRANSFER'
-                              and t.booked_on >= a.opening_balance_on
-                              and t.booked_on <= period_end.value), 0)
+        """ + balanceAsOf("period_end.value") + """
                as balance_minor
           from periods p
           cross join chosen_account a

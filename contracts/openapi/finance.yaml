@@ -754,6 +754,163 @@ paths:
               schema: { $ref: '#/components/schemas/BalancesReportResponse' }
         '400': { $ref: '#/components/responses/BadRequest' }
 
+  /finance/api/v1/reports/comparison:
+    get:
+      tags: [reports]
+      operationId: reportComparison
+      summary: Okres wobec poprzedniego i wobec średniej z dwunastu miesięcy
+      description: >-
+        Poprzedni okres to okno tej samej długości bezpośrednio przed podanym.
+        Średnia liczona jest z dwunastu pełnych miesięcy poprzedzających miesiąc,
+        w którym zaczyna się okres.
+      parameters:
+        - { $ref: '#/components/parameters/ReportFrom' }
+        - { $ref: '#/components/parameters/ReportTo' }
+        - { $ref: '#/components/parameters/AccountIds' }
+        - { $ref: '#/components/parameters/CategoryIds' }
+        - name: direction
+          in: query
+          schema: { $ref: '#/components/schemas/CategoryDirection' }
+      responses:
+        '200':
+          description: Porównanie per kategoria
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ComparisonReportResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /finance/api/v1/reports/top-spend:
+    get:
+      tags: [reports]
+      operationId: reportTopSpend
+      summary: Największe pojedyncze wydatki i najczęstsi kontrahenci
+      parameters:
+        - { $ref: '#/components/parameters/ReportFrom' }
+        - { $ref: '#/components/parameters/ReportTo' }
+        - { $ref: '#/components/parameters/AccountIds' }
+        - { $ref: '#/components/parameters/CategoryIds' }
+        - name: limit
+          in: query
+          description: Ile pozycji w każdym zestawieniu; domyślnie 10, najwyżej 50
+          schema: { type: integer, format: int32, default: 10 }
+      responses:
+        '200':
+          description: Dwa zestawienia w jednej odpowiedzi
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TopSpendReportResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /finance/api/v1/reports/fixed-vs-variable:
+    get:
+      tags: [reports]
+      operationId: reportFixedVsVariable
+      summary: Udział kosztów mających pokrycie w regule cyklicznej
+      description: >-
+        Za koszt stały uznajemy wyłącznie wydatek **powiązany z pozycją
+        terminarza** — czyli taki, który ktoś potwierdził jako płatność rachunku
+        cyklicznego. Zgadywanie po kategorii dawałoby liczbę wyglądającą
+        wiarygodnie i nieprawdziwą.
+      parameters:
+        - { $ref: '#/components/parameters/ReportFrom' }
+        - { $ref: '#/components/parameters/ReportTo' }
+        - { $ref: '#/components/parameters/Granularity' }
+        - { $ref: '#/components/parameters/AccountIds' }
+      responses:
+        '200':
+          description: Podział kosztów po okresach
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FixedVsVariableReportResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /finance/api/v1/reports/upcoming:
+    get:
+      tags: [reports]
+      operationId: reportUpcoming
+      summary: Zobowiązania na najbliższe dni wraz z przeterminowanymi
+      parameters:
+        - { $ref: '#/components/parameters/HorizonDays' }
+      responses:
+        '200':
+          description: Przeterminowane osobno od nadchodzących
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UpcomingReportResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /finance/api/v1/reports/forecast:
+    get:
+      tags: [reports]
+      operationId: reportForecast
+      summary: Prognoza salda dzień po dniu
+      description: >-
+        Prognoza jest jedynym raportem poza `/reports/currency-exposure`, który
+        używa kursu **bieżącego** — mówi o przyszłości, a nie o historii, więc
+        kurs sprzed roku nie ma tu czego opisywać. Punktem wyjścia jest dzisiejsze
+        saldo, a ruchy biorą się z pozycji terminarza o statusie `PENDING`.
+      parameters:
+        - { $ref: '#/components/parameters/HorizonDays' }
+        - { $ref: '#/components/parameters/AccountIds' }
+      responses:
+        '200':
+          description: Saldo w walucie bazowej, po jednym punkcie na dzień
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ForecastReportResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /finance/api/v1/reports/yearly-matrix:
+    get:
+      tags: [reports]
+      operationId: reportYearlyMatrix
+      summary: Kategoria razy miesiąc za jeden rok, z sumami
+      parameters:
+        - name: year
+          in: query
+          required: true
+          schema: { type: integer, format: int32 }
+        - { $ref: '#/components/parameters/AccountIds' }
+        - { $ref: '#/components/parameters/CategoryIds' }
+        - name: direction
+          in: query
+          schema: { $ref: '#/components/schemas/CategoryDirection' }
+      responses:
+        '200':
+          description: Macierz kwot w walucie bazowej
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/YearlyMatrixReportResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /finance/api/v1/reports/currency-exposure:
+    get:
+      tags: [reports]
+      operationId: reportCurrencyExposure
+      summary: Salda w podziale na waluty i ich wartość bieżąca
+      description: >-
+        Jedyne miejsce obok prognozy, w którym świadomie używamy kursu
+        **bieżącego** — raport pokazuje stan majątku na dziś, a nie historię
+        operacji.
+      responses:
+        '200':
+          description: Salda per waluta
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CurrencyExposureReportResponse' }
+
+  /finance/api/v1/reports/dashboard:
+    get:
+      tags: [reports]
+      operationId: reportDashboard
+      summary: Pulpit — salda, bilans miesiąca i najbliższe płatności
+      responses:
+        '200':
+          description: Komplet danych na jeden ekran
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DashboardResponse' }
+
 components:
 
   parameters:
@@ -801,6 +958,11 @@ components:
       schema:
         type: array
         items: { type: integer, format: int64 }
+    HorizonDays:
+      name: horizonDays
+      in: query
+      description: Ile dni w przód; domyślnie 30, najwyżej 365
+      schema: { type: integer, format: int32, default: 30 }
     CategoryIds:
       name: categoryIds
       in: query
@@ -1437,3 +1599,232 @@ components:
           format: int64
           description: Saldo na ostatni dzień okresu, w walucie konta
       required: [period, accountId, accountName, currency, balanceMinor]
+
+    ComparisonReportResponse:
+      type: object
+      properties:
+        baseCurrency: { type: string, minLength: 3, maxLength: 3 }
+        previousFrom: { type: string, format: date }
+        previousTo: { type: string, format: date }
+        rows:
+          type: array
+          items: { $ref: '#/components/schemas/CategoryComparisonRow' }
+      required: [baseCurrency, previousFrom, previousTo, rows]
+
+    CategoryComparisonRow:
+      type: object
+      properties:
+        categoryId: { type: integer, format: int64 }
+        categoryName: { type: string }
+        currentMinor: { type: integer, format: int64 }
+        previousMinor: { type: integer, format: int64 }
+        monthlyAverageMinor:
+          type: integer
+          format: int64
+          description: Średnia miesięczna z dwunastu miesięcy przed okresem
+        changePercent:
+          type: [string, 'null']
+          description: >-
+            Zmiana wobec poprzedniego okresu. `null`, gdy poprzedni okres był
+            zerowy — dzielenie przez zero nie jest wzrostem o nieskończoność
+      required: [categoryId, categoryName, currentMinor, previousMinor, monthlyAverageMinor]
+
+    TopSpendReportResponse:
+      type: object
+      properties:
+        baseCurrency: { type: string, minLength: 3, maxLength: 3 }
+        transactions:
+          type: array
+          items: { $ref: '#/components/schemas/TopExpenseRow' }
+        counterparties:
+          type: array
+          items: { $ref: '#/components/schemas/TopCounterpartyRow' }
+      required: [baseCurrency, transactions, counterparties]
+
+    TopExpenseRow:
+      type: object
+      properties:
+        transactionId: { type: integer, format: int64 }
+        bookedOn: { type: string, format: date }
+        amountMinor: { type: integer, format: int64 }
+        description: { type: [string, 'null'] }
+        counterparty: { type: [string, 'null'] }
+        categoryName: { type: [string, 'null'] }
+        accountName: { type: string }
+      required: [transactionId, bookedOn, amountMinor, accountName]
+
+    TopCounterpartyRow:
+      type: object
+      properties:
+        counterparty: { type: string }
+        amountMinor: { type: integer, format: int64 }
+        transactionCount: { type: integer, format: int32 }
+      required: [counterparty, amountMinor, transactionCount]
+
+    FixedVsVariableReportResponse:
+      type: object
+      properties:
+        baseCurrency: { type: string, minLength: 3, maxLength: 3 }
+        rows:
+          type: array
+          items: { $ref: '#/components/schemas/FixedVsVariableRow' }
+      required: [baseCurrency, rows]
+
+    FixedVsVariableRow:
+      type: object
+      properties:
+        period: { type: string, format: date }
+        fixedMinor: { type: integer, format: int64 }
+        variableMinor: { type: integer, format: int64 }
+        fixedSharePercent:
+          type: [string, 'null']
+          description: '`null`, gdy w okresie nie było żadnego wydatku'
+      required: [period, fixedMinor, variableMinor]
+
+    UpcomingReportResponse:
+      type: object
+      properties:
+        horizonTo: { type: string, format: date }
+        overdue:
+          type: array
+          items: { $ref: '#/components/schemas/UpcomingItem' }
+        upcoming:
+          type: array
+          items: { $ref: '#/components/schemas/UpcomingItem' }
+      required: [horizonTo, overdue, upcoming]
+
+    UpcomingItem:
+      type: object
+      properties:
+        occurrenceId: { type: integer, format: int64 }
+        ruleId: { type: integer, format: int64 }
+        ruleName: { type: string }
+        accountId: { type: integer, format: int64 }
+        accountName: { type: string }
+        dueDate: { type: string, format: date }
+        expectedAmountMinor: { type: integer, format: int64 }
+        currency: { type: string, minLength: 3, maxLength: 3 }
+        overdue: { type: boolean }
+      required:
+        - occurrenceId
+        - ruleId
+        - ruleName
+        - accountId
+        - accountName
+        - dueDate
+        - expectedAmountMinor
+        - currency
+        - overdue
+
+    ForecastReportResponse:
+      type: object
+      properties:
+        baseCurrency: { type: string, minLength: 3, maxLength: 3 }
+        startingBalanceMinor: { type: integer, format: int64 }
+        points:
+          type: array
+          items: { $ref: '#/components/schemas/ForecastPoint' }
+      required: [baseCurrency, startingBalanceMinor, points]
+
+    ForecastPoint:
+      type: object
+      properties:
+        date: { type: string, format: date }
+        balanceMinor: { type: integer, format: int64 }
+        changeMinor:
+          type: integer
+          format: int64
+          description: Ruch tego dnia; zero, gdy nic nie wypada
+      required: [date, balanceMinor, changeMinor]
+
+    YearlyMatrixReportResponse:
+      type: object
+      properties:
+        baseCurrency: { type: string, minLength: 3, maxLength: 3 }
+        year: { type: integer, format: int32 }
+        rows:
+          type: array
+          items: { $ref: '#/components/schemas/YearlyMatrixRow' }
+        monthlyTotalsMinor:
+          type: array
+          description: Dwanaście sum, od stycznia do grudnia
+          items: { type: integer, format: int64 }
+        totalMinor: { type: integer, format: int64 }
+      required: [baseCurrency, year, rows, monthlyTotalsMinor, totalMinor]
+
+    YearlyMatrixRow:
+      type: object
+      properties:
+        categoryId: { type: integer, format: int64 }
+        categoryName: { type: string }
+        monthsMinor:
+          type: array
+          description: Dwanaście kwot, od stycznia do grudnia
+          items: { type: integer, format: int64 }
+        totalMinor: { type: integer, format: int64 }
+      required: [categoryId, categoryName, monthsMinor, totalMinor]
+
+    CurrencyExposureReportResponse:
+      type: object
+      properties:
+        baseCurrency: { type: string, minLength: 3, maxLength: 3 }
+        rows:
+          type: array
+          items: { $ref: '#/components/schemas/CurrencyExposureRow' }
+        totalBaseMinor: { type: integer, format: int64 }
+      required: [baseCurrency, rows, totalBaseMinor]
+
+    CurrencyExposureRow:
+      type: object
+      properties:
+        currency: { type: string, minLength: 3, maxLength: 3 }
+        minorUnit: { type: integer, format: int32 }
+        balanceMinor: { type: integer, format: int64 }
+        baseValueMinor:
+          type: [integer, 'null']
+          format: int64
+          description: '`null`, gdy waluta nie ma jeszcze żadnego kursu'
+        rate: { type: [string, 'null'] }
+        rateDate: { type: [string, 'null'], format: date }
+      required: [currency, minorUnit, balanceMinor]
+
+    DashboardResponse:
+      type: object
+      properties:
+        baseCurrency: { type: string, minLength: 3, maxLength: 3 }
+        month: { type: string, format: date }
+        accountBalances:
+          type: array
+          items: { $ref: '#/components/schemas/AccountValuation' }
+        monthIncomeMinor: { type: integer, format: int64 }
+        monthExpenseMinor: { type: integer, format: int64 }
+        monthNetMinor: { type: integer, format: int64 }
+        overdue:
+          type: array
+          items: { $ref: '#/components/schemas/UpcomingItem' }
+        upcoming:
+          type: array
+          items: { $ref: '#/components/schemas/UpcomingItem' }
+      required:
+        - baseCurrency
+        - month
+        - accountBalances
+        - monthIncomeMinor
+        - monthExpenseMinor
+        - monthNetMinor
+        - overdue
+        - upcoming
+
+    AccountValuation:
+      type: object
+      description: >-
+        Saldo konta na pulpicie. Wycena bazowa bywa pusta — konto w walucie bez
+        pobranego kursu ma pokazać saldo, a nie wywrócić cały ekran.
+      properties:
+        accountId: { type: integer, format: int64 }
+        accountName: { type: string }
+        currency: { type: string, minLength: 3, maxLength: 3 }
+        minorUnit: { type: integer, format: int32 }
+        balanceMinor: { type: integer, format: int64 }
+        baseValueMinor: { type: [integer, 'null'], format: int64 }
+      required: [accountId, accountName, currency, minorUnit, balanceMinor]
