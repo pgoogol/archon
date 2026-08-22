@@ -47,7 +47,7 @@ class MinorUnitsTest {
         // given
         MinorUnits zloty = new MinorUnits(2);
 
-        // when / then
+        // when & then
         assertThat(zloty.toMinor(new BigDecimal("12.345"))).isEqualTo(1235L);
         assertThat(zloty.toMinor(new BigDecimal("12.344"))).isEqualTo(1234L);
     }
@@ -59,7 +59,7 @@ class MinorUnitsTest {
         // given
         MinorUnits dinar = new MinorUnits(3);
 
-        // when / then
+        // when & then
         assertThat(dinar.toMinor(new BigDecimal("1.234"))).isEqualTo(1234L);
     }
 

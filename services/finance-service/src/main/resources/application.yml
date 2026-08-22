@@ -22,7 +22,6 @@ spring:
       leak-detection-threshold: 5000
 
 server:
-  # 8080 zajmuje music-service — dwa serwisy monorepo chodzą obok siebie lokalnie
   port: 8081
 
 management:

@@ -41,26 +41,32 @@ public class ExchangeRate {
     }
 
     public ExchangeRateId getId() {
+
         return id;
     }
 
     public String getCode() {
+
         return id.getCode();
     }
 
     public LocalDate getRateDate() {
+
         return id.getRateDate();
     }
 
     public BigDecimal getRate() {
+
         return rate;
     }
 
     public RateSource getSource() {
+
         return source;
     }
 
     public FxRate toFxRate() {
+
         return new FxRate(rate, id.getRateDate());
     }
 

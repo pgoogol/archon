@@ -22,6 +22,7 @@ public record MinorUnits(int scale) {
 
     /** Kwota podrzędna → dziesiętna: {@code (1234, scale=2)} daje {@code 12.34}. */
     public BigDecimal toDecimal(long amountMinor) {
+
         return BigDecimal.valueOf(amountMinor, scale);
     }
 
@@ -31,6 +32,7 @@ public record MinorUnits(int scale) {
      * wychodzi równo na groszach.
      */
     public long toMinor(BigDecimal amount) {
+
         return amount.setScale(scale, RoundingMode.HALF_UP).unscaledValue().longValueExact();
     }
 }

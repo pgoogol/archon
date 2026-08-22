@@ -182,6 +182,7 @@ class OpenApiContractTest {
     }
 
     private String operation(String method, String path) {
+
         return method.toUpperCase(Locale.ROOT) + " " + path;
     }
 }

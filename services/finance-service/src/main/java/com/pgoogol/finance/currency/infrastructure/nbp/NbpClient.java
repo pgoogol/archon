@@ -1,6 +1,7 @@
 package com.pgoogol.finance.currency.infrastructure.nbp;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.pgoogol.finance.common.ExceptionMessageConstants;
 import com.pgoogol.finance.common.ExternalServiceException;
 import com.pgoogol.finance.common.RateLimitedException;
 import com.pgoogol.finance.common.ratelimit.ApiCallGuard;
@@ -71,7 +72,10 @@ public class NbpClient implements ExchangeRateProvider {
             .map(index -> {
                 LocalDate start = from.plusDays(index * MAX_RANGE_DAYS);
                 LocalDate end = start.plusDays(MAX_RANGE_DAYS - 1L);
-                return new DateRange(start, end.isAfter(to) ? to : end);
+                if (end.isAfter(to)) {
+                    return new DateRange(start, to);
+                }
+                return new DateRange(start, end);
             });
     }
 
@@ -101,9 +105,10 @@ public class NbpClient implements ExchangeRateProvider {
                 return null;
             } catch (HttpClientErrorException.TooManyRequests ex) {
                 throw new RateLimitedException("NBP_RATE_LIMITED",
-                    "NBP ograniczył liczbę zapytań", null);
+                    ExceptionMessageConstants.NBP_RATE_LIMITED, null);
             } catch (HttpServerErrorException | ResourceAccessException ex) {
-                throw new ExternalServiceException("NBP_UNAVAILABLE", "API NBP niedostępne", ex);
+                throw new ExternalServiceException("NBP_UNAVAILABLE",
+                    ExceptionMessageConstants.NBP_UNAVAILABLE, ex);
             }
         });
     }

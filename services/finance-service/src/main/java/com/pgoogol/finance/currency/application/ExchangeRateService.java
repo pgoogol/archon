@@ -1,5 +1,6 @@
 package com.pgoogol.finance.currency.application;
 
+import com.pgoogol.finance.common.ExceptionMessageConstants;
 import com.pgoogol.finance.common.NotFoundException;
 import com.pgoogol.finance.common.ValidationException;
 import com.pgoogol.finance.currency.domain.Currency;
@@ -58,12 +59,13 @@ public class ExchangeRateService {
                 currency.getCode(), onDate)
             .map(ExchangeRate::toFxRate)
             .orElseThrow(() -> new NotFoundException("EXCHANGE_RATE_NOT_FOUND",
-                "Brak kursu %s na dzień %s ani wcześniejszego".formatted(
+                ExceptionMessageConstants.EXCHANGE_RATE_NOT_FOUND.formatted(
                     currency.getCode(), onDate)));
     }
 
     /** Kurs bieżący — do wyceny majątku na dziś, nigdy do przeliczania historii. */
     public FxRate current(String code) {
+
         return resolve(code, LocalDate.now());
     }
 
@@ -83,7 +85,7 @@ public class ExchangeRateService {
         Currency currency = currencyService.get(code);
         if (currencyService.isBase(currency.getCode())) {
             throw new ValidationException("BASE_CURRENCY_RATE",
-                "Waluta bazowa %s nie ma kursu — z definicji wynosi 1".formatted(
+                ExceptionMessageConstants.BASE_CURRENCY_RATE.formatted(
                     currency.getCode()));
         }
         return upsert(currency.getCode(), new FxRate(rate, rateDate), RateSource.MANUAL);
@@ -146,7 +148,7 @@ public class ExchangeRateService {
         Objects.requireNonNull(to, "to");
         if (from.isAfter(to)) {
             throw new ValidationException("INVALID_DATE_RANGE",
-                "Początek zakresu %s jest późniejszy niż koniec %s".formatted(from, to));
+                ExceptionMessageConstants.INVALID_DATE_RANGE.formatted(from, to));
         }
     }
 

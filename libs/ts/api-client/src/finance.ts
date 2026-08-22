@@ -5,7 +5,7 @@
 //
 // CI regeneruje i wywala się na diffie, więc nieaktualny plik w repo psuje build.
 //
-// Osobny punkt wejścia (@archon/api-client/finance), a nie wspólny index:
+// Punkt wejścia @archon/api-client/finance, symetryczny do /music:
 // obydwa kontrakty mają własny ErrorResponse i własne stronicowanie, więc
 // eksport pod jedną nazwą kończyłby się kolizją.
 

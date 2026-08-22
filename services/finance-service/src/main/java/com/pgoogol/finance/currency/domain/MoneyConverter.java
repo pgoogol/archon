@@ -24,7 +24,8 @@ public class MoneyConverter {
         Objects.requireNonNull(from, "from");
         Objects.requireNonNull(rate, "rate");
         Objects.requireNonNull(to, "to");
-        BigDecimal converted = from.toDecimal(amountMinor).multiply(rate);
+        BigDecimal amount = from.toDecimal(amountMinor);
+        BigDecimal converted = amount.multiply(rate);
         return to.toMinor(converted);
     }
 }

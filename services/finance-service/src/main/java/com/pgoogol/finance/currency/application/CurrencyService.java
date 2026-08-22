@@ -1,6 +1,7 @@
 package com.pgoogol.finance.currency.application;
 
 import com.pgoogol.finance.common.ConflictException;
+import com.pgoogol.finance.common.ExceptionMessageConstants;
 import com.pgoogol.finance.common.NotFoundException;
 import com.pgoogol.finance.currency.domain.Currency;
 import com.pgoogol.finance.currency.domain.FinanceProperties;
@@ -32,6 +33,7 @@ public class CurrencyService {
     }
 
     public List<Currency> listAll() {
+
         return currencyRepository.findAllByOrderByCodeAsc();
     }
 
@@ -40,22 +42,27 @@ public class CurrencyService {
         String normalized = normalize(code);
         return currencyRepository.findById(normalized)
             .orElseThrow(() -> new NotFoundException("CURRENCY_NOT_FOUND",
-                "Waluta %s nie istnieje w słowniku".formatted(normalized)));
+                ExceptionMessageConstants.CURRENCY_NOT_FOUND.formatted(normalized)));
     }
 
     public MinorUnits minorUnitsOf(String code) {
-        return get(code).minorUnits();
+
+        Currency currency = get(code);
+        return currency.minorUnits();
     }
 
     public String baseCurrency() {
+
         return financeProperties.baseCurrency();
     }
 
     public MinorUnits baseMinorUnits() {
+
         return minorUnitsOf(financeProperties.baseCurrency());
     }
 
     public boolean isBase(String code) {
+
         return financeProperties.isBase(normalize(code));
     }
 
@@ -65,7 +72,7 @@ public class CurrencyService {
         String normalized = normalize(code);
         if (currencyRepository.existsById(normalized)) {
             throw new ConflictException("CURRENCY_EXISTS",
-                "Waluta %s jest już w słowniku".formatted(normalized));
+                ExceptionMessageConstants.CURRENCY_EXISTS.formatted(normalized));
         }
         return currencyRepository.save(new Currency(normalized, name, minorUnit));
     }

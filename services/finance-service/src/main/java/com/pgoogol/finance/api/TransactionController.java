@@ -1,6 +1,7 @@
 package com.pgoogol.finance.api;
 
 import com.pgoogol.finance.currency.application.CurrencyService;
+import com.pgoogol.finance.transaction.application.TransactionCommand;
 import com.pgoogol.finance.transaction.application.TransactionSearchCriteria;
 import com.pgoogol.finance.transaction.application.TransactionService;
 import com.pgoogol.finance.transaction.domain.Transaction;
@@ -8,6 +9,7 @@ import com.pgoogol.finance.transaction.domain.TransactionType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -65,13 +67,16 @@ public class TransactionController {
         TransactionSearchCriteria criteria =
             new TransactionSearchCriteria(from, to, accountId, categoryId, type, currency);
         PageRequest pageRequest = PageRequest.of(Math.max(0, page), cappedSize(size));
-        return PageResponse.of(transactionService.search(criteria, pageRequest), this::toResponse);
+        Page<Transaction> found = transactionService.search(criteria, pageRequest);
+        return PageResponse.of(found, this::toResponse);
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Pojedyncza transakcja")
     public TransactionResponse getTransaction(@PathVariable long id) {
-        return toResponse(transactionService.get(id));
+
+        Transaction transaction = transactionService.get(id);
+        return toResponse(transaction);
     }
 
     @PostMapping
@@ -82,7 +87,10 @@ public class TransactionController {
             i kwota w walucie bazowej wyliczają się przy zapisie i już się \
             nie zmieniają.""")
     public TransactionResponse createTransaction(@Valid @RequestBody TransactionRequest request) {
-        return toResponse(transactionService.create(mapper.toCommand(request)));
+
+        TransactionCommand command = mapper.toCommand(request);
+        Transaction created = transactionService.create(command);
+        return toResponse(created);
     }
 
     @PutMapping("/{id}")
@@ -92,22 +100,28 @@ public class TransactionController {
             przesunięcie daty zostawiłoby kwotę bazową policzoną dla starej.""")
     public TransactionResponse updateTransaction(@PathVariable long id,
                                                  @Valid @RequestBody TransactionRequest request) {
-        return toResponse(transactionService.update(id, mapper.toCommand(request)));
+        TransactionCommand command = mapper.toCommand(request);
+        Transaction updated = transactionService.update(id, command);
+        return toResponse(updated);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Usunięcie transakcji")
     public void deleteTransaction(@PathVariable long id) {
+
         transactionService.delete(id);
     }
 
     private TransactionResponse toResponse(Transaction transaction) {
-        return mapper.toResponse(transaction, currencyService.baseCurrency());
+
+        String baseCurrency = currencyService.baseCurrency();
+        return mapper.toResponse(transaction, baseCurrency);
     }
 
     /** Górny limit strony pilnujemy tutaj, nie w konfiguracji klienta. */
     static int cappedSize(int size) {
+
         return Math.clamp(size, 1, MAX_PAGE_SIZE);
     }
 }

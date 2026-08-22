@@ -61,8 +61,31 @@ paths:
   the decision says: not "criterion (D19)" but "criterion: measured or estimated".
   The one exception is an applied Flyway migration — its checksum covers comments
   too, so editing one breaks validation on every existing database.
-- No static utility classes — use Spring beans. Exception: test fixtures
-  (Object Mother).
+- No static utility classes — use Spring beans. Exceptions: test fixtures
+  (Object Mother) and a constants holder with no behaviour, such as
+  `ExceptionMessageConstants`.
+- **Never use the ternary operator.** Write `if` with an early return instead —
+  a conditional buried inside an expression is read twice, and a nested one is
+  read three times.
+  ```java
+  // WRONG
+  return Objects.isNull(parentId) ? null : get(parentId);
+  // CORRECT
+  if (Objects.isNull(parentId)) {
+      return null;
+  }
+  return get(parentId);
+  ```
+- **Never pass the result of a call as an argument to another call.** Give it a
+  named local first — the name says what the value is, and a stack trace points
+  at one line instead of a nest.
+  ```java
+  // WRONG
+  return mapper.toResponses(accountService.list(includeArchived));
+  // CORRECT
+  List<Account> accounts = accountService.list(includeArchived);
+  return mapper.toResponses(accounts);
+  ```
 - Prefer `List.of()`, `Map.of()`, `Set.of()` for immutable collections.
 - Annotate `@NonNull` / `@Nullable` (`org.springframework.lang`) on parameters and
   return types of public methods.
@@ -74,6 +97,20 @@ paths:
   in time or complexity — then write in a comment why.
 - Avoid chained calls like `a().b().c()`. Exception: Builder, `Optional`, `Stream`
   and the Mockito API.
+- **A lambda body longer than 3 lines goes into its own method.** `forEach` and
+  `map` with a block inside stop reading as a pipeline and start hiding logic that
+  nothing can test on its own.
+  ```java
+  // WRONG
+  flat.forEach(category -> {
+      CategoryNode node = node(category, childrenByParent);
+      Long parentId = category.getParentId();
+      if (Objects.isNull(parentId)) { roots.add(node); }
+      else { childrenByParent.get(parentId).add(node); }
+  });
+  // CORRECT
+  flat.forEach(category -> attach(category, loaded, childrenByParent, roots));
+  ```
 
 ## Comparisons and null checks
 

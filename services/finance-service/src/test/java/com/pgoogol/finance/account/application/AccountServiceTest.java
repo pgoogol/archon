@@ -58,7 +58,7 @@ class AccountServiceTest {
         when(currencyService.get("XYZ"))
             .thenThrow(new NotFoundException("CURRENCY_NOT_FOUND", "brak"));
 
-        // when / then
+        // when & then
         assertThatThrownBy(() -> accountService.create("Konto", AccountType.BANK, "XYZ", null,
             0L, LocalDate.of(2026, 1, 1)))
             .isInstanceOf(NotFoundException.class);
@@ -142,7 +142,7 @@ class AccountServiceTest {
         // given
         when(accountRepository.findById(99L)).thenReturn(Optional.empty());
 
-        // when / then
+        // when & then
         assertThatThrownBy(() -> accountService.get(99L))
             .isInstanceOf(NotFoundException.class)
             .hasMessageContaining("99");

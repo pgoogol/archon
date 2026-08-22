@@ -19,6 +19,7 @@ public record FinanceProperties(String baseCurrency) {
     }
 
     public boolean isBase(String code) {
+
         return Objects.equals(baseCurrency, code);
     }
 }

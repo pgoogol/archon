@@ -100,7 +100,7 @@ class ExchangeRateServiceTest {
                 FinanceFixtures.EUR, SATURDAY))
             .thenReturn(Optional.empty());
 
-        // when / then
+        // when & then
         assertThatThrownBy(() -> exchangeRateService.resolve(FinanceFixtures.EUR, SATURDAY))
             .isInstanceOf(NotFoundException.class)
             .hasMessageContaining("Brak kursu");
@@ -114,7 +114,7 @@ class ExchangeRateServiceTest {
         when(currencyService.get(FinanceFixtures.PLN)).thenReturn(FinanceFixtures.zloty());
         when(currencyService.isBase(FinanceFixtures.PLN)).thenReturn(true);
 
-        // when / then
+        // when & then
         assertThatThrownBy(() -> exchangeRateService.saveManual(
             FinanceFixtures.PLN, FRIDAY, new BigDecimal("1.5")))
             .isInstanceOf(ValidationException.class);

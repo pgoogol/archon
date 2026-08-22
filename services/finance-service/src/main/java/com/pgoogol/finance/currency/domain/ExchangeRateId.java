@@ -34,10 +34,12 @@ public class ExchangeRateId implements Serializable {
     }
 
     public String getCode() {
+
         return code;
     }
 
     public LocalDate getRateDate() {
+
         return rateDate;
     }
 
@@ -55,6 +57,7 @@ public class ExchangeRateId implements Serializable {
 
     @Override
     public int hashCode() {
+
         return Objects.hash(code, rateDate);
     }
 }

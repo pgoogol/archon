@@ -30,6 +30,7 @@ class CurrencyServiceTest {
     private final FinanceProperties financeProperties = new FinanceProperties(FinanceFixtures.PLN);
 
     private CurrencyService currencyService() {
+
         return new CurrencyService(currencyRepository, financeProperties);
     }
 
@@ -55,7 +56,7 @@ class CurrencyServiceTest {
         // given
         when(currencyRepository.findById("XYZ")).thenReturn(Optional.empty());
 
-        // when / then
+        // when & then
         assertThatThrownBy(() -> currencyService().get("XYZ"))
             .isInstanceOf(NotFoundException.class);
     }
@@ -81,7 +82,7 @@ class CurrencyServiceTest {
         // given
         when(currencyRepository.existsById(FinanceFixtures.EUR)).thenReturn(true);
 
-        // when / then
+        // when & then
         assertThatThrownBy(() -> currencyService().add("eur", "euro", 2))
             .isInstanceOf(ConflictException.class);
         verify(currencyRepository, never()).save(org.mockito.ArgumentMatchers.any());

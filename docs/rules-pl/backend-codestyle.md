@@ -61,8 +61,31 @@ paths:
   to, co decyzja mówi: nie „kryterium (D19)", tylko „kryterium: pomiar czy
   estymata". Jedyny wyjątek to zastosowana migracja Flyway — jej suma kontrolna
   obejmuje także komentarze, więc edycja wywala walidację na istniejących bazach.
-- Żadnych statycznych klas narzędziowych — używaj beanów Springa. Wyjątek:
-  fixtures testowe (Object Mother).
+- Żadnych statycznych klas narzędziowych — używaj beanów Springa. Wyjątki:
+  fixtures testowe (Object Mother) oraz klasa ze stałymi bez żadnego zachowania,
+  jak `ExceptionMessageConstants`.
+- **Nigdy nie używaj operatora warunkowego (ternary).** Zamiast tego `if`
+  z wczesnym wyjściem — warunek schowany w wyrażeniu czyta się dwa razy,
+  a zagnieżdżony trzy.
+  ```java
+  // ŹLE
+  return Objects.isNull(parentId) ? null : get(parentId);
+  // DOBRZE
+  if (Objects.isNull(parentId)) {
+      return null;
+  }
+  return get(parentId);
+  ```
+- **Nigdy nie przekazuj wyniku wywołania jako argumentu innego wywołania.**
+  Najpierw nazwana zmienna lokalna — nazwa mówi, czym jest wartość, a stack trace
+  wskazuje jedną linię zamiast gniazda wywołań.
+  ```java
+  // ŹLE
+  return mapper.toResponses(accountService.list(includeArchived));
+  // DOBRZE
+  List<Account> accounts = accountService.list(includeArchived);
+  return mapper.toResponses(accounts);
+  ```
 - Preferuj `List.of()`, `Map.of()`, `Set.of()` dla kolekcji niemodyfikowalnych.
 - Oznaczaj `@NonNull` / `@Nullable` (`org.springframework.lang`) na parametrach
   i typach zwracanych metod publicznych.
@@ -74,6 +97,20 @@ paths:
   tańsza czasowo lub prostsza — wtedy napisz w komentarzu dlaczego.
 - Unikaj łańcuchów `a().b().c()`. Wyjątek: Builder, `Optional`, `Stream` i API
   Mockito.
+- **Ciało lambdy dłuższe niż 3 linie wydziel do osobnej metody.** `forEach`
+  i `map` z blokiem w środku przestają się czytać jak potok, a zaczynają ukrywać
+  logikę, której nic nie przetestuje osobno.
+  ```java
+  // ŹLE
+  flat.forEach(category -> {
+      CategoryNode node = node(category, childrenByParent);
+      Long parentId = category.getParentId();
+      if (Objects.isNull(parentId)) { roots.add(node); }
+      else { childrenByParent.get(parentId).add(node); }
+  });
+  // DOBRZE
+  flat.forEach(category -> attach(category, loaded, childrenByParent, roots));
+  ```
 
 ## Porównania i sprawdzanie null
 

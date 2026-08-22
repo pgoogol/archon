@@ -6,8 +6,8 @@
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/music
-    username: music
-    password: music
+    username: postgres
+    password: qwerty
   jpa:
     show-sql: true
     properties:

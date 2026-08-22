@@ -1,8 +1,8 @@
 # Serwer statyków frontu + proxy API (M5.3).
 #
-# Szablon obrazu nginx: entrypoint podstawia ${API_HOST} i ${API_PORT} ze
-# zmiennych środowiskowych. Zmienne samego nginxa ($host, $uri, …) zapisujemy
-# bez klamer, więc podstawianie ich nie rusza.
+# Szablon obrazu nginx: entrypoint podstawia zmienne środowiskowe adresów
+# backendów — każda nosi nazwę serwisu, do którego prowadzi. Zmienne samego
+# nginxa ($host, $uri, …) zapisujemy bez klamer, więc podstawianie ich nie rusza.
 #
 # Bez fallbacku SPA: stan widoku siedzi w hashu (`#/library?…`), więc
 # przeglądarka nigdy nie prosi serwera o /library — wystarczy index.html pod /.
@@ -30,7 +30,7 @@ server {
     }
 
     location /api/ {
-        proxy_pass http://${API_HOST}:${API_PORT};
+        proxy_pass http://${MUSIC_API_HOST}:${MUSIC_API_PORT};
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;

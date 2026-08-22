@@ -447,7 +447,8 @@ components:
       properties:
         errorCode:
           type: string
-          examples: [ACCOUNT_NOT_FOUND]
+          description: Kod maszynowy — po nim klient rozpoznaje przypadek, nie po treści
+          examples: [CURRENCY_MISMATCH, TRANSFER_WITHOUT_TARGET, EXCHANGE_RATE_NOT_FOUND]
         message: { type: string }
         timestamp: { type: string, format: date-time }
         traceId: { type: [string, 'null'] }

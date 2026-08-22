@@ -1,5 +1,5 @@
 // Klient API domeny muzycznej. Typy DTO NIE są tu pisane — pochodzą z kontraktu
-// (contracts/openapi/music.yaml) przez @archon/api-client. Ten plik trzyma już
+// (contracts/openapi/music.yaml) przez @archon/api-client/music. Ten plik trzyma już
 // tylko wywołania endpointów i kształty wejściowe samego frontu.
 
 import type {
@@ -33,7 +33,7 @@ import type {
   SpotifyAccountResponse,
   TrackMetricsResponse,
   UpdateLibraryEntryRequest,
-} from '@archon/api-client'
+} from '@archon/api-client/music'
 
 export type {
   AddLibraryTrackRequest,
@@ -85,7 +85,7 @@ export type {
   TrackMetricsResponse,
   TrackResponse,
   UpdateLibraryEntryRequest,
-} from '@archon/api-client'
+} from '@archon/api-client/music'
 
 // nazwy, pod którymi front znał te DTO wcześniej
 export type {
@@ -96,7 +96,7 @@ export type {
   SoundResponse as OverviewSoundResponse,
   TimelineResponse as OverviewTimelineResponse,
   TasteResponse as OverviewTasteResponse,
-} from '@archon/api-client'
+} from '@archon/api-client/music'
 
 /** Dane prywatne DJ-a pokazywane w wierszu biblioteki (M5.6) — reszta w szufladzie. */
 /**

@@ -35,6 +35,7 @@ public final class ApiCallGuard {
     }
 
     public static ApiCallGuard of(String name, int requestsPerSecond) {
+
         return of(name, requestsPerSecond, DEFAULT_MAX_ATTEMPTS, DEFAULT_INITIAL_BACKOFF);
     }
 
@@ -50,8 +51,12 @@ public final class ApiCallGuard {
         RetryConfig retryConfig = RetryConfig.custom()
             .maxAttempts(maxAttempts)
             .retryOnException(ex -> ex instanceof ExternalServiceException)
-            .intervalBiFunction((attempt, either) -> backoffMillis(attempt, initialBackoff,
-                either.isLeft() ? either.getLeft() : null))
+            .intervalBiFunction((attempt, either) -> {
+                if (either.isLeft()) {
+                    return backoffMillis(attempt, initialBackoff, either.getLeft());
+                }
+                return backoffMillis(attempt, initialBackoff, null);
+            })
             .build();
         return new ApiCallGuard(
             RateLimiter.of(name, rateLimiterConfig),

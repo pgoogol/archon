@@ -97,7 +97,7 @@ class NbpClientTest {
         // given
         stubFor(get(urlPathMatching(RATES_PATH)).willReturn(aResponse().withStatus(500)));
 
-        // when / then
+        // when & then
         assertThatThrownBy(() -> client(wireMock).fetchRates("EUR",
             LocalDate.of(2026, 8, 14), LocalDate.of(2026, 8, 14)))
             .isInstanceOf(ExternalServiceException.class)

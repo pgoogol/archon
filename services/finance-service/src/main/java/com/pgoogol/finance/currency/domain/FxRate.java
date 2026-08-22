@@ -25,6 +25,7 @@ public record FxRate(BigDecimal rate, LocalDate rateDate) {
 
     /** Kurs waluty bazowej na samą siebie — zawsze 1, bez sięgania do tabeli kursów. */
     public static FxRate identity(LocalDate onDate) {
+
         return new FxRate(BigDecimal.ONE, onDate);
     }
 }

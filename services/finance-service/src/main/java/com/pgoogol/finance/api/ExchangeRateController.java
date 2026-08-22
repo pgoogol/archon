@@ -1,6 +1,7 @@
 package com.pgoogol.finance.api;
 
 import com.pgoogol.finance.currency.application.ExchangeRateService;
+import com.pgoogol.finance.currency.domain.ExchangeRate;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -42,7 +43,8 @@ public class ExchangeRateController {
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
 
-        return mapper.toRateResponses(exchangeRateService.list(code, from, to));
+        List<ExchangeRate> rates = exchangeRateService.list(code, from, to);
+        return mapper.toRateResponses(rates);
     }
 
     @PostMapping
@@ -54,8 +56,10 @@ public class ExchangeRateController {
             liczba zmiennoprzecinkowa gubi grosze.""")
     public ExchangeRateResponse addExchangeRate(@Valid @RequestBody ExchangeRateRequest request) {
 
-        return mapper.toResponse(exchangeRateService.saveManual(
-            request.code(), request.rateDate(), new BigDecimal(request.rate())));
+        BigDecimal rate = new BigDecimal(request.rate());
+        ExchangeRate saved = exchangeRateService.saveManual(
+            request.code(), request.rateDate(), rate);
+        return mapper.toResponse(saved);
     }
 
     @PostMapping("/sync")
@@ -67,7 +71,8 @@ public class ExchangeRateController {
     public SyncExchangeRatesResponse syncExchangeRates(
             @Valid @RequestBody SyncExchangeRatesRequest request) {
 
-        return mapper.toResponse(exchangeRateService.sync(
-            request.from(), request.to(), request.codes()));
+        ExchangeRateService.SyncResult result = exchangeRateService.sync(
+            request.from(), request.to(), request.codes());
+        return mapper.toResponse(result);
     }
 }

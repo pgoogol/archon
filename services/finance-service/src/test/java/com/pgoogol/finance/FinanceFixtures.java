@@ -29,14 +29,17 @@ public final class FinanceFixtures {
     }
 
     public static Currency zloty() {
+
         return new Currency(PLN, "złoty polski", 2);
     }
 
     public static Currency euro() {
+
         return new Currency(EUR, "euro", 2);
     }
 
     public static Currency yen() {
+
         return new Currency("JPY", "jen japoński", 0);
     }
 
@@ -63,6 +66,7 @@ public final class FinanceFixtures {
     }
 
     public static ExchangeRate rate(String code, LocalDate date, String value) {
+
         return new ExchangeRate(code, date, new BigDecimal(value), RateSource.NBP);
     }
 }

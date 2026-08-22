@@ -60,8 +60,8 @@ export default defineConfig({
       env: {
         SERVER_PORT: String(PORT),
         SPRING_DATASOURCE_URL: DATASOURCE_URL,
-        SPRING_DATASOURCE_USERNAME: process.env.E2E_DB_USER ?? 'music',
-        SPRING_DATASOURCE_PASSWORD: process.env.E2E_DB_PASSWORD ?? 'music',
+        SPRING_DATASOURCE_USERNAME: process.env.E2E_DB_USER ?? 'postgres',
+        SPRING_DATASOURCE_PASSWORD: process.env.E2E_DB_PASSWORD ?? 'qwerty',
         // wszystkie źródła zewnętrzne na stub — bez sieci i bez kluczy
         LLM_PROVIDER: 'openai',
         LLM_BASE_URL: `http://127.0.0.1:${STUB_PORT}`,

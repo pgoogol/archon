@@ -43,22 +43,27 @@ public class Currency {
     }
 
     public String getCode() {
+
         return code;
     }
 
     public String getName() {
+
         return name;
     }
 
     public int getMinorUnit() {
+
         return minorUnit;
     }
 
     public MinorUnits minorUnits() {
+
         return new MinorUnits(minorUnit);
     }
 
     public void rename(String name) {
+
         this.name = Objects.requireNonNull(name, "name");
     }
 }

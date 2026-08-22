@@ -127,6 +127,7 @@ public class Transaction {
     }
 
     public void assignCategory(@Nullable Category category) {
+
         this.category = category;
     }
 
@@ -162,77 +163,94 @@ public class Transaction {
     }
 
     public Long getId() {
+
         return id;
     }
 
     public TransactionType getType() {
+
         return type;
     }
 
     public LocalDate getBookedOn() {
+
         return bookedOn;
     }
 
     public long getAmountMinor() {
+
         return amountMinor;
     }
 
     public String getCurrency() {
+
         return currency;
     }
 
     public long getBaseAmountMinor() {
+
         return baseAmountMinor;
     }
 
     public BigDecimal getFxRate() {
+
         return fxRate;
     }
 
     public LocalDate getFxRateDate() {
+
         return fxRateDate;
     }
 
     @Nullable
     public Long getOriginalAmountMinor() {
+
         return originalAmountMinor;
     }
 
     @Nullable
     public String getOriginalCurrency() {
+
         return originalCurrency;
     }
 
     public Account getAccount() {
+
         return account;
     }
 
     @Nullable
     public Account getToAccount() {
+
         return toAccount;
     }
 
     @Nullable
     public Long getToAmountMinor() {
+
         return toAmountMinor;
     }
 
     @Nullable
     public Category getCategory() {
+
         return category;
     }
 
     @Nullable
     public String getDescription() {
+
         return description;
     }
 
     @Nullable
     public String getCounterparty() {
+
         return counterparty;
     }
 
     public Instant getCreatedAt() {
+
         return createdAt;
     }
 }

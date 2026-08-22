@@ -61,32 +61,42 @@ public class Category {
 
     /** Archiwizacja zamiast usunięcia — inaczej historyczne transakcje tracą przypisanie. */
     public void archive() {
+
         this.archived = true;
     }
 
     public Long getId() {
+
         return id;
     }
 
     @Nullable
     public Category getParent() {
+
         return parent;
     }
 
     @Nullable
     public Long getParentId() {
-        return Objects.isNull(parent) ? null : parent.getId();
+
+        if (Objects.isNull(parent)) {
+            return null;
+        }
+        return parent.getId();
     }
 
     public String getName() {
+
         return name;
     }
 
     public CategoryDirection getDirection() {
+
         return direction;
     }
 
     public boolean isArchived() {
+
         return archived;
     }
 }

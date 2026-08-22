@@ -7,6 +7,9 @@
 //
 // Ten plik jest jedyną warstwą pisaną ręcznie: nadaje schematom czytelne nazwy,
 // żeby front nie musiał wszędzie pisać components['schemas'][...].
+//
+// Punkt wejścia @archon/api-client/music — każda domena ma własny, bo obydwa
+// kontrakty mają swój ErrorResponse i eksport pod jedną nazwą by się zderzył.
 
 import type { components } from './music.generated'
 

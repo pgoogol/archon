@@ -24,8 +24,8 @@ FROM nginx:1.27-alpine AS runtime
 # entrypoint obrazu nginx renderuje szablony z /etc/nginx/templates przez envsubst.
 # Każda zmienna użyta w szablonie musi mieć wartość — niepodstawiona zostałaby
 # w pliku pusta i nginx nie wstałby na błędnym proxy_pass.
-ENV API_HOST=music-service
-ENV API_PORT=8080
+ENV MUSIC_API_HOST=music-service
+ENV MUSIC_API_PORT=8080
 ENV FINANCE_API_HOST=finance-service
 ENV FINANCE_API_PORT=8081
 COPY apps/web/nginx.conf.template /etc/nginx/templates/default.conf.template

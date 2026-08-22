@@ -1,6 +1,8 @@
 package com.pgoogol.finance.api;
 
 import com.pgoogol.finance.account.application.AccountService;
+import com.pgoogol.finance.account.domain.Account;
+import com.pgoogol.finance.account.domain.AccountBalance;
 import com.pgoogol.finance.account.application.BalanceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -41,7 +43,8 @@ public class AccountController {
     public List<AccountResponse> listAccounts(
             @RequestParam(defaultValue = "false") boolean includeArchived) {
 
-        return mapper.toResponses(accountService.list(includeArchived));
+        List<Account> accounts = accountService.list(includeArchived);
+        return mapper.toResponses(accounts);
     }
 
     @PostMapping
@@ -49,9 +52,10 @@ public class AccountController {
     @Operation(summary = "Nowe konto")
     public AccountResponse createAccount(@Valid @RequestBody AccountRequest request) {
 
-        return mapper.toResponse(accountService.create(request.name(), request.type(),
+        Account account = accountService.create(request.name(), request.type(),
             request.currency(), request.iban(), request.openingBalanceMinor(),
-            request.openingBalanceOn()));
+            request.openingBalanceOn());
+        return mapper.toResponse(account);
     }
 
     @PutMapping("/{id}")
@@ -62,8 +66,9 @@ public class AccountController {
     public AccountResponse updateAccount(@PathVariable long id,
                                          @Valid @RequestBody AccountRequest request) {
 
-        return mapper.toResponse(accountService.update(id, request.name(), request.type(),
-            request.iban(), request.openingBalanceMinor(), request.openingBalanceOn()));
+        Account account = accountService.update(id, request.name(), request.type(),
+            request.iban(), request.openingBalanceMinor(), request.openingBalanceOn());
+        return mapper.toResponse(account);
     }
 
     @DeleteMapping("/{id}")
@@ -71,6 +76,7 @@ public class AccountController {
     @Operation(summary = "Archiwizacja konta",
         description = "Konto nie znika — historia transakcji musi zostać.")
     public void archiveAccount(@PathVariable long id) {
+
         accountService.archive(id);
     }
 
@@ -81,6 +87,8 @@ public class AccountController {
             przelicza się kursem bieżącym — to stan majątku na dziś, w odróżnieniu \
             od transakcji, które trzymają kurs historyczny.""")
     public AccountBalanceResponse getAccountBalance(@PathVariable long id) {
-        return mapper.toResponse(balanceService.balanceOf(id));
+
+        AccountBalance balance = balanceService.balanceOf(id);
+        return mapper.toResponse(balance);
     }
 }

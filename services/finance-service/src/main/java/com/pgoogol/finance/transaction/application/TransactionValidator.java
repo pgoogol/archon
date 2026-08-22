@@ -3,6 +3,7 @@ package com.pgoogol.finance.transaction.application;
 import com.pgoogol.finance.account.domain.Account;
 import com.pgoogol.finance.category.domain.Category;
 import com.pgoogol.finance.category.domain.CategoryDirection;
+import com.pgoogol.finance.common.ExceptionMessageConstants;
 import com.pgoogol.finance.common.ValidationException;
 import com.pgoogol.finance.transaction.domain.TransactionType;
 import org.springframework.lang.Nullable;
@@ -35,7 +36,7 @@ public class TransactionValidator {
 
         if (command.amountMinor() <= 0) {
             throw new ValidationException("AMOUNT_NOT_POSITIVE",
-                "Kwota musi być dodatnia — kierunek wynika z typu transakcji");
+                ExceptionMessageConstants.AMOUNT_NOT_POSITIVE);
         }
     }
 
@@ -43,7 +44,7 @@ public class TransactionValidator {
 
         if (!Objects.equals(command.currency(), account.getCurrency())) {
             throw new ValidationException("CURRENCY_MISMATCH",
-                "Kwota jest w walucie konta — konto %s prowadzi %s, podano %s".formatted(
+                ExceptionMessageConstants.CURRENCY_MISMATCH.formatted(
                     account.getName(), account.getCurrency(), command.currency()));
         }
     }
@@ -53,7 +54,7 @@ public class TransactionValidator {
         if (Objects.isNull(command.originalAmountMinor())
                 != Objects.isNull(command.originalCurrency())) {
             throw new ValidationException("ORIGINAL_AMOUNT_INCOMPLETE",
-                "Kwota oryginalna i jej waluta muszą wystąpić razem albo wcale");
+                ExceptionMessageConstants.ORIGINAL_AMOUNT_INCOMPLETE);
         }
     }
 
@@ -62,15 +63,15 @@ public class TransactionValidator {
 
         if (Objects.nonNull(category)) {
             throw new ValidationException("TRANSFER_WITH_CATEGORY",
-                "Transfer nie ma kategorii — nie jest wydatkiem ani przychodem");
+                ExceptionMessageConstants.TRANSFER_WITH_CATEGORY);
         }
         if (Objects.isNull(toAccount)) {
             throw new ValidationException("TRANSFER_WITHOUT_TARGET",
-                "Transfer wymaga konta docelowego");
+                ExceptionMessageConstants.TRANSFER_WITHOUT_TARGET);
         }
         if (Objects.equals(toAccount.getId(), account.getId())) {
             throw new ValidationException("TRANSFER_TO_SAME_ACCOUNT",
-                "Transfer na to samo konto nie zmienia niczego");
+                ExceptionMessageConstants.TRANSFER_TO_SAME_ACCOUNT);
         }
         requireTargetAmount(command, account, toAccount);
     }
@@ -87,12 +88,12 @@ public class TransactionValidator {
         Long toAmountMinor = command.toAmountMinor();
         if (!sameCurrency && (Objects.isNull(toAmountMinor) || toAmountMinor <= 0)) {
             throw new ValidationException("TRANSFER_TARGET_AMOUNT_REQUIRED",
-                "Konta mają różne waluty (%s i %s) — podaj kwotę po stronie docelowej"
+                ExceptionMessageConstants.TRANSFER_TARGET_AMOUNT_REQUIRED
                     .formatted(account.getCurrency(), toAccount.getCurrency()));
         }
         if (Objects.nonNull(toAmountMinor) && toAmountMinor <= 0) {
             throw new ValidationException("AMOUNT_NOT_POSITIVE",
-                "Kwota po stronie docelowej musi być dodatnia");
+                ExceptionMessageConstants.TARGET_AMOUNT_NOT_POSITIVE);
         }
     }
 
@@ -101,23 +102,29 @@ public class TransactionValidator {
 
         if (Objects.nonNull(toAccount) || Objects.nonNull(command.toAmountMinor())) {
             throw new ValidationException("FLOW_WITH_TRANSFER_TARGET",
-                "Wydatek i przychód nie mają konta docelowego — użyj typu TRANSFER");
+                ExceptionMessageConstants.FLOW_WITH_TRANSFER_TARGET);
         }
         if (Objects.isNull(category)) {
             throw new ValidationException("CATEGORY_REQUIRED",
-                "Wydatek i przychód wymagają kategorii");
+                ExceptionMessageConstants.CATEGORY_REQUIRED);
         }
         requireMatchingDirection(command.type(), category);
     }
 
+    private CategoryDirection expectedDirection(TransactionType type) {
+
+        if (Objects.equals(type, TransactionType.INCOME)) {
+            return CategoryDirection.INCOME;
+        }
+        return CategoryDirection.EXPENSE;
+    }
+
     private void requireMatchingDirection(TransactionType type, Category category) {
 
-        CategoryDirection expected = Objects.equals(type, TransactionType.INCOME)
-            ? CategoryDirection.INCOME
-            : CategoryDirection.EXPENSE;
+        CategoryDirection expected = expectedDirection(type);
         if (!Objects.equals(category.getDirection(), expected)) {
             throw new ValidationException("CATEGORY_DIRECTION_MISMATCH",
-                "Kategoria '%s' jest kategorią %s, a transakcja jest typu %s".formatted(
+                ExceptionMessageConstants.CATEGORY_DIRECTION_MISMATCH.formatted(
                     category.getName(), category.getDirection(), type));
         }
     }

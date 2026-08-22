@@ -73,7 +73,7 @@ class CategoryServiceTest {
         // given
         when(categoryRepository.existsSibling(null, "Jedzenie", null)).thenReturn(true);
 
-        // when / then
+        // when & then
         assertThatThrownBy(() ->
             categoryService.create(null, "Jedzenie", CategoryDirection.EXPENSE))
             .isInstanceOf(ConflictException.class);
@@ -87,7 +87,7 @@ class CategoryServiceTest {
         Category parent = FinanceFixtures.category(1L, "Transport", CategoryDirection.EXPENSE);
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(parent));
 
-        // when / then
+        // when & then
         assertThatThrownBy(() ->
             categoryService.create(1L, "Zwroty", CategoryDirection.INCOME))
             .isInstanceOf(ValidationException.class);
@@ -103,7 +103,7 @@ class CategoryServiceTest {
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(parent));
         when(categoryRepository.findById(2L)).thenReturn(Optional.of(child));
 
-        // when / then
+        // when & then
         assertThatThrownBy(() ->
             categoryService.update(1L, 2L, "Transport", CategoryDirection.EXPENSE))
             .isInstanceOf(ValidationException.class)

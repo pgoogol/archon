@@ -4,6 +4,7 @@ import com.pgoogol.finance.account.application.AccountService;
 import com.pgoogol.finance.account.domain.Account;
 import com.pgoogol.finance.category.application.CategoryService;
 import com.pgoogol.finance.category.domain.Category;
+import com.pgoogol.finance.common.ExceptionMessageConstants;
 import com.pgoogol.finance.common.NotFoundException;
 import com.pgoogol.finance.currency.application.CurrencyService;
 import com.pgoogol.finance.currency.application.ExchangeRateService;
@@ -65,7 +66,7 @@ public class TransactionService {
 
         return transactionRepository.findDetailedById(id)
             .orElseThrow(() -> new NotFoundException("TRANSACTION_NOT_FOUND",
-                "Transakcja %d nie istnieje".formatted(id)));
+                ExceptionMessageConstants.TRANSACTION_NOT_FOUND.formatted(id)));
     }
 
     @Transactional
@@ -99,6 +100,7 @@ public class TransactionService {
 
     @Transactional
     public void delete(long id) {
+
         transactionRepository.delete(get(id));
     }
 
@@ -123,11 +125,19 @@ public class TransactionService {
 
     @Nullable
     private Account optionalAccount(@Nullable Long accountId) {
-        return Objects.isNull(accountId) ? null : accountService.get(accountId);
+
+        if (Objects.isNull(accountId)) {
+            return null;
+        }
+        return accountService.get(accountId);
     }
 
     @Nullable
     private Category optionalCategory(@Nullable Long categoryId) {
-        return Objects.isNull(categoryId) ? null : categoryService.get(categoryId);
+
+        if (Objects.isNull(categoryId)) {
+            return null;
+        }
+        return categoryService.get(categoryId);
     }
 }

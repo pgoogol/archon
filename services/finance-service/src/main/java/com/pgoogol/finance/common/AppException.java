@@ -23,6 +23,7 @@ public abstract class AppException extends RuntimeException {
     }
 
     public String getErrorCode() {
+
         return errorCode;
     }
 }

@@ -23,6 +23,14 @@ AppException (abstract, RuntimeException)
 - Every exception carries a machine-readable `errorCode` field (`TRACK_NOT_FOUND`),
   not just a message string.
 - Never throw a raw `RuntimeException` or `Exception` from business code.
+- **Keep the message texts in one `ExceptionMessageConstants` class per service**,
+  not inline at the throw site. Scattered texts drift apart in tone and detail,
+  and rewording one means hunting through the whole module. The `errorCode` stays
+  at the throw site — it is the contract for the client; the text is only for
+  a human.
+- Do not add an exception type beyond the hierarchy above. A new type is worth it
+  only when the handler must map it to a different status code — otherwise the
+  `errorCode` already tells the client what happened.
 
 ## Global exception handler
 

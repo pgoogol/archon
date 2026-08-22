@@ -40,7 +40,7 @@ class TransactionValidatorTest {
         TransactionCommand command = new TransactionCommand(TransactionType.TRANSFER, DAY, 10_000L,
             FinanceFixtures.PLN, null, null, 1L, 2L, 2_300L, 10L, null, null);
 
-        // when / then
+        // when & then
         assertThatThrownBy(() ->
             validator.validate(command, zlotyAccount, euroAccount, expenseCategory))
             .isInstanceOf(ValidationException.class)
@@ -54,7 +54,7 @@ class TransactionValidatorTest {
         // given
         TransactionCommand command = expense(null);
 
-        // when / then
+        // when & then
         assertThatThrownBy(() -> validator.validate(command, zlotyAccount, null, null))
             .isInstanceOf(ValidationException.class)
             .hasMessageContaining("wymagają kategorii");
@@ -67,7 +67,7 @@ class TransactionValidatorTest {
         // given
         TransactionCommand command = transfer(1L, null);
 
-        // when / then
+        // when & then
         assertThatThrownBy(() -> validator.validate(command, zlotyAccount, zlotyAccount, null))
             .isInstanceOf(ValidationException.class)
             .hasMessageContaining("to samo konto");
@@ -80,7 +80,7 @@ class TransactionValidatorTest {
         // given
         TransactionCommand command = transfer(2L, null);
 
-        // when / then
+        // when & then
         assertThatThrownBy(() -> validator.validate(command, zlotyAccount, euroAccount, null))
             .isInstanceOf(ValidationException.class)
             .hasMessageContaining("kwotę po stronie docelowej");
@@ -93,7 +93,7 @@ class TransactionValidatorTest {
         // given
         TransactionCommand command = transfer(2L, 2_300L);
 
-        // when / then
+        // when & then
         assertThatCode(() -> validator.validate(command, zlotyAccount, euroAccount, null))
             .doesNotThrowAnyException();
     }
@@ -106,7 +106,7 @@ class TransactionValidatorTest {
         TransactionCommand command = new TransactionCommand(TransactionType.EXPENSE, DAY, 1_000L,
             FinanceFixtures.EUR, null, null, 1L, null, null, 10L, null, null);
 
-        // when / then
+        // when & then
         assertThatThrownBy(() ->
             validator.validate(command, zlotyAccount, null, expenseCategory))
             .isInstanceOf(ValidationException.class)
@@ -120,7 +120,7 @@ class TransactionValidatorTest {
         // given
         TransactionCommand command = expense(11L);
 
-        // when / then
+        // when & then
         assertThatThrownBy(() ->
             validator.validate(command, zlotyAccount, null, incomeCategory))
             .isInstanceOf(ValidationException.class)
@@ -135,7 +135,7 @@ class TransactionValidatorTest {
         TransactionCommand command = new TransactionCommand(TransactionType.EXPENSE, DAY, 1_000L,
             FinanceFixtures.PLN, 250L, null, 1L, null, null, 10L, null, null);
 
-        // when / then
+        // when & then
         assertThatThrownBy(() ->
             validator.validate(command, zlotyAccount, null, expenseCategory))
             .isInstanceOf(ValidationException.class)
@@ -150,7 +150,7 @@ class TransactionValidatorTest {
         TransactionCommand command = new TransactionCommand(TransactionType.EXPENSE, DAY, 1_000L,
             FinanceFixtures.PLN, null, null, 1L, 2L, null, 10L, null, null);
 
-        // when / then
+        // when & then
         assertThatThrownBy(() ->
             validator.validate(command, zlotyAccount, euroAccount, expenseCategory))
             .isInstanceOf(ValidationException.class)

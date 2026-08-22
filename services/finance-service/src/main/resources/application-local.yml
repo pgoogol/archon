@@ -5,13 +5,12 @@
 # instancja Postgresa, osobna baza dla każdego serwisu monorepo. Na środowisku
 # postawionym wcześniej trzeba ją dołożyć bez kasowania danych:
 #   docker compose -f deploy/compose/docker-compose.yml exec -T postgres \
-#     psql -U postgres -c "create user finance with password 'finance'" \
-#                      -c "create database finance owner finance"
+#     psql -U postgres -c "create database finance"
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/finance
-    username: finance
-    password: finance
+    username: postgres
+    password: qwerty
   jpa:
     show-sql: true
     properties:

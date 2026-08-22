@@ -48,7 +48,7 @@ class ArchitectureTest {
             .should().resideInAPackage(BASE + "..")
             .because("pakiet bezpośrednio pod com.pgoogol kolidowałby z kolejnym serwisem");
 
-        // when / then
+        // when & then
         rule.check(classesUnderTest);
     }
 
@@ -66,7 +66,7 @@ class ArchitectureTest {
             .should().dependOnClassesThat(obcaDomena)
             .because("zależności wewnątrz reaktora prowadzą wyłącznie do libs/java");
 
-        // when / then
+        // when & then
         rule.check(classesUnderTest);
     }
 
@@ -80,7 +80,7 @@ class ArchitectureTest {
             .should().resideInAPackage(BASE + ".api..")
             .because("kontrolery, DTO i mappery trzymamy w api");
 
-        // when / then
+        // when & then
         rule.check(classesUnderTest);
     }
 
@@ -94,7 +94,7 @@ class ArchitectureTest {
             .should().dependOnClassesThat().resideInAPackage(BASE + ".api..")
             .because("zależność idzie od api w głąb domeny, nigdy odwrotnie");
 
-        // when / then
+        // when & then
         rule.check(classesUnderTest);
     }
 
@@ -110,7 +110,7 @@ class ArchitectureTest {
             .resideInAnyPackage(BASE + "..application..", BASE + "..infrastructure..")
             .because("zależności heksagonu prowadzą do środka, nigdy na zewnątrz");
 
-        // when / then
+        // when & then
         rule.check(classesUnderTest);
     }
 
@@ -124,7 +124,7 @@ class ArchitectureTest {
             .should().resideInAPackage(BASE + "..domain..")
             .because("model utrwalany jest modelem domenowym tego serwisu");
 
-        // when / then
+        // when & then
         rule.check(classesUnderTest);
     }
 
@@ -139,7 +139,7 @@ class ArchitectureTest {
             .should().resideInAPackage(BASE + "..infrastructure..")
             .because("repozytorium jest adapterem wyjściowym, nie częścią domeny");
 
-        // when / then
+        // when & then
         rule.check(classesUnderTest);
     }
 
@@ -152,7 +152,7 @@ class ArchitectureTest {
             .should().beAnnotatedWith("org.springframework.beans.factory.annotation.Autowired")
             .because("reguła stylu: wstrzykiwanie konstruktorem, nigdy @Autowired na polu");
 
-        // when / then
+        // when & then
         rule.check(classesUnderTest);
     }
 }

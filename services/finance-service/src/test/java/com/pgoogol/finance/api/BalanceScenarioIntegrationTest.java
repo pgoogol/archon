@@ -127,7 +127,7 @@ class BalanceScenarioIntegrationTest {
         long otherAccount = createAccount("Oszczędnościowe PLN", "PLN");
         long food = createCategory("Zakupy", "EXPENSE");
 
-        // when / then
+        // when & then
         mockMvc.perform(post("/api/finance/transactions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
@@ -145,7 +145,7 @@ class BalanceScenarioIntegrationTest {
         // given
         long zlotyAccount = createAccount("Bieżące bez kategorii", "PLN");
 
-        // when / then
+        // when & then
         mockMvc.perform(post("/api/finance/transactions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""

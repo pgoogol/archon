@@ -1,7 +1,9 @@
 package com.pgoogol.finance.api;
 
 import com.pgoogol.finance.category.application.CategoryService;
+import com.pgoogol.finance.category.domain.Category;
 import com.pgoogol.finance.category.domain.CategoryDirection;
+import com.pgoogol.finance.category.domain.CategoryNode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -40,7 +42,8 @@ public class CategoryController {
             @RequestParam(required = false) CategoryDirection direction,
             @RequestParam(defaultValue = "false") boolean includeArchived) {
 
-        return mapper.toResponses(categoryService.tree(direction, includeArchived));
+        List<CategoryNode> tree = categoryService.tree(direction, includeArchived);
+        return mapper.toResponses(tree);
     }
 
     @PostMapping
@@ -48,8 +51,9 @@ public class CategoryController {
     @Operation(summary = "Nowa kategoria lub podkategoria")
     public CategoryResponse createCategory(@Valid @RequestBody CategoryRequest request) {
 
-        return mapper.toResponse(categoryService.create(
-            request.parentId(), request.name(), request.direction()));
+        Category category = categoryService.create(
+            request.parentId(), request.name(), request.direction());
+        return mapper.toResponse(category);
     }
 
     @PutMapping("/{id}")
@@ -57,8 +61,9 @@ public class CategoryController {
     public CategoryResponse updateCategory(@PathVariable long id,
                                            @Valid @RequestBody CategoryRequest request) {
 
-        return mapper.toResponse(categoryService.update(
-            id, request.parentId(), request.name(), request.direction()));
+        Category category = categoryService.update(
+            id, request.parentId(), request.name(), request.direction());
+        return mapper.toResponse(category);
     }
 
     @DeleteMapping("/{id}")
@@ -68,6 +73,7 @@ public class CategoryController {
             Kategoria zostaje w bazie — inaczej historyczne transakcje \
             straciłyby przypisanie.""")
     public void archiveCategory(@PathVariable long id) {
+
         categoryService.archive(id);
     }
 }

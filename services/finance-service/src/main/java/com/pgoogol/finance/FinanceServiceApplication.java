@@ -9,6 +9,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 public class FinanceServiceApplication {
 
     public static void main(String[] args) {
+
         SpringApplication.run(FinanceServiceApplication.class, args);
     }
 }

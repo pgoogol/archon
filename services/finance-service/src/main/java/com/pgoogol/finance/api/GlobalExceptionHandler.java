@@ -1,6 +1,7 @@
 package com.pgoogol.finance.api;
 
 import com.pgoogol.finance.common.ConflictException;
+import com.pgoogol.finance.common.ExceptionMessageConstants;
 import com.pgoogol.finance.common.ExternalServiceException;
 import com.pgoogol.finance.common.NotFoundException;
 import com.pgoogol.finance.common.ValidationException;
@@ -9,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -38,7 +40,8 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleBeanValidation(MethodArgumentNotValidException ex) {
 
-        String details = ex.getBindingResult().getFieldErrors().stream()
+        BindingResult bindingResult = ex.getBindingResult();
+        String details = bindingResult.getFieldErrors().stream()
             .map(error -> error.getField() + ": " + error.getDefaultMessage())
             .sorted()
             .collect(Collectors.joining("; "));
@@ -53,7 +56,7 @@ public class GlobalExceptionHandler {
         // np. type=WYDATEK albo from=wczoraj — wartość spoza typu to błąd klienta
         log.warn("Niepoprawny parametr '{}': {}", ex.getName(), ex.getValue());
         return ErrorResponse.of("INVALID_PARAMETER",
-            "Niepoprawna wartość parametru '%s': %s".formatted(ex.getName(), ex.getValue()));
+            ExceptionMessageConstants.INVALID_PARAMETER.formatted(ex.getName(), ex.getValue()));
     }
 
     @ExceptionHandler(ConflictException.class)
@@ -75,7 +78,7 @@ public class GlobalExceptionHandler {
 
         log.error("Naruszenie więzów bazy przepuszczone przez walidację domenową", ex);
         return ErrorResponse.of("DATA_INTEGRITY_VIOLATION",
-            "Zapis narusza spójność danych");
+            ExceptionMessageConstants.DATA_INTEGRITY_VIOLATION);
     }
 
     @ExceptionHandler(OptimisticLockingFailureException.class)
@@ -84,7 +87,7 @@ public class GlobalExceptionHandler {
 
         log.info("Konflikt zapisu (blokada optymistyczna): {}", ex.getMessage());
         return ErrorResponse.of("RESOURCE_MODIFIED",
-            "Wpis zmienił się w innym miejscu — odśwież i spróbuj ponownie");
+            ExceptionMessageConstants.RESOURCE_MODIFIED);
     }
 
     @ExceptionHandler(NotFoundException.class)
@@ -108,6 +111,6 @@ public class GlobalExceptionHandler {
     public ErrorResponse handleUnexpected(Exception ex) {
 
         log.error("Nieoczekiwany błąd", ex);
-        return ErrorResponse.of("INTERNAL_ERROR", "Wystąpił nieoczekiwany błąd");
+        return ErrorResponse.of("INTERNAL_ERROR", ExceptionMessageConstants.INTERNAL_ERROR);
     }
 }

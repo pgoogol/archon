@@ -1,6 +1,7 @@
 package com.pgoogol.finance.api;
 
 import com.pgoogol.finance.currency.application.CurrencyService;
+import com.pgoogol.finance.currency.domain.Currency;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -34,7 +35,9 @@ public class CurrencyController {
             Klient formatuje kwoty według minorUnit z tego słownika — PLN ma 2, \
             JPY ma 0. Mnożenie przez 100 po stronie klienta jest błędem.""")
     public List<CurrencyResponse> listCurrencies() {
-        return mapper.toCurrencyResponses(currencyService.listAll());
+
+        List<Currency> currencies = currencyService.listAll();
+        return mapper.toCurrencyResponses(currencies);
     }
 
     @PostMapping
@@ -42,7 +45,8 @@ public class CurrencyController {
     @Operation(summary = "Dodanie waluty do słownika")
     public CurrencyResponse addCurrency(@Valid @RequestBody CurrencyRequest request) {
 
-        return mapper.toResponse(currencyService.add(
-            request.code(), request.name(), request.minorUnit()));
+        Currency currency = currencyService.add(
+            request.code(), request.name(), request.minorUnit());
+        return mapper.toResponse(currency);
     }
 }

@@ -74,39 +74,48 @@ public class Account {
 
     /** Archiwizacja zamiast usunięcia — historia transakcji musi zostać. */
     public void archive() {
+
         this.archived = true;
     }
 
     public Long getId() {
+
         return id;
     }
 
     public String getName() {
+
         return name;
     }
 
     public AccountType getType() {
+
         return type;
     }
 
     public String getCurrency() {
+
         return currency;
     }
 
     @Nullable
     public String getIban() {
+
         return iban;
     }
 
     public long getOpeningBalanceMinor() {
+
         return openingBalanceMinor;
     }
 
     public LocalDate getOpeningBalanceOn() {
+
         return openingBalanceOn;
     }
 
     public boolean isArchived() {
+
         return archived;
     }
 }

@@ -23,6 +23,14 @@ AppException (abstract, RuntimeException)
 - Każdy wyjątek niesie pole `errorCode` czytelne maszynowo (`TRACK_NOT_FOUND`),
   nie sam komunikat tekstowy.
 - Nigdy nie rzucaj gołego `RuntimeException` ani `Exception` z kodu biznesowego.
+- **Treści komunikatów trzymaj w jednej klasie `ExceptionMessageConstants`
+  na serwis**, nie w miejscu rzucenia. Rozsypane po kodzie rozjeżdżają się tonem
+  i szczegółowością, a zmiana brzmienia oznacza przeszukiwanie całego modułu.
+  `errorCode` zostaje przy rzuceniu — to on jest kontraktem dla klienta, treść
+  jest tylko dla człowieka.
+- Nie dokładaj typów wyjątków ponad hierarchię powyżej. Nowy typ opłaca się
+  wyłącznie wtedy, gdy handler ma go mapować na inny kod HTTP — w przeciwnym
+  razie `errorCode` już mówi klientowi, co się stało.
 
 ## Globalny handler wyjątków
 
