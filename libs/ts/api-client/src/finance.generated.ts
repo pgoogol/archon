@@ -268,6 +268,419 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/finance/api/v1/recurring-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reguły cykliczne, także wyłączone */
+        get: operations["listRecurringRules"];
+        put?: never;
+        /**
+         * Nowa reguła cykliczna
+         * @description Zapisanie reguły od razu generuje pozycje terminarza na 12 miesięcy w przód. Dzień miesiąca większy niż długość miesiąca przesuwa się na jego ostatni dzień — rachunek z 31 dnia w lutym wypada 28 albo 29.
+         */
+        post: operations["createRecurringRule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/finance/api/v1/recurring-rules/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Pojedyncza reguła */
+        get: operations["getRecurringRule"];
+        /**
+         * Zmiana reguły
+         * @description Zmiana przelicza pozycje `PENDING` o terminie od dzisiaj. Pozycje `PAID` i `SKIPPED` zostają nietknięte — historii nie przepisujemy.
+         */
+        put: operations["updateRecurringRule"];
+        post?: never;
+        /**
+         * Wyłączenie reguły
+         * @description Reguła przestaje generować terminarz, a jej pozycje `PENDING` o terminie od dzisiaj znikają. Zapłacone i pominięte zostają — to już historia.
+         */
+        delete: operations["deactivateRecurringRule"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/finance/api/v1/recurring-rules/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ręczne uzupełnienie terminarza
+         * @description To samo, co robi nocny przebieg. Wywołanie jest idempotentne — drugi przebieg nie zmienia liczby pozycji.
+         */
+        post: operations["generateOccurrences"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/finance/api/v1/occurrences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Terminarz płatności
+         * @description Status `OVERDUE` nie jest przechowywany — to pozycja `PENDING` z terminem wcześniejszym niż dziś, wyliczana przy odczycie. Przechowywany wymagałby joba przepisującego statusy o północy.
+         */
+        get: operations["listOccurrences"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/finance/api/v1/occurrences/{id}/pay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Oznaczenie pozycji jako zapłaconej
+         * @description Powstaje transakcja na faktyczną kwotę i datę, a pozycja terminarza dostaje do niej odsyłacz. Kwota faktyczna bywa inna niż oczekiwana — rachunek za prąd rzadko wychodzi co do grosza tak samo.
+         */
+        post: operations["payOccurrence"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/finance/api/v1/occurrences/{id}/skip": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Pominięcie pozycji terminarza
+         * @description Żadna transakcja nie powstaje — rachunek po prostu nie przyszedł.
+         */
+        post: operations["skipOccurrence"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/finance/api/v1/reports/by-category": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Wydatki w podziale na kategorie i okresy
+         * @description Kategoria nadrzędna zawiera sumę swoich podkategorii, a same podkategorie są w odpowiedzi obok niej — dzięki temu klient rozwija gałąź bez drugiego zapytania.
+         */
+        get: operations["reportByCategory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/finance/api/v1/reports/cashflow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Przychody, wydatki i bilans w podziale na okresy */
+        get: operations["reportCashflow"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/finance/api/v1/reports/balances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Saldo każdego konta na koniec każdego okresu
+         * @description Saldo podawane jest w walucie konta. Nie przeliczamy go na walutę bazową, bo dla okresu zamkniętego w przeszłości nie ma jednego uczciwego kursu: bieżący zmieniałby historię, a historyczny nie opisuje dzisiejszego stanu majątku. Wartość bieżąca całości jest w `/reports/currency-exposure`.
+         */
+        get: operations["reportBalances"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/finance/api/v1/reports/comparison": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Okres wobec poprzedniego i wobec średniej z dwunastu miesięcy
+         * @description Poprzedni okres to okno tej samej długości bezpośrednio przed podanym. Średnia liczona jest z dwunastu pełnych miesięcy poprzedzających miesiąc, w którym zaczyna się okres.
+         */
+        get: operations["reportComparison"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/finance/api/v1/reports/top-spend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Największe pojedyncze wydatki i najczęstsi kontrahenci */
+        get: operations["reportTopSpend"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/finance/api/v1/reports/fixed-vs-variable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Udział kosztów mających pokrycie w regule cyklicznej
+         * @description Za koszt stały uznajemy wyłącznie wydatek **powiązany z pozycją terminarza** — czyli taki, który ktoś potwierdził jako płatność rachunku cyklicznego. Zgadywanie po kategorii dawałoby liczbę wyglądającą wiarygodnie i nieprawdziwą.
+         */
+        get: operations["reportFixedVsVariable"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/finance/api/v1/reports/upcoming": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Zobowiązania na najbliższe dni wraz z przeterminowanymi */
+        get: operations["reportUpcoming"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/finance/api/v1/reports/forecast": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Prognoza salda dzień po dniu
+         * @description Prognoza jest jedynym raportem poza `/reports/currency-exposure`, który używa kursu **bieżącego** — mówi o przyszłości, a nie o historii, więc kurs sprzed roku nie ma tu czego opisywać. Punktem wyjścia jest dzisiejsze saldo, a ruchy biorą się z pozycji terminarza o statusie `PENDING`.
+         */
+        get: operations["reportForecast"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/finance/api/v1/reports/yearly-matrix": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Kategoria razy miesiąc za jeden rok, z sumami */
+        get: operations["reportYearlyMatrix"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/finance/api/v1/reports/currency-exposure": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Salda w podziale na waluty i ich wartość bieżąca
+         * @description Jedyne miejsce obok prognozy, w którym świadomie używamy kursu **bieżącego** — raport pokazuje stan majątku na dziś, a nie historię operacji.
+         */
+        get: operations["reportCurrencyExposure"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/finance/api/v1/reports/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Pulpit — salda, bilans miesiąca i najbliższe płatności */
+        get: operations["reportDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/finance/api/v1/category-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reguły w kolejności rozstrzygania */
+        get: operations["listCategoryRules"];
+        put?: never;
+        /**
+         * Nowa reguła kategoryzacji
+         * @description Dopasowanie jest zawieraniem tekstu, nie wyrażeniem regularnym. Reguła wypełnia wyłącznie pole sugestii — kategorię i tak potwierdza człowiek w podglądzie wyciągu.
+         */
+        post: operations["createCategoryRule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/finance/api/v1/category-rules/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Zmiana reguły */
+        put: operations["updateCategoryRule"];
+        post?: never;
+        /**
+         * Usunięcie reguły
+         * @description Reguła nie zostawia po sobie śladu w danych — podpowiadała kategorię, a zapisane kategorie są na transakcjach i zostają nietknięte.
+         */
+        delete: operations["deleteCategoryRule"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/finance/api/v1/transfers/candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Pary wyglądające na dwie strony jednego przelewu
+         * @description Ta sama kwota i waluta, przeciwne kierunki, dwa różne własne konta, odstęp nie większy niż trzy dni. Scalenie jest osobnym, potwierdzonym krokiem — automatyczne zjadłoby dwie prawdziwe operacje o tej samej kwocie w tym samym tygodniu.
+         */
+        get: operations["listTransferCandidates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/finance/api/v1/transfers/merge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Scalenie potwierdzonej pary w jeden przelew
+         * @description Powstaje jedna transakcja typu `TRANSFER`, a obie strony znikają. Warunki pary sprawdzamy jeszcze raz — między podglądem a potwierdzeniem ktoś mógł zmienić kwotę albo datę.
+         */
+        post: operations["mergeTransfer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -491,6 +904,118 @@ export interface components {
             totalPages: number;
         };
         /**
+         * @description Częstotliwość liczona od `startsOn`. Wszystkie warianty kotwiczą się na dniu miesiąca, więc `dayOfMonth` obowiązuje w każdym z nich.
+         * @enum {string}
+         */
+        RecurringFrequency: "MONTHLY" | "QUARTERLY" | "YEARLY";
+        /**
+         * @description * `PENDING` — czeka na termin
+         *     * `PAID` — zapłacona, ma swoją transakcję
+         *     * `SKIPPED` — świadomie pominięta, bez transakcji
+         *     * `OVERDUE` — **nie jest przechowywany**: to `PENDING` z terminem
+         *       wcześniejszym niż dziś, wyliczany przy odczycie
+         * @enum {string}
+         */
+        OccurrenceStatus: "PENDING" | "PAID" | "SKIPPED" | "OVERDUE";
+        RecurringRuleRequest: {
+            name: string;
+            /** Format: int64 */
+            accountId: number;
+            /** Format: int64 */
+            categoryId: number;
+            type: components["schemas"]["TransactionType"];
+            /**
+             * Format: int64
+             * @description Kwota oczekiwana; faktyczna podawana jest przy płatności
+             */
+            amountMinor: number;
+            frequency: components["schemas"]["RecurringFrequency"];
+            /**
+             * Format: int32
+             * @description Dzień większy niż długość miesiąca przesuwa się na jego ostatni dzień
+             */
+            dayOfMonth: number;
+            /** Format: date */
+            startsOn: string;
+            /** Format: date */
+            endsOn?: string | null;
+            /** @description Fragment opisu, po którym import rozpoznaje tę płatność */
+            matchPattern?: string | null;
+        };
+        RecurringRuleResponse: {
+            /** Format: int64 */
+            id: number;
+            name: string;
+            /** Format: int64 */
+            accountId: number;
+            accountName: string;
+            /** Format: int64 */
+            categoryId: number;
+            categoryName: string;
+            type: components["schemas"]["TransactionType"];
+            /** Format: int64 */
+            amountMinor: number;
+            currency: string;
+            frequency: components["schemas"]["RecurringFrequency"];
+            /** Format: int32 */
+            dayOfMonth: number;
+            /** Format: date */
+            startsOn: string;
+            /** Format: date */
+            endsOn?: string | null;
+            matchPattern?: string | null;
+            active: boolean;
+        };
+        OccurrenceResponse: {
+            /** Format: int64 */
+            id: number;
+            /** Format: int64 */
+            ruleId: number;
+            ruleName: string;
+            /** Format: int64 */
+            accountId: number;
+            /** Format: int64 */
+            categoryId: number;
+            /** Format: date */
+            dueDate: string;
+            /** Format: int64 */
+            expectedAmountMinor: number;
+            currency: string;
+            status: components["schemas"]["OccurrenceStatus"];
+            /** Format: date */
+            paidOn?: string | null;
+            /** Format: int64 */
+            paidAmountMinor?: number | null;
+            /** Format: int64 */
+            transactionId?: number | null;
+        };
+        PayOccurrenceRequest: {
+            /** Format: date */
+            paidOn: string;
+            /**
+             * Format: int64
+             * @description Kwota faktyczna; bywa inna niż oczekiwana
+             */
+            paidAmountMinor: number;
+            /**
+             * Format: int64
+             * @description Konto obciążone, gdy inne niż z reguły
+             */
+            accountId?: number | null;
+        };
+        GenerateOccurrencesResponse: {
+            /**
+             * Format: int32
+             * @description Ile pozycji dołożono; drugi przebieg daje zero
+             */
+            createdCount: number;
+            /**
+             * Format: date
+             * @description Do kiedy sięga wygenerowany terminarz
+             */
+            horizonTo: string;
+        };
+        /**
          * @description * `PARSED` — plik sparsowany, żadna transakcja jeszcze nie powstała
          *     * `COMMITTED` — wiersze zamienione na transakcje
          * @enum {string}
@@ -562,6 +1087,12 @@ export interface components {
             /** Format: int64 */
             suggestedCategoryId?: number | null;
             suggestedCategoryName?: string | null;
+            /**
+             * Format: int64
+             * @description Propozycja rozliczenia rachunku cyklicznego tym wierszem. Sama propozycja niczego nie rozlicza — potrzebne jest potwierdzenie w żądaniu zatwierdzenia
+             */
+            suggestedOccurrenceId?: number | null;
+            suggestedOccurrenceName?: string | null;
             /** Format: int64 */
             transactionId?: number | null;
         };
@@ -572,12 +1103,22 @@ export interface components {
         CommitImportRequest: {
             /** @description Kategoria dla wierszy, które jej wymagają. Wpływ i wydatek muszą mieć kategorię — wiersz bez niej wywala zatwierdzenie całej partii. */
             categoryAssignments: components["schemas"]["ImportCategoryAssignment"][];
+            /** @description Potwierdzone rozliczenia rachunków cyklicznych. Bez wpisu na tej liście sugestia z podglądu niczego nie rozlicza. */
+            occurrenceAssignments?: components["schemas"]["ImportOccurrenceAssignment"][];
         };
         ImportCategoryAssignment: {
             /** Format: int64 */
             rowId: number;
             /** Format: int64 */
             categoryId: number;
+            /** @description Fragment opisu, z którego ma powstać reguła kategoryzacji. Puste znaczy „nie zapamiętuj" — reguła powstaje z poprawki użytkownika, nigdy sama z siebie */
+            rememberPattern?: string | null;
+        };
+        ImportOccurrenceAssignment: {
+            /** Format: int64 */
+            rowId: number;
+            /** Format: int64 */
+            occurrenceId: number;
         };
         CommitImportResponse: {
             /** Format: int64 */
@@ -598,6 +1139,306 @@ export interface components {
             differenceMinor?: number | null;
             /** @description Fałsz także wtedy, gdy wyciąg nie podał salda końcowego */
             matched: boolean;
+        };
+        /**
+         * @description Podział osi czasu raportu
+         * @default MONTH
+         * @enum {string}
+         */
+        Granularity: "DAY" | "MONTH" | "YEAR";
+        ByCategoryReportResponse: {
+            baseCurrency: string;
+            rows: components["schemas"]["ByCategoryRow"][];
+            totals: components["schemas"]["PeriodTotal"][];
+        };
+        ByCategoryRow: {
+            /**
+             * Format: date
+             * @description Pierwszy dzień okresu
+             */
+            period: string;
+            /** Format: int64 */
+            categoryId: number;
+            categoryName: string;
+            /** Format: int64 */
+            parentCategoryId?: number | null;
+            /**
+             * Format: int64
+             * @description Suma w walucie bazowej wraz z podkategoriami tej kategorii
+             */
+            amountMinor: number;
+            /**
+             * Format: int64
+             * @description Kwota zapisana wprost na tej kategorii, bez podkategorii
+             */
+            ownAmountMinor: number;
+            /** Format: int32 */
+            transactionCount: number;
+        };
+        PeriodTotal: {
+            /** Format: date */
+            period: string;
+            /** Format: int64 */
+            amountMinor: number;
+        };
+        CashflowReportResponse: {
+            baseCurrency: string;
+            rows: components["schemas"]["CashflowRow"][];
+        };
+        CashflowRow: {
+            /** Format: date */
+            period: string;
+            /** Format: int64 */
+            incomeMinor: number;
+            /** Format: int64 */
+            expenseMinor: number;
+            /**
+             * Format: int64
+             * @description Przychody minus wydatki; bywa ujemny
+             */
+            netMinor: number;
+        };
+        BalancesReportResponse: {
+            rows: components["schemas"]["AccountBalanceRow"][];
+        };
+        AccountBalanceRow: {
+            /** Format: date */
+            period: string;
+            /** Format: int64 */
+            accountId: number;
+            accountName: string;
+            currency: string;
+            /**
+             * Format: int64
+             * @description Saldo na ostatni dzień okresu, w walucie konta
+             */
+            balanceMinor: number;
+        };
+        ComparisonReportResponse: {
+            baseCurrency: string;
+            /** Format: date */
+            previousFrom: string;
+            /** Format: date */
+            previousTo: string;
+            rows: components["schemas"]["CategoryComparisonRow"][];
+        };
+        CategoryComparisonRow: {
+            /** Format: int64 */
+            categoryId: number;
+            categoryName: string;
+            /** Format: int64 */
+            currentMinor: number;
+            /** Format: int64 */
+            previousMinor: number;
+            /**
+             * Format: int64
+             * @description Średnia miesięczna z dwunastu miesięcy przed okresem
+             */
+            monthlyAverageMinor: number;
+            /** @description Zmiana wobec poprzedniego okresu. `null`, gdy poprzedni okres był zerowy — dzielenie przez zero nie jest wzrostem o nieskończoność */
+            changePercent?: string | null;
+        };
+        TopSpendReportResponse: {
+            baseCurrency: string;
+            transactions: components["schemas"]["TopExpenseRow"][];
+            counterparties: components["schemas"]["TopCounterpartyRow"][];
+        };
+        TopExpenseRow: {
+            /** Format: int64 */
+            transactionId: number;
+            /** Format: date */
+            bookedOn: string;
+            /** Format: int64 */
+            amountMinor: number;
+            description?: string | null;
+            counterparty?: string | null;
+            categoryName?: string | null;
+            accountName: string;
+        };
+        TopCounterpartyRow: {
+            counterparty: string;
+            /** Format: int64 */
+            amountMinor: number;
+            /** Format: int32 */
+            transactionCount: number;
+        };
+        FixedVsVariableReportResponse: {
+            baseCurrency: string;
+            rows: components["schemas"]["FixedVsVariableRow"][];
+        };
+        FixedVsVariableRow: {
+            /** Format: date */
+            period: string;
+            /** Format: int64 */
+            fixedMinor: number;
+            /** Format: int64 */
+            variableMinor: number;
+            /** @description `null`, gdy w okresie nie było żadnego wydatku */
+            fixedSharePercent?: string | null;
+        };
+        UpcomingReportResponse: {
+            /** Format: date */
+            horizonTo: string;
+            overdue: components["schemas"]["UpcomingItem"][];
+            upcoming: components["schemas"]["UpcomingItem"][];
+        };
+        UpcomingItem: {
+            /** Format: int64 */
+            occurrenceId: number;
+            /** Format: int64 */
+            ruleId: number;
+            ruleName: string;
+            /** Format: int64 */
+            accountId: number;
+            accountName: string;
+            /** Format: date */
+            dueDate: string;
+            /** Format: int64 */
+            expectedAmountMinor: number;
+            currency: string;
+            overdue: boolean;
+        };
+        ForecastReportResponse: {
+            baseCurrency: string;
+            /** Format: int64 */
+            startingBalanceMinor: number;
+            points: components["schemas"]["ForecastPoint"][];
+        };
+        ForecastPoint: {
+            /** Format: date */
+            date: string;
+            /** Format: int64 */
+            balanceMinor: number;
+            /**
+             * Format: int64
+             * @description Ruch tego dnia; zero, gdy nic nie wypada
+             */
+            changeMinor: number;
+        };
+        YearlyMatrixReportResponse: {
+            baseCurrency: string;
+            /** Format: int32 */
+            year: number;
+            rows: components["schemas"]["YearlyMatrixRow"][];
+            /** @description Dwanaście sum, od stycznia do grudnia */
+            monthlyTotalsMinor: number[];
+            /** Format: int64 */
+            totalMinor: number;
+        };
+        YearlyMatrixRow: {
+            /** Format: int64 */
+            categoryId: number;
+            categoryName: string;
+            /** @description Dwanaście kwot, od stycznia do grudnia */
+            monthsMinor: number[];
+            /** Format: int64 */
+            totalMinor: number;
+        };
+        CurrencyExposureReportResponse: {
+            baseCurrency: string;
+            rows: components["schemas"]["CurrencyExposureRow"][];
+            /** Format: int64 */
+            totalBaseMinor: number;
+        };
+        CurrencyExposureRow: {
+            currency: string;
+            /** Format: int32 */
+            minorUnit: number;
+            /** Format: int64 */
+            balanceMinor: number;
+            /**
+             * Format: int64
+             * @description `null`, gdy waluta nie ma jeszcze żadnego kursu
+             */
+            baseValueMinor?: number | null;
+            rate?: string | null;
+            /** Format: date */
+            rateDate?: string | null;
+        };
+        DashboardResponse: {
+            baseCurrency: string;
+            /** Format: date */
+            month: string;
+            accountBalances: components["schemas"]["AccountValuation"][];
+            /** Format: int64 */
+            monthIncomeMinor: number;
+            /** Format: int64 */
+            monthExpenseMinor: number;
+            /** Format: int64 */
+            monthNetMinor: number;
+            overdue: components["schemas"]["UpcomingItem"][];
+            upcoming: components["schemas"]["UpcomingItem"][];
+        };
+        /** @description Saldo konta na pulpicie. Wycena bazowa bywa pusta — konto w walucie bez pobranego kursu ma pokazać saldo, a nie wywrócić cały ekran. */
+        AccountValuation: {
+            /** Format: int64 */
+            accountId: number;
+            accountName: string;
+            currency: string;
+            /** Format: int32 */
+            minorUnit: number;
+            /** Format: int64 */
+            balanceMinor: number;
+            /** Format: int64 */
+            baseValueMinor?: number | null;
+        };
+        /**
+         * @description Które pole wiersza wyciągu porównujemy ze wzorcem reguły
+         * @enum {string}
+         */
+        MatchField: "DESCRIPTION" | "COUNTERPARTY" | "ANY";
+        CategoryRuleRequest: {
+            /** @description Fragment tekstu; dopasowanie jest zawieraniem */
+            pattern: string;
+            matchField: components["schemas"]["MatchField"];
+            /** Format: int64 */
+            categoryId: number;
+            /**
+             * Format: int32
+             * @description Niższa liczba wygrywa; domyślnie 100
+             */
+            priority?: number | null;
+            active?: boolean | null;
+        };
+        CategoryRuleResponse: {
+            /** Format: int64 */
+            id: number;
+            pattern: string;
+            matchField: components["schemas"]["MatchField"];
+            /** Format: int64 */
+            categoryId: number;
+            categoryName: string;
+            /** Format: int32 */
+            priority: number;
+            active: boolean;
+        };
+        /** @description Widok dwóch istniejących transakcji obok siebie; nic jeszcze nie zapisano */
+        TransferCandidate: {
+            /** Format: int64 */
+            expenseTransactionId: number;
+            /** Format: int64 */
+            fromAccountId: number;
+            fromAccountName: string;
+            /** Format: date */
+            expenseBookedOn: string;
+            /** Format: int64 */
+            incomeTransactionId: number;
+            /** Format: int64 */
+            toAccountId: number;
+            toAccountName: string;
+            /** Format: date */
+            incomeBookedOn: string;
+            /** Format: int64 */
+            amountMinor: number;
+            currency: string;
+            /** Format: int64 */
+            daysApart: number;
+        };
+        MergeTransferRequest: {
+            /** Format: int64 */
+            expenseTransactionId: number;
+            /** Format: int64 */
+            incomeTransactionId: number;
         };
     };
     responses: {
@@ -646,6 +1487,18 @@ export interface components {
         To: string;
         /** @description Domyślnie zarchiwizowane pozycje są pomijane */
         IncludeArchived: boolean;
+        /** @description Początek zakresu raportu, włącznie */
+        ReportFrom: string;
+        /** @description Koniec zakresu raportu, włącznie */
+        ReportTo: string;
+        /** @description Podział osi czasu; domyślnie miesiąc */
+        Granularity: components["schemas"]["Granularity"];
+        /** @description Puste znaczy wszystkie konta */
+        AccountIds: number[];
+        /** @description Ile dni w przód; domyślnie 30, najwyżej 365 */
+        HorizonDays: number;
+        /** @description Puste znaczy wszystkie kategorie. Filtr obejmuje wskazaną kategorię wraz z jej podkategoriami. */
+        CategoryIds: number[];
     };
     requestBodies: never;
     headers: never;
@@ -1240,6 +2093,683 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
+        };
+    };
+    listRecurringRules: {
+        parameters: {
+            query?: {
+                activeOnly?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Lista reguł */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecurringRuleResponse"][];
+                };
+            };
+        };
+    };
+    createRecurringRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecurringRuleRequest"];
+            };
+        };
+        responses: {
+            /** @description Reguła zapisana wraz z terminarzem */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecurringRuleResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getRecurringRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Reguła */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecurringRuleResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    updateRecurringRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecurringRuleRequest"];
+            };
+        };
+        responses: {
+            /** @description Reguła po zmianie */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecurringRuleResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    deactivateRecurringRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Reguła wyłączona */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    generateOccurrences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Ile pozycji dołożono */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerateOccurrencesResponse"];
+                };
+            };
+        };
+    };
+    listOccurrences: {
+        parameters: {
+            query?: {
+                /** @description Początek zakresu dat, włącznie */
+                from?: components["parameters"]["From"];
+                /** @description Koniec zakresu dat, włącznie */
+                to?: components["parameters"]["To"];
+                status?: components["schemas"]["OccurrenceStatus"];
+                ruleId?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Pozycje terminarza, najbliższe pierwsze */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OccurrenceResponse"][];
+                };
+            };
+        };
+    };
+    payOccurrence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PayOccurrenceRequest"];
+            };
+        };
+        responses: {
+            /** @description Pozycja zapłacona */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OccurrenceResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    skipOccurrence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Pozycja pominięta */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OccurrenceResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    reportByCategory: {
+        parameters: {
+            query: {
+                /** @description Początek zakresu raportu, włącznie */
+                from: components["parameters"]["ReportFrom"];
+                /** @description Koniec zakresu raportu, włącznie */
+                to: components["parameters"]["ReportTo"];
+                /** @description Podział osi czasu; domyślnie miesiąc */
+                granularity?: components["parameters"]["Granularity"];
+                /** @description Puste znaczy wszystkie konta */
+                accountIds?: components["parameters"]["AccountIds"];
+                /** @description Puste znaczy wszystkie kategorie. Filtr obejmuje wskazaną kategorię wraz z jej podkategoriami. */
+                categoryIds?: components["parameters"]["CategoryIds"];
+                /** @description Domyślnie wydatki */
+                direction?: components["schemas"]["CategoryDirection"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Kwoty w walucie bazowej */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ByCategoryReportResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    reportCashflow: {
+        parameters: {
+            query: {
+                /** @description Początek zakresu raportu, włącznie */
+                from: components["parameters"]["ReportFrom"];
+                /** @description Koniec zakresu raportu, włącznie */
+                to: components["parameters"]["ReportTo"];
+                /** @description Podział osi czasu; domyślnie miesiąc */
+                granularity?: components["parameters"]["Granularity"];
+                /** @description Puste znaczy wszystkie konta */
+                accountIds?: components["parameters"]["AccountIds"];
+                /** @description Puste znaczy wszystkie kategorie. Filtr obejmuje wskazaną kategorię wraz z jej podkategoriami. */
+                categoryIds?: components["parameters"]["CategoryIds"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Kwoty w walucie bazowej */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CashflowReportResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    reportBalances: {
+        parameters: {
+            query: {
+                /** @description Początek zakresu raportu, włącznie */
+                from: components["parameters"]["ReportFrom"];
+                /** @description Koniec zakresu raportu, włącznie */
+                to: components["parameters"]["ReportTo"];
+                /** @description Podział osi czasu; domyślnie miesiąc */
+                granularity?: components["parameters"]["Granularity"];
+                /** @description Puste znaczy wszystkie konta */
+                accountIds?: components["parameters"]["AccountIds"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Salda kont po okresach */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BalancesReportResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    reportComparison: {
+        parameters: {
+            query: {
+                /** @description Początek zakresu raportu, włącznie */
+                from: components["parameters"]["ReportFrom"];
+                /** @description Koniec zakresu raportu, włącznie */
+                to: components["parameters"]["ReportTo"];
+                /** @description Puste znaczy wszystkie konta */
+                accountIds?: components["parameters"]["AccountIds"];
+                /** @description Puste znaczy wszystkie kategorie. Filtr obejmuje wskazaną kategorię wraz z jej podkategoriami. */
+                categoryIds?: components["parameters"]["CategoryIds"];
+                direction?: components["schemas"]["CategoryDirection"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Porównanie per kategoria */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComparisonReportResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    reportTopSpend: {
+        parameters: {
+            query: {
+                /** @description Początek zakresu raportu, włącznie */
+                from: components["parameters"]["ReportFrom"];
+                /** @description Koniec zakresu raportu, włącznie */
+                to: components["parameters"]["ReportTo"];
+                /** @description Puste znaczy wszystkie konta */
+                accountIds?: components["parameters"]["AccountIds"];
+                /** @description Puste znaczy wszystkie kategorie. Filtr obejmuje wskazaną kategorię wraz z jej podkategoriami. */
+                categoryIds?: components["parameters"]["CategoryIds"];
+                /** @description Ile pozycji w każdym zestawieniu; domyślnie 10, najwyżej 50 */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Dwa zestawienia w jednej odpowiedzi */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TopSpendReportResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    reportFixedVsVariable: {
+        parameters: {
+            query: {
+                /** @description Początek zakresu raportu, włącznie */
+                from: components["parameters"]["ReportFrom"];
+                /** @description Koniec zakresu raportu, włącznie */
+                to: components["parameters"]["ReportTo"];
+                /** @description Podział osi czasu; domyślnie miesiąc */
+                granularity?: components["parameters"]["Granularity"];
+                /** @description Puste znaczy wszystkie konta */
+                accountIds?: components["parameters"]["AccountIds"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Podział kosztów po okresach */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FixedVsVariableReportResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    reportUpcoming: {
+        parameters: {
+            query?: {
+                /** @description Ile dni w przód; domyślnie 30, najwyżej 365 */
+                horizonDays?: components["parameters"]["HorizonDays"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Przeterminowane osobno od nadchodzących */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpcomingReportResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    reportForecast: {
+        parameters: {
+            query?: {
+                /** @description Ile dni w przód; domyślnie 30, najwyżej 365 */
+                horizonDays?: components["parameters"]["HorizonDays"];
+                /** @description Puste znaczy wszystkie konta */
+                accountIds?: components["parameters"]["AccountIds"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Saldo w walucie bazowej, po jednym punkcie na dzień */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ForecastReportResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    reportYearlyMatrix: {
+        parameters: {
+            query: {
+                year: number;
+                /** @description Puste znaczy wszystkie konta */
+                accountIds?: components["parameters"]["AccountIds"];
+                /** @description Puste znaczy wszystkie kategorie. Filtr obejmuje wskazaną kategorię wraz z jej podkategoriami. */
+                categoryIds?: components["parameters"]["CategoryIds"];
+                direction?: components["schemas"]["CategoryDirection"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Macierz kwot w walucie bazowej */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["YearlyMatrixReportResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    reportCurrencyExposure: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Salda per waluta */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurrencyExposureReportResponse"];
+                };
+            };
+        };
+    };
+    reportDashboard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Komplet danych na jeden ekran */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DashboardResponse"];
+                };
+            };
+        };
+    };
+    listCategoryRules: {
+        parameters: {
+            query?: {
+                activeOnly?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Reguły posortowane po priorytecie */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryRuleResponse"][];
+                };
+            };
+        };
+    };
+    createCategoryRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CategoryRuleRequest"];
+            };
+        };
+        responses: {
+            /** @description Reguła zapisana */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryRuleResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    updateCategoryRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CategoryRuleRequest"];
+            };
+        };
+        responses: {
+            /** @description Reguła po zmianie */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryRuleResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    deleteCategoryRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Reguła usunięta */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    listTransferCandidates: {
+        parameters: {
+            query: {
+                /** @description Początek zakresu raportu, włącznie */
+                from: components["parameters"]["ReportFrom"];
+                /** @description Koniec zakresu raportu, włącznie */
+                to: components["parameters"]["ReportTo"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Propozycje scalenia */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransferCandidate"][];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    mergeTransfer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MergeTransferRequest"];
+            };
+        };
+        responses: {
+            /** @description Powstały przelew */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransactionResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
         };
     };
 }
