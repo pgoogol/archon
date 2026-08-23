@@ -4,6 +4,15 @@
 # Baza `music` powstaje ze skryptu deploy/compose/postgres/init — jedna
 # instancja Postgresa, osobna baza dla każdego serwisu monorepo.
 spring:
+  # Sekrety z .env w katalogu głównym repo — ten sam plik, który compose podaje
+  # kontenerowi. Pierwsza ścieżka działa przy uruchomieniu z katalogu modułu
+  # (tak startuje spring-boot:run i IDE), druga z katalogu głównego. Obie
+  # opcjonalne: bez pliku aplikacja wstaje na wartościach domyślnych.
+  # Zmienna środowiskowa ma pierwszeństwo przed wpisem z pliku.
+  config:
+    import:
+      - optional:file:../../.env[.properties]
+      - optional:file:.env[.properties]
   datasource:
     url: jdbc:postgresql://localhost:5432/music
     username: postgres
