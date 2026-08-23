@@ -4,32 +4,25 @@
 // Wszystkie kwoty są w walucie bazowej, po kursie zapisanym na transakcji.
 // Żaden z tych raportów nie przelicza historii kursem bieżącym.
 
-import { useEffect, useMemo, useState } from 'react'
+import { useQueries } from '@tanstack/react-query'
+import { useMemo } from 'react'
 
-import {
-  api,
-  type ByCategoryReportResponse,
-  type CashflowReportResponse,
-  type ComparisonReportResponse,
-  type CurrencyExposureReportResponse,
-  type Granularity,
-  type TopSpendReportResponse,
-} from '@/features/finance/api'
+import { api, type Granularity } from '@/features/finance/api'
 import CashflowBars from '@/features/finance/viz/CashflowBars'
 import CategoryBars from '@/features/finance/viz/CategoryBars'
 import { GRANULARITY_LABELS, today, yearAgo } from '@/features/finance/format'
 import { useFinanceWorkspace } from '@/features/finance/state/FinanceWorkspace'
+import { financeKeys } from '@/features/finance/state/queryKeys'
+import { useQueryErrorToast } from '@/features/finance/state/useQueryErrorToast'
 import { useHashRoute } from '@/shared/hooks/useHashRoute'
-import { useToast } from '@/shared/ui/Toasts'
 import { DASH, formatMinor } from '@/shared/format'
 
 const GRANULARITIES: Granularity[] = ['DAY', 'MONTH', 'YEAR']
 
 export default function RaportyRoute() {
 
-  const { refreshKey, minorUnitOf } = useFinanceWorkspace()
+  const { minorUnitOf } = useFinanceWorkspace()
   const { params, setParams } = useHashRoute()
-  const { reportError } = useToast()
 
   const range = useMemo(
     () => ({
@@ -40,34 +33,48 @@ export default function RaportyRoute() {
     [params],
   )
 
-  const [cashflow, setCashflow] = useState<CashflowReportResponse | null>(null)
-  const [byCategory, setByCategory] = useState<ByCategoryReportResponse | null>(null)
-  const [comparison, setComparison] = useState<ComparisonReportResponse | null>(null)
-  const [topSpend, setTopSpend] = useState<TopSpendReportResponse | null>(null)
-  const [exposure, setExposure] = useState<CurrencyExposureReportResponse | null>(null)
+  // Pięć raportów naraz — każdy z własnym kluczem, więc zmiana zakresu
+  // przeładowuje wszystkie, a powrót do poprzedniego zakresu bierze je z cache'u.
+  const topSpendParams = useMemo(() => ({ ...range, limit: 5 }), [range])
+  const [cashflowQuery, byCategoryQuery, comparisonQuery, topSpendQuery, exposureQuery] =
+    useQueries({
+      queries: [
+        {
+          queryKey: financeKeys.report('cashflow', range),
+          queryFn: () => api.reportCashflow(range),
+        },
+        {
+          queryKey: financeKeys.report('by-category', range),
+          queryFn: () => api.reportByCategory(range),
+        },
+        {
+          queryKey: financeKeys.report('comparison', range),
+          queryFn: () => api.reportComparison(range),
+        },
+        {
+          queryKey: financeKeys.report('top-spend', topSpendParams),
+          queryFn: () => api.reportTopSpend(topSpendParams),
+        },
+        {
+          queryKey: financeKeys.report('currency-exposure', {}),
+          queryFn: () => api.reportCurrencyExposure(),
+        },
+      ],
+    })
 
-  useEffect(() => {
-    let current = true
-    Promise.all([
-      api.reportCashflow(range),
-      api.reportByCategory(range),
-      api.reportComparison(range),
-      api.reportTopSpend({ ...range, limit: 5 }),
-      api.reportCurrencyExposure(),
-    ])
-      .then(([loadedCashflow, loadedCategories, loadedComparison, loadedTop, loadedExposure]) => {
-        if (!current) return
-        setCashflow(loadedCashflow)
-        setByCategory(loadedCategories)
-        setComparison(loadedComparison)
-        setTopSpend(loadedTop)
-        setExposure(loadedExposure)
-      })
-      .catch((error) => reportError(error, 'Nie udało się pobrać raportów'))
-    return () => {
-      current = false
-    }
-  }, [range, refreshKey, reportError])
+  const loadError =
+    cashflowQuery.error ??
+    byCategoryQuery.error ??
+    comparisonQuery.error ??
+    topSpendQuery.error ??
+    exposureQuery.error
+  useQueryErrorToast(loadError, 'Nie udało się pobrać raportów')
+
+  const cashflow = cashflowQuery.data ?? null
+  const byCategory = byCategoryQuery.data ?? null
+  const comparison = comparisonQuery.data ?? null
+  const topSpend = topSpendQuery.data ?? null
+  const exposure = exposureQuery.data ?? null
 
   const base = cashflow?.baseCurrency ?? 'PLN'
   const baseUnit = minorUnitOf(base)

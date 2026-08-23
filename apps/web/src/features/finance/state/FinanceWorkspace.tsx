@@ -1,19 +1,24 @@
-// Stan dzielony między ekranami finansów: słownik walut i licznik odświeżeń.
+// Stan dzielony między ekranami finansów: klient zapytań i słownik walut.
 //
 // Słownik jest tu, a nie w każdym ekranie z osobna, bo bez `minorUnit` nie da
 // się wypisać ani jednej kwoty — a to jest jedna wartość na walutę, która nie
 // zmienia się w trakcie sesji. Sześć ekranów pobierających ją samodzielnie to
-// sześć zapytań o to samo.
+// sześć zapytań o to samo; TanStack Query i tak zwróciłby je z cache'u, ale
+// jeden hook czyta się lepiej niż sześć wywołań tego samego zapytania.
+//
+// QueryClientProvider stoi TUTAJ, a nie w powłoce. Powłoka nie wie o istnieniu
+// finansów i nie powinna wiedzieć — a reguła frontowa każe zgłaszać zmiany
+// w `shell/` zamiast je robić po cichu. Klient ograniczony do jednej domeny ma
+// przy okazji tę zaletę, że domena muzyczna zostaje nietknięta.
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
+import { createContext, useContext, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 
 import { api, type CurrencyResponse } from '@/features/finance/api'
+import { financeKeys } from '@/features/finance/state/queryKeys'
 
 export interface FinanceWorkspace {
-  /** Rośnie po każdej zmianie danych — ekrany trzymają go w zależnościach efektu. */
-  refreshKey: number
-  refresh: () => void
   currencies: CurrencyResponse[]
   /** Liczba miejsc po przecinku waluty; nieznana waluta dostaje 2. */
   minorUnitOf: (currency: string) => number
@@ -23,40 +28,58 @@ export const FinanceWorkspaceContext = createContext<FinanceWorkspace | null>(nu
 
 const FALLBACK_MINOR_UNIT = 2
 
+/** Słownik walut nie zmienia się w trakcie sesji — nie ma czego odświeżać. */
+const CURRENCIES_STALE_MS = Infinity
+
+export function createFinanceQueryClient(): QueryClient {
+
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        // Ekrany finansów pokazują kwoty; cicha podmiana liczb pod kursorem przy
+        // powrocie do karty jest gorsza niż dane sprzed minuty.
+        refetchOnWindowFocus: false,
+        retry: 1,
+        staleTime: 30_000,
+      },
+    },
+  })
+}
+
 export function FinanceWorkspaceProvider({ children }: { children: ReactNode }) {
 
-  const [refreshKey, setRefreshKey] = useState(0)
-  const [currencies, setCurrencies] = useState<CurrencyResponse[]>([])
+  const [client] = useState(createFinanceQueryClient)
 
-  const refresh = useCallback(() => setRefreshKey((key) => key + 1), [])
+  return (
+    <QueryClientProvider client={client}>
+      <CurrencyDictionary>{children}</CurrencyDictionary>
+    </QueryClientProvider>
+  )
+}
 
-  useEffect(() => {
-    let current = true
-    api
-      .listCurrencies()
-      .then((loaded) => {
-        if (current) setCurrencies(loaded)
-      })
-      .catch(() => {
-        // słownik walut jest tłem, nie treścią ekranu: jego brak ma zostawić
-        // domyślne dwa miejsca po przecinku, a nie wywalić cały moduł
-        if (current) setCurrencies([])
-      })
-    return () => {
-      current = false
+/**
+ * Słownik walut jest tłem, nie treścią ekranu: jego brak ma zostawić domyślne
+ * dwa miejsca po przecinku, a nie wywalić cały moduł. Dlatego błąd tego zapytania
+ * nigdzie nie idzie — `data` zostaje puste i `minorUnitOf` schodzi na wartość
+ * domyślną.
+ */
+function CurrencyDictionary({ children }: { children: ReactNode }) {
+
+  const { data } = useQuery({
+    queryKey: financeKeys.currencies(),
+    queryFn: () => api.listCurrencies(),
+    staleTime: CURRENCIES_STALE_MS,
+  })
+
+  const value = useMemo<FinanceWorkspace>(() => {
+
+    const currencies = data ?? []
+    return {
+      currencies,
+      minorUnitOf: (currency: string) =>
+        currencies.find((entry) => entry.code === currency)?.minorUnit ?? FALLBACK_MINOR_UNIT,
     }
-  }, [])
-
-  const minorUnitOf = useCallback(
-    (currency: string) =>
-      currencies.find((entry) => entry.code === currency)?.minorUnit ?? FALLBACK_MINOR_UNIT,
-    [currencies],
-  )
-
-  const value = useMemo<FinanceWorkspace>(
-    () => ({ refreshKey, refresh, currencies, minorUnitOf }),
-    [refreshKey, refresh, currencies, minorUnitOf],
-  )
+  }, [data])
 
   return (
     <FinanceWorkspaceContext.Provider value={value}>{children}</FinanceWorkspaceContext.Provider>

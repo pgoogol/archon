@@ -1,14 +1,24 @@
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 
 import ImportRoute from './ImportRoute'
 import { anImportBatch, anImportRow } from '@/features/finance/test/fixtures'
 import { renderRoute } from '@/features/finance/test/renderRoute'
-import { jsonResponse } from '@/shared/test/renderWithToasts'
+import {
+  BASE,
+  HttpResponse,
+  financeServer,
+  http,
+  respondJson,
+  useFinanceApi,
+} from '@/features/finance/test/server'
 
-let fetchMock: ReturnType<typeof vi.fn>
+useFinanceApi()
+
 let batch: ReturnType<typeof anImportBatch>
+/** Ciała żądań zatwierdzenia — asercje sprawdzają, CO poszło na serwer. */
+let commitBodies: unknown[]
 
 const ACCOUNTS = [
   {
@@ -27,12 +37,8 @@ const CATEGORIES = [
   { id: 2, parentId: null, name: 'Jedzenie', direction: 'EXPENSE', archived: false, children: [] },
 ]
 
-function commitCalls() {
-
-  return fetchMock.mock.calls.filter((call) => String(call[0]).includes('/commit'))
-}
-
 beforeEach(() => {
+  commitBodies = []
   batch = anImportBatch([
     anImportRow({
       id: 11,
@@ -42,25 +48,22 @@ beforeEach(() => {
       suggestedOccurrenceName: 'Prąd',
     }),
   ])
-  fetchMock = vi.fn().mockImplementation((url: string, init?: RequestInit) => {
-    const target = String(url)
-    if (target.includes('/accounts')) return Promise.resolve(jsonResponse(ACCOUNTS))
-    if (target.includes('/categories')) return Promise.resolve(jsonResponse(CATEGORIES))
-    if (target.includes('/commit')) {
-      return Promise.resolve(
-        jsonResponse({
-          batchId: 5,
-          committedCount: 1,
-          skippedDuplicateCount: 0,
-          reconciliation: { matched: true },
-        }),
-      )
-    }
-    if (target.includes('/imports/5')) return Promise.resolve(jsonResponse(batch))
-    if (init?.method === 'POST') return Promise.resolve(jsonResponse(batch.batch))
-    return Promise.resolve(jsonResponse([]))
-  })
-  globalThis.fetch = fetchMock as unknown as typeof fetch
+  financeServer.use(
+    respondJson('/accounts', ACCOUNTS),
+    respondJson('/categories', CATEGORIES),
+    // wgranie pliku zwraca samą partię; podgląd dociąga ją z wierszami
+    http.post(`${BASE}/imports`, () => HttpResponse.json(batch.batch)),
+    http.get(`${BASE}/imports/:id`, () => HttpResponse.json(batch)),
+    http.post(`${BASE}/imports/:id/commit`, async ({ request }) => {
+      commitBodies.push(await request.json())
+      return HttpResponse.json({
+        batchId: 5,
+        committedCount: 1,
+        skippedDuplicateCount: 0,
+        reconciliation: { matched: true },
+      })
+    }),
+  )
 })
 
 async function uploadStatement() {
@@ -82,7 +85,7 @@ describe('ImportRoute', () => {
     await uploadStatement()
 
     expect(screen.getByText('ZAKUP BIEDRONKA')).toBeInTheDocument()
-    expect(commitCalls()).toHaveLength(0)
+    expect(commitBodies).toHaveLength(0)
   })
 
   it('podpowiedziana kategoria wchodzi jako wartość domyślna', async () => {
@@ -108,9 +111,11 @@ describe('ImportRoute', () => {
 
     await user.click(screen.getByRole('button', { name: 'Zatwierdź wyciąg' }))
 
-    const body = JSON.parse(String((commitCalls()[0][1] as RequestInit).body))
-    expect(body.categoryAssignments).toEqual([{ rowId: 11, categoryId: 2 }])
-    expect(body.occurrenceAssignments).toEqual([])
+    await screen.findByText(/Zapisano 1 transakcji/)
+    expect(commitBodies[0]).toEqual({
+      categoryAssignments: [{ rowId: 11, categoryId: 2 }],
+      occurrenceAssignments: [],
+    })
   })
 
   it('po zaznaczeniu rozliczenia wysyła potwierdzenie pozycji terminarza', async () => {
@@ -120,8 +125,10 @@ describe('ImportRoute', () => {
     await user.click(screen.getByRole('checkbox', { name: /rozlicz/ }))
     await user.click(screen.getByRole('button', { name: 'Zatwierdź wyciąg' }))
 
-    const body = JSON.parse(String((commitCalls()[0][1] as RequestInit).body))
-    expect(body.occurrenceAssignments).toEqual([{ rowId: 11, occurrenceId: 77 }])
+    await screen.findByText(/Zapisano 1 transakcji/)
+    expect(commitBodies[0]).toMatchObject({
+      occurrenceAssignments: [{ rowId: 11, occurrenceId: 77 }],
+    })
   })
 
   it('wiersz rozpoznany jako duplikat nie prosi o kategorię', async () => {

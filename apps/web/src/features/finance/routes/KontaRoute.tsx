@@ -1,92 +1,92 @@
 // Konta i ich salda. Usunięcie konta to archiwizacja — historia transakcji
 // musi zostać, więc konto znika z list wyboru, a nie z bazy.
 
-import { useCallback, useEffect, useState } from 'react'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
 
-import {
-  api,
-  type AccountResponse,
-  type AccountBalanceResponse,
-  type AccountType,
-} from '@/features/finance/api'
+import { api, type AccountBalanceResponse, type AccountType } from '@/features/finance/api'
+import FieldError from '@/features/finance/components/FieldError'
 import { ACCOUNT_TYPE_LABELS } from '@/features/finance/format'
+import {
+  accountFormSchema,
+  type AccountFormOutput,
+  type AccountFormValues,
+} from '@/features/finance/forms/schemas'
 import { useFinanceWorkspace } from '@/features/finance/state/FinanceWorkspace'
+import { financeKeys } from '@/features/finance/state/queryKeys'
+import { useQueryErrorToast } from '@/features/finance/state/useQueryErrorToast'
 import { useToast } from '@/shared/ui/Toasts'
 import { DASH, formatMinor } from '@/shared/format'
 
 const ACCOUNT_TYPES: AccountType[] = ['BANK', 'CASH', 'CARD']
 
+function today(): string {
+
+  return new Date().toISOString().slice(0, 10)
+}
+
 export default function KontaRoute() {
 
-  const { refreshKey, refresh, currencies, minorUnitOf } = useFinanceWorkspace()
+  const { currencies, minorUnitOf } = useFinanceWorkspace()
   const { notify, reportError } = useToast()
+  const queryClient = useQueryClient()
 
-  const [accounts, setAccounts] = useState<AccountResponse[]>([])
   const [includeArchived, setIncludeArchived] = useState(false)
+  // Saldo liczy się na żądanie, per konto — trzymamy je poza cache'em zapytań,
+  // bo to wynik kliknięcia w wiersz, a nie stan ekranu.
   const [balances, setBalances] = useState<Record<number, AccountBalanceResponse>>({})
 
-  const [name, setName] = useState('')
-  const [type, setType] = useState<AccountType>('BANK')
-  const [currency, setCurrency] = useState('PLN')
-  const [openingBalance, setOpeningBalance] = useState('0')
-  const [openingOn, setOpeningOn] = useState(() => new Date().toISOString().slice(0, 10))
-  const [saving, setSaving] = useState(false)
+  const accountsQuery = useQuery({
+    queryKey: financeKeys.accounts(includeArchived),
+    queryFn: () => api.listAccounts(includeArchived),
+  })
+  useQueryErrorToast(accountsQuery.error, 'Nie udało się pobrać kont')
 
-  useEffect(() => {
-    let current = true
-    api
-      .listAccounts(includeArchived)
-      .then((loaded) => {
-        if (current) setAccounts(loaded)
-      })
-      .catch((error) => reportError(error, 'Nie udało się pobrać kont'))
-    return () => {
-      current = false
-    }
-  }, [refreshKey, includeArchived, reportError])
-
-  const loadBalance = useCallback(
-    (accountId: number) => {
-      api
-        .accountBalance(accountId)
-        .then((balance) => setBalances((current) => ({ ...current, [accountId]: balance })))
-        .catch((error) => reportError(error, 'Nie udało się policzyć salda'))
+  const form = useForm<AccountFormValues, unknown, AccountFormOutput>({
+    resolver: zodResolver(accountFormSchema),
+    defaultValues: {
+      name: '',
+      type: 'BANK',
+      currency: 'PLN',
+      openingBalanceMinor: '0',
+      openingBalanceOn: today(),
     },
-    [reportError],
-  )
+  })
+  const currency = form.watch('currency')
 
-  const submit = async (event: React.FormEvent) => {
-    event.preventDefault()
-    setSaving(true)
-    try {
-      // kwota wchodzi w jednostkach podrzędnych — pole przyjmuje je wprost,
-      // żeby nie zgadywać, ile miejsc po przecinku ma waluta
-      await api.createAccount({
-        name,
-        type,
-        currency,
-        openingBalanceMinor: Number(openingBalance),
-        openingBalanceOn: openingOn,
-      })
+  const invalidateAccounts = () =>
+    queryClient.invalidateQueries({ queryKey: [...financeKeys.all, 'accounts'] })
+
+  const createAccount = useMutation({
+    mutationFn: (values: AccountFormOutput) => api.createAccount(values),
+    onSuccess: async () => {
       notify('Konto zapisane')
-      setName('')
-      refresh()
-    } catch (error) {
-      reportError(error, 'Nie udało się zapisać konta')
-    } finally {
-      setSaving(false)
-    }
-  }
+      form.reset({ ...form.getValues(), name: '' })
+      await invalidateAccounts()
+    },
+    onError: (error) => reportError(error, 'Nie udało się zapisać konta'),
+  })
 
-  const archive = async (accountId: number) => {
-    try {
-      await api.archiveAccount(accountId)
+  const archiveAccount = useMutation({
+    mutationFn: (accountId: number) => api.archiveAccount(accountId),
+    onSuccess: async () => {
       notify('Konto zarchiwizowane')
-      refresh()
-    } catch (error) {
-      reportError(error, 'Nie udało się zarchiwizować konta')
-    }
-  }
+      await invalidateAccounts()
+    },
+    onError: (error) => reportError(error, 'Nie udało się zarchiwizować konta'),
+  })
+
+  const loadBalance = useMutation({
+    mutationFn: (accountId: number) => api.accountBalance(accountId),
+    onSuccess: (balance) =>
+      setBalances((current) => ({ ...current, [balance.accountId]: balance })),
+    onError: (error) => reportError(error, 'Nie udało się policzyć salda'),
+  })
+
+  const accounts = accountsQuery.data ?? []
+  const submit = form.handleSubmit((values) => createAccount.mutateAsync(values))
 
   return (
     <div className="panels">
@@ -131,11 +131,11 @@ export default function KontaRoute() {
                         : DASH}
                     </td>
                     <td>
-                      <button type="button" onClick={() => loadBalance(account.id)}>
+                      <button type="button" onClick={() => loadBalance.mutate(account.id)}>
                         Policz saldo
                       </button>
                       {account.archived ? null : (
-                        <button type="button" onClick={() => archive(account.id)}>
+                        <button type="button" onClick={() => archiveAccount.mutate(account.id)}>
                           Archiwizuj
                         </button>
                       )}
@@ -150,14 +150,16 @@ export default function KontaRoute() {
 
       <section className="panel">
         <h2>Nowe konto</h2>
-        <form onSubmit={submit}>
+        <form onSubmit={submit} noValidate>
           <label className="field">
             <span>Nazwa</span>
-            <input value={name} onChange={(event) => setName(event.target.value)} required />
+            <input {...form.register('name')} />
           </label>
+          <FieldError message={form.formState.errors.name?.message} />
+
           <label className="field">
             <span>Rodzaj</span>
-            <select value={type} onChange={(event) => setType(event.target.value as AccountType)}>
+            <select {...form.register('type')}>
               {ACCOUNT_TYPES.map((option) => (
                 <option key={option} value={option}>
                   {ACCOUNT_TYPE_LABELS[option]}
@@ -165,9 +167,10 @@ export default function KontaRoute() {
               ))}
             </select>
           </label>
+
           <label className="field">
             <span>Waluta</span>
-            <select value={currency} onChange={(event) => setCurrency(event.target.value)}>
+            <select {...form.register('currency')}>
               {currencies.map((entry) => (
                 <option key={entry.code} value={entry.code}>
                   {entry.code} — {entry.name}
@@ -175,25 +178,26 @@ export default function KontaRoute() {
               ))}
             </select>
           </label>
+          <FieldError message={form.formState.errors.currency?.message} />
+
           <label className="field">
             <span>Saldo otwarcia (w jednostkach podrzędnych, {minorUnitOf(currency)} miejsc)</span>
-            <input
-              type="number"
-              value={openingBalance}
-              onChange={(event) => setOpeningBalance(event.target.value)}
-            />
+            {/* Pole tekstowe, nie type="number": przeglądarka po cichu wycina
+                przecinek, więc „12,50" dojechałoby do serwera jako 1250 — sto razy
+                za dużo. Tekst dociera do schematu w takiej postaci, w jakiej go
+                wpisano, i schemat może go odrzucić. */}
+            <input inputMode="numeric" {...form.register('openingBalanceMinor')} />
           </label>
+          <FieldError message={form.formState.errors.openingBalanceMinor?.message} />
+
           <label className="field">
             <span>Data salda otwarcia</span>
-            <input
-              type="date"
-              value={openingOn}
-              onChange={(event) => setOpeningOn(event.target.value)}
-              required
-            />
+            <input type="date" {...form.register('openingBalanceOn')} />
           </label>
-          <button type="submit" disabled={saving}>
-            {saving ? 'Zapisywanie…' : 'Zapisz konto'}
+          <FieldError message={form.formState.errors.openingBalanceOn?.message} />
+
+          <button type="submit" disabled={form.formState.isSubmitting}>
+            {form.formState.isSubmitting ? 'Zapisywanie…' : 'Zapisz konto'}
           </button>
         </form>
       </section>

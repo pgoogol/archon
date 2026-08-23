@@ -6,72 +6,70 @@
 // Podpowiedzi z backendu (kategoria z reguł, pozycja terminarza) wchodzą do
 // formularza jako wartości domyślne. Żadna z nich nie zapisuje się sama.
 
+import { useMutation, useQueries, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 
-import {
-  api,
-  type AccountResponse,
-  type CategoryResponse,
-  type ImportBatchDetailResponse,
-} from '@/features/finance/api'
+import { api, type ImportBatchDetailResponse } from '@/features/finance/api'
 import { ROW_STATUS_LABELS } from '@/features/finance/format'
 import { useFinanceWorkspace } from '@/features/finance/state/FinanceWorkspace'
+import { financeKeys } from '@/features/finance/state/queryKeys'
+import { useQueryErrorToast } from '@/features/finance/state/useQueryErrorToast'
 import { useToast } from '@/shared/ui/Toasts'
 import { DASH, formatMinor } from '@/shared/format'
 
 export default function ImportRoute() {
 
-  const { refreshKey, refresh, minorUnitOf } = useFinanceWorkspace()
+  const { minorUnitOf } = useFinanceWorkspace()
   const { notify, reportError } = useToast()
+  const queryClient = useQueryClient()
 
-  const [accounts, setAccounts] = useState<AccountResponse[]>([])
-  const [categories, setCategories] = useState<CategoryResponse[]>([])
   const [accountId, setAccountId] = useState('')
   const [file, setFile] = useState<File | null>(null)
+  // Podgląd partii to stan tego ekranu, nie zasób do cache'owania: dotyczy
+  // jednego wgranego pliku i znika po zatwierdzeniu.
   const [batch, setBatch] = useState<ImportBatchDetailResponse | null>(null)
   const [categoryByRow, setCategoryByRow] = useState<Record<number, string>>({})
   const [settleRow, setSettleRow] = useState<Record<number, boolean>>({})
-  const [busy, setBusy] = useState(false)
 
+  const [accountsQuery, categoriesQuery] = useQueries({
+    queries: [
+      { queryKey: financeKeys.accounts(false), queryFn: () => api.listAccounts(false) },
+      { queryKey: financeKeys.categories(), queryFn: () => api.listCategories() },
+    ],
+  })
+  useQueryErrorToast(
+    accountsQuery.error ?? categoriesQuery.error,
+    'Nie udało się pobrać słowników',
+  )
+
+  const accounts = accountsQuery.data ?? []
+  const categories = categoriesQuery.data ?? []
+
+  // Pierwsze konto z listy jako wybór domyślny — ustawiane raz, żeby nie
+  // nadpisywać wyboru użytkownika przy każdym odświeżeniu słownika.
   useEffect(() => {
-    let current = true
-    Promise.all([api.listAccounts(false), api.listCategories()])
-      .then(([loadedAccounts, loadedCategories]) => {
-        if (!current) return
-        setAccounts(loadedAccounts)
-        setCategories(loadedCategories)
-        if (loadedAccounts.length > 0) setAccountId((chosen) => chosen || String(loadedAccounts[0].id))
-      })
-      .catch((error) => reportError(error, 'Nie udało się pobrać słowników'))
-    return () => {
-      current = false
-    }
-  }, [refreshKey, reportError])
+    if (accounts.length === 0) return
+    setAccountId((chosen) => chosen || String(accounts[0].id))
+  }, [accounts])
 
-  const upload = async (event: React.FormEvent) => {
-    event.preventDefault()
-    if (!file || !accountId) return
-    setBusy(true)
-    try {
-      const created = await api.uploadStatement(Number(accountId), file)
-      const detail = await api.getImport(created.id)
+  const uploadStatement = useMutation({
+    mutationFn: async (input: { accountId: number; file: File }) => {
+      const created = await api.uploadStatement(input.accountId, input.file)
+      return api.getImport(created.id)
+    },
+    onSuccess: (detail) => {
       setBatch(detail)
       setCategoryByRow(defaultCategories(detail))
       setSettleRow(defaultSettlements(detail))
       notify(`Wczytano ${detail.rows.length} wierszy — nic jeszcze nie zapisano`)
-    } catch (error) {
-      reportError(error, 'Nie udało się wczytać wyciągu')
-    } finally {
-      setBusy(false)
-    }
-  }
+    },
+    onError: (error) => reportError(error, 'Nie udało się wczytać wyciągu'),
+  })
 
-  const commit = async () => {
-    if (!batch) return
-    setBusy(true)
-    try {
-      const pending = batch.rows.filter((row) => row.status === 'NEW')
-      const result = await api.commitImport(batch.batch.id, {
+  const commitImport = useMutation({
+    mutationFn: (loaded: ImportBatchDetailResponse) => {
+      const pending = loaded.rows.filter((row) => row.status === 'NEW')
+      return api.commitImport(loaded.batch.id, {
         categoryAssignments: pending.map((row) => ({
           rowId: row.id,
           categoryId: Number(categoryByRow[row.id]),
@@ -80,14 +78,26 @@ export default function ImportRoute() {
           .filter((row) => settleRow[row.id] && row.suggestedOccurrenceId)
           .map((row) => ({ rowId: row.id, occurrenceId: Number(row.suggestedOccurrenceId) })),
       })
+    },
+    onSuccess: async (result) => {
       notify(`Zapisano ${result.committedCount} transakcji`)
       setBatch(null)
-      refresh()
-    } catch (error) {
-      reportError(error, 'Nie udało się zatwierdzić wyciągu')
-    } finally {
-      setBusy(false)
-    }
+      await queryClient.invalidateQueries({ queryKey: financeKeys.all })
+    },
+    onError: (error) => reportError(error, 'Nie udało się zatwierdzić wyciągu'),
+  })
+
+  const busy = uploadStatement.isPending || commitImport.isPending
+
+  const upload = (event: React.FormEvent) => {
+    event.preventDefault()
+    if (!file || !accountId) return
+    uploadStatement.mutate({ accountId: Number(accountId), file })
+  }
+
+  const commit = () => {
+    if (!batch) return
+    commitImport.mutate(batch)
   }
 
   return (

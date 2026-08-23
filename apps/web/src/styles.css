@@ -243,6 +243,7 @@ body::after {
 .report ul, .error-list { margin: var(--space-1) 0 0; padding-left: 20px; }
 .muted { color: var(--muted); }
 .error { color: var(--danger); margin: var(--space-2) 0 0; }
+.field-error { color: var(--danger); margin: calc(var(--space-1) * -1) 0 var(--space-2); font-size: 0.875rem; }
 
 /* --- formanty --- */
 

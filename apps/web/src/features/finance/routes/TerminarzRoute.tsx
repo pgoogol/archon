@@ -4,18 +4,21 @@
 // odczycie z porównania terminu z dzisiejszą datą, więc lista nigdy nie
 // rozjedzie się z kalendarzem.
 
-import { useEffect, useState } from 'react'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation, useQueries, useQueryClient } from '@tanstack/react-query'
+import { useForm } from 'react-hook-form'
 
-import {
-  api,
-  type AccountResponse,
-  type CategoryResponse,
-  type OccurrenceResponse,
-  type RecurringFrequency,
-  type RecurringRuleResponse,
-} from '@/features/finance/api'
+import { api, type OccurrenceResponse, type RecurringFrequency } from '@/features/finance/api'
+import FieldError from '@/features/finance/components/FieldError'
 import { FREQUENCY_LABELS, OCCURRENCE_LABELS, today } from '@/features/finance/format'
+import {
+  recurringRuleFormSchema,
+  type RecurringRuleFormOutput,
+  type RecurringRuleFormValues,
+} from '@/features/finance/forms/schemas'
 import { useFinanceWorkspace } from '@/features/finance/state/FinanceWorkspace'
+import { financeKeys } from '@/features/finance/state/queryKeys'
+import { useQueryErrorToast } from '@/features/finance/state/useQueryErrorToast'
 import { useToast } from '@/shared/ui/Toasts'
 import { formatMinor } from '@/shared/format'
 
@@ -23,122 +26,117 @@ const FREQUENCIES: RecurringFrequency[] = ['MONTHLY', 'QUARTERLY', 'YEARLY']
 
 export default function TerminarzRoute() {
 
-  const { refreshKey, refresh, minorUnitOf } = useFinanceWorkspace()
+  const { minorUnitOf } = useFinanceWorkspace()
   const { notify, reportError } = useToast()
+  const queryClient = useQueryClient()
 
-  const [rules, setRules] = useState<RecurringRuleResponse[]>([])
-  const [occurrences, setOccurrences] = useState<OccurrenceResponse[]>([])
-  const [accounts, setAccounts] = useState<AccountResponse[]>([])
-  const [categories, setCategories] = useState<CategoryResponse[]>([])
-  const [busy, setBusy] = useState(false)
+  const [rulesQuery, occurrencesQuery, accountsQuery, categoriesQuery] = useQueries({
+    queries: [
+      { queryKey: financeKeys.recurringRules(false), queryFn: () => api.listRecurringRules(false) },
+      { queryKey: financeKeys.occurrences({}), queryFn: () => api.listOccurrences({}) },
+      { queryKey: financeKeys.accounts(false), queryFn: () => api.listAccounts(false) },
+      { queryKey: financeKeys.categories('EXPENSE'), queryFn: () => api.listCategories('EXPENSE') },
+    ],
+  })
+  const loadError =
+    rulesQuery.error ?? occurrencesQuery.error ?? accountsQuery.error ?? categoriesQuery.error
+  useQueryErrorToast(loadError, 'Nie udało się pobrać terminarza')
 
-  const [name, setName] = useState('')
-  const [accountId, setAccountId] = useState('')
-  const [categoryId, setCategoryId] = useState('')
-  const [amountMinor, setAmountMinor] = useState('')
-  const [frequency, setFrequency] = useState<RecurringFrequency>('MONTHLY')
-  const [dayOfMonth, setDayOfMonth] = useState('10')
-  const [startsOn, setStartsOn] = useState(today)
-  const [matchPattern, setMatchPattern] = useState('')
+  const rules = rulesQuery.data ?? []
+  const occurrences = occurrencesQuery.data ?? []
+  const accounts = accountsQuery.data ?? []
+  const categories = categoriesQuery.data ?? []
 
-  useEffect(() => {
-    let current = true
-    Promise.all([
-      api.listRecurringRules(false),
-      api.listOccurrences({}),
-      api.listAccounts(false),
-      api.listCategories('EXPENSE'),
-    ])
-      .then(([loadedRules, loadedOccurrences, loadedAccounts, loadedCategories]) => {
-        if (!current) return
-        setRules(loadedRules)
-        setOccurrences(loadedOccurrences)
-        setAccounts(loadedAccounts)
-        setCategories(loadedCategories)
-      })
-      .catch((error) => reportError(error, 'Nie udało się pobrać terminarza'))
-    return () => {
-      current = false
-    }
-  }, [refreshKey, reportError])
+  const form = useForm<RecurringRuleFormValues, unknown, RecurringRuleFormOutput>({
+    resolver: zodResolver(recurringRuleFormSchema),
+    defaultValues: {
+      name: '',
+      type: 'EXPENSE',
+      amountMinor: '',
+      currency: 'PLN',
+      frequency: 'MONTHLY',
+      dayOfMonth: '10',
+      startsOn: today(),
+      accountId: '',
+      categoryId: '',
+      matchPattern: '',
+    },
+  })
 
-  const createRule = async (event: React.FormEvent) => {
-    event.preventDefault()
-    setBusy(true)
-    try {
-      await api.createRecurringRule({
-        name,
-        accountId: Number(accountId),
-        categoryId: Number(categoryId),
-        type: 'EXPENSE',
-        amountMinor: Number(amountMinor),
-        frequency,
-        dayOfMonth: Number(dayOfMonth),
-        startsOn,
-        matchPattern: matchPattern || null,
-      })
+  /** Terminarz zmienia salda i raporty, więc unieważniamy całą domenę. */
+  const invalidateFinance = () => queryClient.invalidateQueries({ queryKey: financeKeys.all })
+
+  const createRule = useMutation({
+    mutationFn: (values: RecurringRuleFormOutput) =>
+      api.createRecurringRule({
+        name: values.name,
+        accountId: values.accountId,
+        categoryId: values.categoryId,
+        type: values.type,
+        amountMinor: values.amountMinor,
+        frequency: values.frequency,
+        dayOfMonth: values.dayOfMonth,
+        startsOn: values.startsOn,
+        matchPattern: values.matchPattern || null,
+      }),
+    onSuccess: async () => {
       notify('Reguła zapisana wraz z terminarzem')
-      setName('')
-      setAmountMinor('')
-      refresh()
-    } catch (error) {
-      reportError(error, 'Nie udało się zapisać reguły')
-    } finally {
-      setBusy(false)
-    }
-  }
+      form.reset({ ...form.getValues(), name: '', amountMinor: '', matchPattern: '' })
+      await invalidateFinance()
+    },
+    onError: (error) => reportError(error, 'Nie udało się zapisać reguły'),
+  })
 
-  const pay = async (occurrence: OccurrenceResponse) => {
-    try {
-      // kwota faktyczna bywa inna niż oczekiwana; tu domyślnie bierzemy
-      // oczekiwaną, a poprawia się ją w transakcjach
-      await api.payOccurrence(occurrence.id, {
+  const payOccurrence = useMutation({
+    // kwota faktyczna bywa inna niż oczekiwana; tu domyślnie bierzemy
+    // oczekiwaną, a poprawia się ją w transakcjach
+    mutationFn: (occurrence: OccurrenceResponse) =>
+      api.payOccurrence(occurrence.id, {
         paidOn: today(),
         paidAmountMinor: occurrence.expectedAmountMinor,
-      })
+      }),
+    onSuccess: async () => {
       notify('Rachunek oznaczony jako zapłacony')
-      refresh()
-    } catch (error) {
-      reportError(error, 'Nie udało się rozliczyć rachunku')
-    }
-  }
+      await invalidateFinance()
+    },
+    onError: (error) => reportError(error, 'Nie udało się rozliczyć rachunku'),
+  })
 
-  const skip = async (occurrenceId: number) => {
-    try {
-      await api.skipOccurrence(occurrenceId)
+  const skipOccurrence = useMutation({
+    mutationFn: (occurrenceId: number) => api.skipOccurrence(occurrenceId),
+    onSuccess: async () => {
       notify('Pozycja pominięta')
-      refresh()
-    } catch (error) {
-      reportError(error, 'Nie udało się pominąć pozycji')
-    }
-  }
+      await invalidateFinance()
+    },
+    onError: (error) => reportError(error, 'Nie udało się pominąć pozycji'),
+  })
 
-  const generate = async () => {
-    try {
-      const result = await api.generateOccurrences()
+  const generateOccurrences = useMutation({
+    mutationFn: () => api.generateOccurrences(),
+    onSuccess: async (result) => {
       notify(`Dołożono ${result.createdCount} pozycji, horyzont do ${result.horizonTo}`)
-      refresh()
-    } catch (error) {
-      reportError(error, 'Nie udało się uzupełnić terminarza')
-    }
-  }
+      await invalidateFinance()
+    },
+    onError: (error) => reportError(error, 'Nie udało się uzupełnić terminarza'),
+  })
 
-  const deactivate = async (ruleId: number) => {
-    try {
-      await api.deactivateRecurringRule(ruleId)
+  const deactivateRule = useMutation({
+    mutationFn: (ruleId: number) => api.deactivateRecurringRule(ruleId),
+    onSuccess: async () => {
       notify('Reguła wyłączona; historia została')
-      refresh()
-    } catch (error) {
-      reportError(error, 'Nie udało się wyłączyć reguły')
-    }
-  }
+      await invalidateFinance()
+    },
+    onError: (error) => reportError(error, 'Nie udało się wyłączyć reguły'),
+  })
+
+  const submitRule = form.handleSubmit((values) => createRule.mutateAsync(values))
 
   return (
     <div className="panels">
       <section className="panel">
         <h2>Terminarz</h2>
         <div className="row">
-          <button type="button" onClick={generate}>
+          <button type="button" onClick={() => generateOccurrences.mutate()}>
             Uzupełnij terminarz
           </button>
           <span className="muted">Wywołanie jest idempotentne — drugi przebieg daje zero.</span>
@@ -182,10 +180,10 @@ export default function TerminarzRoute() {
                   <td>
                     {occurrence.status === 'PAID' || occurrence.status === 'SKIPPED' ? null : (
                       <>
-                        <button type="button" onClick={() => pay(occurrence)}>
+                        <button type="button" onClick={() => payOccurrence.mutate(occurrence)}>
                           Zapłacone
                         </button>
-                        <button type="button" onClick={() => skip(occurrence.id)}>
+                        <button type="button" onClick={() => skipOccurrence.mutate(occurrence.id)}>
                           Pomiń
                         </button>
                       </>
@@ -214,7 +212,7 @@ export default function TerminarzRoute() {
                 {formatMinor(rule.amountMinor, rule.currency, minorUnitOf(rule.currency))}
               </span>
               {rule.active ? (
-                <button type="button" onClick={() => deactivate(rule.id)}>
+                <button type="button" onClick={() => deactivateRule.mutate(rule.id)}>
                   Wyłącz
                 </button>
               ) : null}
@@ -223,18 +221,16 @@ export default function TerminarzRoute() {
         </ul>
 
         <h3>Nowy rachunek cykliczny</h3>
-        <form onSubmit={createRule}>
+        <form onSubmit={submitRule} noValidate>
           <label className="field">
             <span>Nazwa</span>
-            <input value={name} onChange={(event) => setName(event.target.value)} required />
+            <input {...form.register('name')} />
           </label>
+          <FieldError message={form.formState.errors.name?.message} />
+
           <label className="field">
             <span>Konto</span>
-            <select
-              value={accountId}
-              onChange={(event) => setAccountId(event.target.value)}
-              required
-            >
+            <select {...form.register('accountId')}>
               <option value="">wybierz…</option>
               {accounts.map((account) => (
                 <option key={account.id} value={account.id}>
@@ -243,13 +239,11 @@ export default function TerminarzRoute() {
               ))}
             </select>
           </label>
+          <FieldError message={form.formState.errors.accountId?.message} />
+
           <label className="field">
             <span>Kategoria</span>
-            <select
-              value={categoryId}
-              onChange={(event) => setCategoryId(event.target.value)}
-              required
-            >
+            <select {...form.register('categoryId')}>
               <option value="">wybierz…</option>
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
@@ -258,22 +252,18 @@ export default function TerminarzRoute() {
               ))}
             </select>
           </label>
+          <FieldError message={form.formState.errors.categoryId?.message} />
+
           <label className="field">
             <span>Kwota oczekiwana (w jednostkach podrzędnych)</span>
-            <input
-              type="number"
-              min="1"
-              value={amountMinor}
-              onChange={(event) => setAmountMinor(event.target.value)}
-              required
-            />
+            {/* Tekst, nie liczba — patrz komentarz przy saldzie otwarcia w KontaRoute. */}
+            <input inputMode="numeric" {...form.register('amountMinor')} />
           </label>
+          <FieldError message={form.formState.errors.amountMinor?.message} />
+
           <label className="field">
             <span>Częstotliwość</span>
-            <select
-              value={frequency}
-              onChange={(event) => setFrequency(event.target.value as RecurringFrequency)}
-            >
+            <select {...form.register('frequency')}>
               {FREQUENCIES.map((option) => (
                 <option key={option} value={option}>
                   {FREQUENCY_LABELS[option]}
@@ -281,35 +271,26 @@ export default function TerminarzRoute() {
               ))}
             </select>
           </label>
+
           <label className="field">
             <span>Dzień miesiąca (31 w lutym wypada ostatniego dnia)</span>
-            <input
-              type="number"
-              min="1"
-              max="31"
-              value={dayOfMonth}
-              onChange={(event) => setDayOfMonth(event.target.value)}
-              required
-            />
+            <input inputMode="numeric" {...form.register('dayOfMonth')} />
           </label>
+          <FieldError message={form.formState.errors.dayOfMonth?.message} />
+
           <label className="field">
             <span>Obowiązuje od</span>
-            <input
-              type="date"
-              value={startsOn}
-              onChange={(event) => setStartsOn(event.target.value)}
-              required
-            />
+            <input type="date" {...form.register('startsOn')} />
           </label>
+          <FieldError message={form.formState.errors.startsOn?.message} />
+
           <label className="field">
             <span>Fragment opisu do rozpoznania przy imporcie</span>
-            <input
-              value={matchPattern}
-              onChange={(event) => setMatchPattern(event.target.value)}
-            />
+            <input {...form.register('matchPattern')} />
           </label>
-          <button type="submit" disabled={busy}>
-            {busy ? 'Zapisywanie…' : 'Zapisz rachunek'}
+
+          <button type="submit" disabled={form.formState.isSubmitting}>
+            {form.formState.isSubmitting ? 'Zapisywanie…' : 'Zapisz rachunek'}
           </button>
         </form>
       </section>

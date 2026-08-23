@@ -2,17 +2,14 @@
 // operacji. Filtry siedzą w adresie, więc odświeżenie strony wraca do tego
 // samego widoku, a link da się komuś podesłać.
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMemo } from 'react'
 
-import {
-  api,
-  type AccountResponse,
-  type CategoryResponse,
-  type TransactionPageResponse,
-  type TransactionType,
-} from '@/features/finance/api'
+import { api, type TransactionType } from '@/features/finance/api'
 import { TYPE_LABELS } from '@/features/finance/format'
 import { useFinanceWorkspace } from '@/features/finance/state/FinanceWorkspace'
+import { financeKeys } from '@/features/finance/state/queryKeys'
+import { useQueryErrorToast } from '@/features/finance/state/useQueryErrorToast'
 import { useHashRoute } from '@/shared/hooks/useHashRoute'
 import { useToast } from '@/shared/ui/Toasts'
 import { DASH, formatMinor } from '@/shared/format'
@@ -22,13 +19,10 @@ const TYPES: TransactionType[] = ['EXPENSE', 'INCOME', 'TRANSFER']
 
 export default function TransakcjeRoute() {
 
-  const { refreshKey, refresh, minorUnitOf } = useFinanceWorkspace()
+  const { minorUnitOf } = useFinanceWorkspace()
   const { params, setParams } = useHashRoute()
   const { notify, reportError } = useToast()
-
-  const [page, setPage] = useState<TransactionPageResponse | null>(null)
-  const [accounts, setAccounts] = useState<AccountResponse[]>([])
-  const [categories, setCategories] = useState<CategoryResponse[]>([])
+  const queryClient = useQueryClient()
 
   const filters = useMemo(
     () => ({
@@ -42,50 +36,53 @@ export default function TransakcjeRoute() {
     [params],
   )
 
-  useEffect(() => {
-    let current = true
-    Promise.all([api.listAccounts(false), api.listCategories()])
-      .then(([loadedAccounts, loadedCategories]) => {
-        if (!current) return
-        setAccounts(loadedAccounts)
-        setCategories(loadedCategories)
-      })
-      .catch((error) => reportError(error, 'Nie udało się pobrać słowników'))
-    return () => {
-      current = false
-    }
-  }, [refreshKey, reportError])
+  // Słowniki kont i kategorii schodzą jednym hookiem — obydwa wypełniają listy
+  // wyboru filtrów i żaden z nich nie zależy od drugiego.
+  const dictionaries = useQueries({
+    queries: [
+      { queryKey: financeKeys.accounts(false), queryFn: () => api.listAccounts(false) },
+      { queryKey: financeKeys.categories(), queryFn: () => api.listCategories() },
+    ],
+  })
+  const [accountsQuery, categoriesQuery] = dictionaries
+  useQueryErrorToast(
+    accountsQuery.error ?? categoriesQuery.error,
+    'Nie udało się pobrać słowników',
+  )
 
-  useEffect(() => {
-    let current = true
-    api
-      .searchTransactions({
-        from: filters.from || undefined,
-        to: filters.to || undefined,
-        accountId: filters.accountId ? Number(filters.accountId) : undefined,
-        categoryId: filters.categoryId ? Number(filters.categoryId) : undefined,
-        type: filters.type || undefined,
-        page: filters.page,
-        size: PAGE_SIZE,
-      })
-      .then((loaded) => {
-        if (current) setPage(loaded)
-      })
-      .catch((error) => reportError(error, 'Nie udało się pobrać transakcji'))
-    return () => {
-      current = false
-    }
-  }, [filters, refreshKey, reportError])
+  const search = useMemo(
+    () => ({
+      from: filters.from || undefined,
+      to: filters.to || undefined,
+      accountId: filters.accountId ? Number(filters.accountId) : undefined,
+      categoryId: filters.categoryId ? Number(filters.categoryId) : undefined,
+      type: filters.type || undefined,
+      page: filters.page,
+      size: PAGE_SIZE,
+    }),
+    [filters],
+  )
 
-  const remove = async (id: number) => {
-    try {
-      await api.deleteTransaction(id)
+  const transactionsQuery = useQuery({
+    queryKey: financeKeys.transactions(search),
+    queryFn: () => api.searchTransactions(search),
+  })
+  useQueryErrorToast(transactionsQuery.error, 'Nie udało się pobrać transakcji')
+
+  const removeTransaction = useMutation({
+    mutationFn: (id: number) => api.deleteTransaction(id),
+    onSuccess: async () => {
       notify('Transakcja usunięta')
-      refresh()
-    } catch (error) {
-      reportError(error, 'Nie udało się usunąć transakcji')
-    }
-  }
+      // Usunięcie zmienia i listę, i salda, i każdy raport — unieważniamy całą
+      // domenę, bo wyliczanie, których raportów dotyczyło, byłoby zgadywaniem.
+      await queryClient.invalidateQueries({ queryKey: financeKeys.all })
+    },
+    onError: (error) => reportError(error, 'Nie udało się usunąć transakcji'),
+  })
+
+  const accounts = accountsQuery.data ?? []
+  const categories = categoriesQuery.data ?? []
+  const page = transactionsQuery.data ?? null
 
   return (
     <section className="panel">
@@ -186,7 +183,7 @@ export default function TransakcjeRoute() {
                   <td>{transaction.categoryName ?? DASH}</td>
                   <td>{transaction.description ?? DASH}</td>
                   <td>
-                    <button type="button" onClick={() => remove(transaction.id)}>
+                    <button type="button" onClick={() => removeTransaction.mutate(transaction.id)}>
                       Usuń
                     </button>
                   </td>

@@ -2,32 +2,23 @@
 // Jeden ekran, jedno zapytanie — backend składa go po swojej stronie, żeby
 // front nie robił sześciu wywołań i nie sklejał ich w przeglądarce.
 
-import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 
-import { api, type DashboardResponse } from '@/features/finance/api'
+import { api } from '@/features/finance/api'
 import UpcomingList from '@/features/finance/components/UpcomingList'
 import { useFinanceWorkspace } from '@/features/finance/state/FinanceWorkspace'
-import { useToast } from '@/shared/ui/Toasts'
+import { financeKeys } from '@/features/finance/state/queryKeys'
+import { useQueryErrorToast } from '@/features/finance/state/useQueryErrorToast'
 import { DASH, formatMinor } from '@/shared/format'
 
 export default function PulpitRoute() {
 
-  const { refreshKey, minorUnitOf } = useFinanceWorkspace()
-  const { reportError } = useToast()
-  const [dashboard, setDashboard] = useState<DashboardResponse | null>(null)
-
-  useEffect(() => {
-    let current = true
-    api
-      .dashboard()
-      .then((loaded) => {
-        if (current) setDashboard(loaded)
-      })
-      .catch((error) => reportError(error, 'Nie udało się pobrać pulpitu'))
-    return () => {
-      current = false
-    }
-  }, [refreshKey, reportError])
+  const { minorUnitOf } = useFinanceWorkspace()
+  const { data: dashboard, error } = useQuery({
+    queryKey: financeKeys.dashboard(),
+    queryFn: () => api.dashboard(),
+  })
+  useQueryErrorToast(error, 'Nie udało się pobrać pulpitu')
 
   if (!dashboard) {
     return <p className="muted">Wczytywanie pulpitu…</p>

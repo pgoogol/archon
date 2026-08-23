@@ -1,22 +1,18 @@
 import { screen } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import PulpitRoute from './PulpitRoute'
 import { aDashboard, anUpcomingItem } from '@/features/finance/test/fixtures'
 import { renderRoute } from '@/features/finance/test/renderRoute'
-import { jsonResponse } from '@/shared/test/renderWithToasts'
+import { financeServer, respondJson, useFinanceApi } from '@/features/finance/test/server'
+import type { DashboardResponse } from '@/features/finance/api'
 
-let fetchMock: ReturnType<typeof vi.fn>
+useFinanceApi()
 
-function respondWith(body: unknown) {
+function dashboardReturns(body: DashboardResponse) {
 
-  fetchMock = vi.fn().mockResolvedValue(jsonResponse(body))
-  globalThis.fetch = fetchMock as unknown as typeof fetch
+  financeServer.use(respondJson('/reports/dashboard', body))
 }
-
-beforeEach(() => {
-  respondWith(aDashboard())
-})
 
 describe('PulpitRoute', () => {
 
@@ -42,7 +38,7 @@ describe('PulpitRoute', () => {
 
     // given: konto walutowe bez pobranego kursu — zero w tej kolumnie
     // wyglądałoby jak „nic nie masz", a to nieprawda
-    respondWith(
+    dashboardReturns(
       aDashboard({
         accountBalances: [
           {
@@ -66,7 +62,7 @@ describe('PulpitRoute', () => {
 
   it('wyróżnia pozycje po terminie', async () => {
 
-    respondWith(
+    dashboardReturns(
       aDashboard({
         overdue: [anUpcomingItem({ occurrenceId: 9, ruleName: 'Czynsz', overdue: true })],
       }),
