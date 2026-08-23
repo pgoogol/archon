@@ -1,5 +1,7 @@
 package com.pgoogol.music.enrichment.spotify;
 
+import com.pgoogol.music.common.ErrorCodes;
+import com.pgoogol.music.common.ExceptionMessageConstants;
 import com.pgoogol.music.common.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -90,8 +92,8 @@ public class SpotifyAccountService {
     public String userAccessToken() {
 
         SpotifyAccount account = accountRepository.findConnected()
-            .orElseThrow(() -> new ValidationException("SPOTIFY_NOT_CONNECTED",
-                "Konto Spotify nie jest połączone — otwórz /music/api/v1/auth/spotify/login"));
+            .orElseThrow(() -> new ValidationException(ErrorCodes.SPOTIFY_NOT_CONNECTED,
+                ExceptionMessageConstants.SPOTIFY_NOT_CONNECTED));
         return validAccessToken(account);
     }
 

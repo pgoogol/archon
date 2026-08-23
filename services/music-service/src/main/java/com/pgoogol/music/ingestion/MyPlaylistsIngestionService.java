@@ -1,6 +1,8 @@
 package com.pgoogol.music.ingestion;
 
 import com.pgoogol.music.common.AppException;
+import com.pgoogol.music.common.ErrorCodes;
+import com.pgoogol.music.common.ExceptionMessageConstants;
 import com.pgoogol.music.common.RateLimitedException;
 import com.pgoogol.music.common.ValidationException;
 import com.pgoogol.music.enrichment.spotify.SpotifyAccountService;
@@ -49,8 +51,8 @@ public class MyPlaylistsIngestionService {
     public MyPlaylistsIngestReport ingestMyPlaylists() {
 
         String ownerId = accountService.connectedUserId()
-            .orElseThrow(() -> new ValidationException("SPOTIFY_NOT_CONNECTED",
-                "Konto Spotify nie jest połączone — otwórz /music/api/v1/auth/spotify/login"));
+            .orElseThrow(() -> new ValidationException(ErrorCodes.SPOTIFY_NOT_CONNECTED,
+                ExceptionMessageConstants.SPOTIFY_NOT_CONNECTED));
         List<SpotifyPlaylist> owned = ownedPlaylists(ownerId);
         Map<String, String> knownSnapshots = knownSnapshots(owned);
         log.info("Import własnych playlist konta {}: {} do sprawdzenia", ownerId, owned.size());
@@ -150,8 +152,8 @@ public class MyPlaylistsIngestionService {
 
             log.error("Playlista '{}' ({}) pominięta — nieoczekiwany błąd",
                 playlist.name(), playlist.spotifyPlaylistId(), ex);
-            run.failed(playlist, "INTERNAL_ERROR",
-                "nieoczekiwany błąd importu — szczegóły w logach aplikacji");
+            run.failed(playlist, ErrorCodes.INTERNAL_ERROR,
+                ExceptionMessageConstants.PLAYLIST_IMPORT_FAILED);
         }
     }
 

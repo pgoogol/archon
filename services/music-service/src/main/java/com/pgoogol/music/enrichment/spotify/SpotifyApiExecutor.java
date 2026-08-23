@@ -1,5 +1,7 @@
 package com.pgoogol.music.enrichment.spotify;
 
+import com.pgoogol.music.common.ErrorCodes;
+import com.pgoogol.music.common.ExceptionMessageConstants;
 import com.pgoogol.music.common.ExternalServiceException;
 import com.pgoogol.music.common.ForbiddenException;
 import com.pgoogol.music.common.NotFoundException;
@@ -63,16 +65,17 @@ public class SpotifyApiExecutor {
                 throw rateLimited(ex);
             } catch (HttpClientErrorException.NotFound ex) {
 
-                throw new NotFoundException("SPOTIFY_RESOURCE_NOT_FOUND",
-                    "Spotify nie zna zasobu: %s".formatted(resource));
+                String message = ExceptionMessageConstants.SPOTIFY_RESOURCE_NOT_FOUND
+                    .formatted(resource);
+                throw new NotFoundException(ErrorCodes.SPOTIFY_RESOURCE_NOT_FOUND, message);
             } catch (HttpClientErrorException.Forbidden ex) {
 
-                throw new ForbiddenException("SPOTIFY_FORBIDDEN",
-                    "Spotify odmówił dostępu do zasobu: %s".formatted(resource));
+                String message = ExceptionMessageConstants.SPOTIFY_FORBIDDEN.formatted(resource);
+                throw new ForbiddenException(ErrorCodes.SPOTIFY_FORBIDDEN, message);
             } catch (HttpServerErrorException | ResourceAccessException ex) {
 
-                throw new ExternalServiceException("SPOTIFY_UNAVAILABLE",
-                    "Spotify API niedostępne", ex);
+                throw new ExternalServiceException(ErrorCodes.SPOTIFY_UNAVAILABLE,
+                    ExceptionMessageConstants.SPOTIFY_UNAVAILABLE, ex);
             }
         });
     }
@@ -97,8 +100,8 @@ public class SpotifyApiExecutor {
         }
         Instant resetsAt = until.get();
         Duration remaining = Duration.between(Instant.now(), resetsAt);
-        throw new RateLimitedException("SPOTIFY_QUOTA_EXCEEDED",
-            "Kwota Spotify wyczerpana — ruch wstrzymany do %s".formatted(resetsAt), remaining);
+        String message = ExceptionMessageConstants.SPOTIFY_QUOTA_EXCEEDED.formatted(resetsAt);
+        throw new RateLimitedException(ErrorCodes.SPOTIFY_QUOTA_EXCEEDED, message, remaining);
     }
 
     private RateLimitedException rateLimited(HttpClientErrorException.TooManyRequests ex) {
@@ -106,16 +109,16 @@ public class SpotifyApiExecutor {
         Duration retryAfter = retryAfter(ex);
         if (!isQuotaExhausted(retryAfter)) {
 
-            return new RateLimitedException("SPOTIFY_RATE_LIMITED",
-                "Spotify ograniczył liczbę zapytań", retryAfter);
+            return new RateLimitedException(ErrorCodes.SPOTIFY_RATE_LIMITED,
+                ExceptionMessageConstants.SPOTIFY_RATE_LIMITED, retryAfter);
         }
         Instant resetsAt = Instant.now().plus(retryAfter);
         blockedUntil.set(resetsAt);
         log.warn("""
             Kwota Spotify wyczerpana — ruch wstrzymany do {}; kolejne wywołania \
             odrzucamy lokalnie, żeby nie przedłużać blokady""", resetsAt);
-        return new RateLimitedException("SPOTIFY_QUOTA_EXCEEDED",
-            "Kwota Spotify wyczerpana — ruch wstrzymany do %s".formatted(resetsAt), retryAfter);
+        String message = ExceptionMessageConstants.SPOTIFY_QUOTA_EXCEEDED.formatted(resetsAt);
+        return new RateLimitedException(ErrorCodes.SPOTIFY_QUOTA_EXCEEDED, message, retryAfter);
     }
 
     /**
