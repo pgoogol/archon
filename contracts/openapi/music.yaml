@@ -1349,7 +1349,7 @@ components:
 
     IngestMyPlaylistsResponse:
       type: object
-      required: [imported, failed]
+      required: [imported, failed, unchanged, notAttempted]
       properties:
         imported:
           type: array
@@ -1357,6 +1357,23 @@ components:
         failed:
           type: array
           items: { $ref: '#/components/schemas/FailedPlaylistResponse' }
+        unchanged:
+          description: Playlisty bez zmian od ostatniego importu — celowo niepobierane
+          type: array
+          items: { $ref: '#/components/schemas/SkippedPlaylistResponse' }
+        notAttempted:
+          description: >-
+            Playlisty, do których przebieg nie doszedł, bo Spotify wstrzymał ruch
+            (wyczerpana kwota). Wystarczy powtórzyć import.
+          type: array
+          items: { $ref: '#/components/schemas/SkippedPlaylistResponse' }
+
+    SkippedPlaylistResponse:
+      type: object
+      required: [spotifyPlaylistId, name]
+      properties:
+        spotifyPlaylistId: { type: string }
+        name: { type: [string, 'null'] }
 
     PlaylistRefreshStatusResponse:
       type: object

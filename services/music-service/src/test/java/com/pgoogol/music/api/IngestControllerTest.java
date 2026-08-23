@@ -15,6 +15,7 @@ import com.pgoogol.music.ingestion.PlaylistRefreshProperties;
 import com.pgoogol.music.ingestion.PlaylistRefreshScheduler;
 import com.pgoogol.music.ingestion.PlaylistRefreshStatus;
 import com.pgoogol.music.ingestion.RowError;
+import com.pgoogol.music.ingestion.SkippedPlaylist;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -163,7 +164,9 @@ class IngestControllerTest {
         given(myPlaylistsIngestionService.ingestMyPlaylists()).willReturn(new MyPlaylistsIngestReport(
             List.of(new PlaylistIngestReport(1L, "pl-wesela", "Wesela 2026", 30, 12, 18, List.of())),
             List.of(new FailedPlaylist("pl-bachata", "Bachata", "SPOTIFY_UNAVAILABLE",
-                "Spotify nie odpowiedziało"))));
+                "Spotify nie odpowiedziało")),
+            List.of(new SkippedPlaylist("pl-salsa", "Salsa nocą")),
+            List.of(new SkippedPlaylist("pl-kizomba", "Kizomba"))));
 
         // when + then
         mockMvc.perform(post("/music/api/v1/ingest/my-playlists"))
@@ -172,7 +175,9 @@ class IngestControllerTest {
             .andExpect(jsonPath("$.imported[0].name").value("Wesela 2026"))
             .andExpect(jsonPath("$.failed[0].spotifyPlaylistId").value("pl-bachata"))
             .andExpect(jsonPath("$.failed[0].errorCode").value("SPOTIFY_UNAVAILABLE"))
-            .andExpect(jsonPath("$.failed[0].reason").value("Spotify nie odpowiedziało"));
+            .andExpect(jsonPath("$.failed[0].reason").value("Spotify nie odpowiedziało"))
+            .andExpect(jsonPath("$.unchanged[0].spotifyPlaylistId").value("pl-salsa"))
+            .andExpect(jsonPath("$.notAttempted[0].spotifyPlaylistId").value("pl-kizomba"));
     }
 
     @Test

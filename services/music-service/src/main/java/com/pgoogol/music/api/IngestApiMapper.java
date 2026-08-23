@@ -7,6 +7,7 @@ import com.pgoogol.music.ingestion.MyPlaylistsIngestReport;
 import com.pgoogol.music.ingestion.PlaylistIngestReport;
 import com.pgoogol.music.ingestion.RowError;
 import com.pgoogol.music.ingestion.SkippedItem;
+import com.pgoogol.music.ingestion.SkippedPlaylist;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 
@@ -35,6 +36,8 @@ public interface IngestApiMapper {
     IngestMyPlaylistsResponse toResponse(MyPlaylistsIngestReport report);
 
     IngestMyPlaylistsResponse.FailedPlaylistResponse toFailedPlaylist(FailedPlaylist playlist);
+
+    IngestMyPlaylistsResponse.SkippedPlaylistResponse toSkippedPlaylist(SkippedPlaylist playlist);
 
     IngestMetricsResponse.RowErrorResponse toRowError(RowError error);
 

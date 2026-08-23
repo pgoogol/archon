@@ -47,7 +47,8 @@ class SpotifyPlaylistClientTest {
           "id": "37i9dQZF1DX10zKzsJ2jva",
           "name": "Sabor Latino",
           "owner": {"id": "dj-pgoogol", "display_name": "DJ pgoogol"},
-          "tracks": {"total": 2}
+          "tracks": {"total": 2},
+          "snapshot_id": "snap-1"
         }
         """;
 
@@ -110,7 +111,7 @@ class SpotifyPlaylistClientTest {
 
         // then
         assertThat(playlist).isEqualTo(new SpotifyPlaylist(
-            PLAYLIST_ID, "Sabor Latino", "dj-pgoogol", "DJ pgoogol", 2));
+            PLAYLIST_ID, "Sabor Latino", "dj-pgoogol", "DJ pgoogol", 2, "snap-1"));
         verify(getRequestedFor(urlPathEqualTo("/v1/playlists/" + PLAYLIST_ID))
             .withHeader("Authorization", equalTo("Bearer test-token")));
     }
@@ -153,6 +154,24 @@ class SpotifyPlaylistClientTest {
             .containsExactly(1, 2, 3);
         assertThat(items.get(3)).isInstanceOfSatisfying(SpotifyPlaylistItem.Unavailable.class,
             item -> assertThat(item.reason()).contains("episode"));
+    }
+
+    @Test
+    void getPlaylistItems_always_asksSpotifyOnlyForMappedFields(WireMockRuntimeInfo wireMock) {
+
+        // given — bez `fields` Spotify odsyła komplet rynków i obrazków na każdą pozycję
+        stubFor(post(urlPathEqualTo("/api/token")).willReturn(okJson(TOKEN_JSON)));
+        String tracksPath = "/v1/playlists/%s/tracks".formatted(PLAYLIST_ID);
+        stubFor(get(urlPathEqualTo(tracksPath)).willReturn(okJson(ITEMS_JSON)));
+
+        // when
+        playlistClient(wireMock).getPlaylistItems(PLAYLIST_ID);
+
+        // then — lista jedzie jednym ciągiem, bez rozjechanych nawiasów i spacji
+        verify(getRequestedFor(urlPathEqualTo(tracksPath))
+            .withQueryParam("fields", equalTo("""
+                total,items(track(id,name,type,is_local,duration_ms,explicit,popularity,\
+                artists(name),album(name,release_date,images),external_ids(isrc)))""")));
     }
 
     @Test
@@ -237,7 +256,7 @@ class SpotifyPlaylistClientTest {
         // then
         assertThat(playlists).hasSize(60);
         assertThat(playlists.getFirst()).isEqualTo(
-            new SpotifyPlaylist("pl-000", "Playlista 0", "dj-pgoogol", "DJ pgoogol", 7));
+            new SpotifyPlaylist("pl-000", "Playlista 0", "dj-pgoogol", "DJ pgoogol", 7, "snap-000"));
         verify(2, getRequestedFor(urlPathEqualTo("/v1/me/playlists"))
             .withHeader("Authorization", equalTo("Bearer user-token")));
     }
@@ -290,10 +309,10 @@ class SpotifyPlaylistClientTest {
 
         String items = IntStream.range(offset, offset + size)
             .mapToObj(index -> """
-                {"id": "pl-%03d", "name": "Playlista %d",
+                {"id": "pl-%03d", "name": "Playlista %d", "snapshot_id": "snap-%03d",
                  "owner": {"id": "dj-pgoogol", "display_name": "DJ pgoogol"},
                  "tracks": {"total": 7}}"""
-                .formatted(index, index))
+                .formatted(index, index, index))
             .collect(Collectors.joining(",\n"));
         return "{\"total\": %d, \"items\": [%s]}".formatted(total, items);
     }

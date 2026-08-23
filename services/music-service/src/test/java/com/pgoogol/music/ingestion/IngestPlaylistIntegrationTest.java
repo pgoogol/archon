@@ -70,7 +70,7 @@ class IngestPlaylistIntegrationTest {
     void stubPlaylist() {
 
         given(playlistClient.getPlaylist(PLAYLIST_ID)).willReturn(
-            new SpotifyPlaylist(PLAYLIST_ID, "Sabor Latino", "dj-pgoogol", "DJ pgoogol", 4));
+            new SpotifyPlaylist(PLAYLIST_ID, "Sabor Latino", "dj-pgoogol", "DJ pgoogol", 4, "snap-1"));
         given(playlistClient.getPlaylistItems(PLAYLIST_ID)).willReturn(List.of(
             track(0, "sp-vivir", "Vivir Mi Vida", "Marc Anthony"),
             track(1, "sp-bailando", "Bailando", "Enrique Iglesias"),

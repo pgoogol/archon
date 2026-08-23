@@ -37,6 +37,14 @@ public class Playlist {
     @Column(name = "spotify_playlist_id", length = 64)
     private String spotifyPlaylistId;
 
+    /**
+     * Snapshot playlisty ze Spotify z ostatniego udanego importu. Zapisywany
+     * dopiero po domknięciu importu, więc przerwany przebieg zostawia go
+     * nieruszonym — playlista wejdzie do następnego przebiegu jeszcze raz.
+     */
+    @Column(name = "spotify_snapshot_id", length = 128)
+    private String spotifySnapshotId;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -78,6 +86,16 @@ public class Playlist {
     public void setSpotifyPlaylistId(String spotifyPlaylistId) {
 
         this.spotifyPlaylistId = spotifyPlaylistId;
+    }
+
+    public String getSpotifySnapshotId() {
+
+        return spotifySnapshotId;
+    }
+
+    public void setSpotifySnapshotId(String spotifySnapshotId) {
+
+        this.spotifySnapshotId = spotifySnapshotId;
     }
 
     public Instant getCreatedAt() {

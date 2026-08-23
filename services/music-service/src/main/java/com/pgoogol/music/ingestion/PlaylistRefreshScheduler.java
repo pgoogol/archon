@@ -1,5 +1,6 @@
 package com.pgoogol.music.ingestion;
 
+import com.pgoogol.music.common.RateLimitedException;
 import com.pgoogol.music.enrichment.spotify.SpotifyAccountService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,9 +91,16 @@ public class PlaylistRefreshScheduler {
             lastRun.set(PlaylistRefreshStatus.refreshed(
                 startedAt, report.imported().size(), report.failed().size()));
             log.info("""
-                Automatyczne odświeżanie playlist: {} odświeżonych, {} nieudanych \
-                (następne za {})""",
-                report.imported().size(), report.failed().size(), properties.interval());
+                Automatyczne odświeżanie playlist: {} odświeżonych, {} bez zmian, \
+                {} nieudanych (następne za {})""",
+                report.imported().size(), report.unchanged().size(), report.failed().size(),
+                properties.interval());
+        } catch (RateLimitedException ex) {
+
+            // wyczerpana kwota to stan trwający godzinami: stack trace co interwał
+            // zasypałby logi, a i tak nic z niego nie wynika ponad sam komunikat
+            lastRun.set(PlaylistRefreshStatus.failed(startedAt, ex.getMessage()));
+            log.warn("Automatyczne odświeżanie playlist wstrzymane: {}", ex.getMessage());
         } catch (RuntimeException ex) {
 
             lastRun.set(PlaylistRefreshStatus.failed(startedAt, reason(ex)));
