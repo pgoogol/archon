@@ -9,13 +9,14 @@ import org.springframework.web.client.RestClient;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 /**
  * Playlisty Spotify (M2.1): nagłówek playlisty i jej utwory ze stronicowaniem
- * (100 pozycji na stronę — limit endpointu). Czyta dane publiczne na tokenie
- * aplikacyjnym; pozycje bez odpowiednika w katalogu Spotify (pliki lokalne,
- * odcinki podcastów, utwory usunięte) wracają jako
+ * (100 pozycji na stronę — limit endpointu). Czyta tokenem właściciela, gdy konto
+ * jest połączone, inaczej aplikacyjnym; pozycje bez odpowiednika w katalogu
+ * Spotify (pliki lokalne, odcinki podcastów, utwory usunięte) wracają jako
  * {@link SpotifyPlaylistItem.Unavailable} — decyzję o nich podejmuje ingestion.
  */
 @Component
@@ -87,7 +88,7 @@ public class SpotifyPlaylistClient {
         Objects.requireNonNull(playlistId, "playlistId");
         PlaylistResponse response = executor.call("playlista " + playlistId, () -> apiClient.get()
             .uri("/v1/playlists/{id}", playlistId)
-            .headers(headers -> headers.setBearerAuth(tokenProvider.bearerToken()))
+            .headers(headers -> headers.setBearerAuth(readToken()))
             .retrieve()
             .body(PlaylistResponse.class));
         return toPlaylist(response);
@@ -161,9 +162,23 @@ public class SpotifyPlaylistClient {
                 .queryParam("limit", PAGE_SIZE)
                 .queryParam("offset", offset)
                 .build(playlistId))
-            .headers(headers -> headers.setBearerAuth(tokenProvider.bearerToken()))
+            .headers(headers -> headers.setBearerAuth(readToken()))
             .retrieve()
             .body(PlaylistItemsResponse.class));
+    }
+
+    /**
+     * Token do odczytu playlisty. Prywatne playlisty właściciela — a taka jest
+     * choćby „Moje utwory z Shazam" — na tokenie aplikacyjnym wracają z 403,
+     * mimo że lista playlist wypisuje je poprawnie (idzie tokenem właściciela).
+     * Dlatego przy połączonym koncie czytamy tokenem właściciela: widzi to samo
+     * co aplikacyjny, plus zasoby prywatne. Bez konta zostaje token aplikacyjny
+     * — wystarczy dla playlist publicznych (tryb D).
+     */
+    private String readToken() {
+
+        Optional<String> userToken = accountService.userAccessTokenIfConnected();
+        return userToken.orElseGet(tokenProvider::bearerToken);
     }
 
     private List<SpotifyPlaylistItem> toItems(PlaylistItemsResponse page, int offset) {

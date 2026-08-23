@@ -92,6 +92,22 @@ public class SpotifyAccountService {
         SpotifyAccount account = accountRepository.findConnected()
             .orElseThrow(() -> new ValidationException("SPOTIFY_NOT_CONNECTED",
                 "Konto Spotify nie jest połączone — otwórz /music/api/v1/auth/spotify/login"));
+        return validAccessToken(account);
+    }
+
+    /**
+     * Ważny token właściciela, o ile konto jest połączone — inaczej pusto.
+     * Dla odczytów, które działają także bez połączonego konta (na tokenie
+     * aplikacyjnym), tyle że wtedy bez dostępu do zasobów prywatnych.
+     */
+    @Transactional
+    public Optional<String> userAccessTokenIfConnected() {
+
+        return accountRepository.findConnected().map(this::validAccessToken);
+    }
+
+    private String validAccessToken(SpotifyAccount account) {
+
         if (!account.isExpiredAt(Instant.now().plus(EXPIRY_MARGIN))) {
 
             return account.getAccessToken();

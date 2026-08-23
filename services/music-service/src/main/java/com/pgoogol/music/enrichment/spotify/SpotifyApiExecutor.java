@@ -1,6 +1,7 @@
 package com.pgoogol.music.enrichment.spotify;
 
 import com.pgoogol.music.common.ExternalServiceException;
+import com.pgoogol.music.common.ForbiddenException;
 import com.pgoogol.music.common.NotFoundException;
 import com.pgoogol.music.common.RateLimitedException;
 import com.pgoogol.music.common.ratelimit.ApiCallGuard;
@@ -18,7 +19,7 @@ import java.util.function.Supplier;
  * Wspólne wejście do API Spotify: jeden limiter na całe konto (osobne limitery
  * w każdym kliencie zwielokrotniłyby dozwolony ruch) + tłumaczenie błędów HTTP
  * na wyjątki domenowe. 429 honoruje {@code Retry-After}, 5xx/timeout jest
- * ponawiany, 404 nie.
+ * ponawiany, 404 i 403 nie.
  */
 @Component
 public class SpotifyApiExecutor {
@@ -48,6 +49,10 @@ public class SpotifyApiExecutor {
 
                 throw new NotFoundException("SPOTIFY_RESOURCE_NOT_FOUND",
                     "Spotify nie zna zasobu: %s".formatted(resource));
+            } catch (HttpClientErrorException.Forbidden ex) {
+
+                throw new ForbiddenException("SPOTIFY_FORBIDDEN",
+                    "Spotify odmówił dostępu do zasobu: %s".formatted(resource));
             } catch (HttpServerErrorException | ResourceAccessException ex) {
 
                 throw new ExternalServiceException("SPOTIFY_UNAVAILABLE",
