@@ -31,8 +31,17 @@ public record LlmProperties(
 
     private static final Pattern VERSION_DIGITS = Pattern.compile("\\d+");
 
+    private static final String DEFAULT_PROVIDER = "openai";
+
     public LlmProperties {
 
+        // pusty łańcuch znaczy to samo co brak wpisu: `.env` z pustym
+        // LLM_PROVIDER trafia do aplikacji jako "", a wartość domyślna
+        // z konfiguracji wchodzi wyłącznie przy zmiennej nieustawionej
+        if (Objects.isNull(provider) || provider.isBlank()) {
+
+            provider = DEFAULT_PROVIDER;
+        }
         cost = Objects.requireNonNullElse(cost, Cost.UNKNOWN);
     }
 

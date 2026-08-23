@@ -25,9 +25,9 @@ frontend w `apps/web`, kod dzielony w `libs/`.
 | Serwis lokalnie | `./mvnw -pl libs/java/logging-starter -am -DskipTests install` (po zmianie startera), potem `./mvnw -pl services/music-service spring-boot:run -Dspring-boot.run.profiles=local` |
 | Front — build / testy / lint | `pnpm build` · `pnpm test` · `pnpm lint` |
 | Front — tryb dev | `pnpm --filter web dev` |
-| Środowisko lokalne | `docker compose -f deploy/compose/docker-compose.yml up -d` (`down -v` czyści dane) |
-| Wszystko w kontenerach | `docker compose -f deploy/compose/docker-compose.yml --profile full up -d --build` |
-| Front w kontenerze, serwisy na hoście | `docker compose -f deploy/compose/docker-compose.yml -f deploy/compose/docker-compose.web-only.yml --profile full up -d --build --no-deps web` |
+| Środowisko lokalne (sama baza) | `docker compose -f deploy/compose/docker-compose.yml up -d` (`down -v` czyści dane) |
+| Wybrane komponenty w kontenerach | ten sam plik + profile: `music` · `finance` · `services` · `web` · `full` |
+| Wszystkie kombinacje host/kontener | [`deploy/compose/URUCHAMIANIE.md`](deploy/compose/URUCHAMIANIE.md) |
 | E2E | `pnpm --filter e2e test` |
 
 ## Nienegocjowalne
