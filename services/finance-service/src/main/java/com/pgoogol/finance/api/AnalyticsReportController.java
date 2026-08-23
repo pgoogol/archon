@@ -15,6 +15,7 @@ import com.pgoogol.finance.report.TopExpenseRow;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -73,7 +74,7 @@ public class AnalyticsReportController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
             @RequestParam(required = false) List<Long> accountIds,
             @RequestParam(required = false) List<Long> categoryIds,
-            @RequestParam(defaultValue = "" + DEFAULT_LIMIT) int limit) {
+            @RequestParam(defaultValue = StringUtils.EMPTY + DEFAULT_LIMIT) int limit) {
 
         ReportRange range = range(from, to, Granularity.MONTH, accountIds, categoryIds);
         List<TopExpenseRow> transactions = analyticsService.topExpenses(range, limit);
@@ -104,7 +105,7 @@ public class AnalyticsReportController {
     @GetMapping("/upcoming")
     @Operation(summary = "Zobowiązania na najbliższe dni wraz z przeterminowanymi")
     public UpcomingReportResponse reportUpcoming(
-            @RequestParam(defaultValue = "" + DEFAULT_HORIZON_DAYS) int horizonDays) {
+            @RequestParam(defaultValue = StringUtils.EMPTY + DEFAULT_HORIZON_DAYS) int horizonDays) {
 
         OutlookService.Outlook outlook = outlookService.upcoming(horizonDays, List.of());
         return new UpcomingReportResponse(outlook.horizonTo(), outlook.overdue(),
@@ -119,7 +120,7 @@ public class AnalyticsReportController {
             wyjścia jest dzisiejsze saldo, a ruchy biorą się z pozycji \
             terminarza o statusie PENDING.""")
     public ForecastReportResponse reportForecast(
-            @RequestParam(defaultValue = "" + DEFAULT_HORIZON_DAYS) int horizonDays,
+            @RequestParam(defaultValue = StringUtils.EMPTY + DEFAULT_HORIZON_DAYS) int horizonDays,
             @RequestParam(required = false) List<Long> accountIds) {
 
         List<Long> accounts = emptyIfNull(accountIds);
