@@ -27,6 +27,7 @@ frontend w `apps/web`, kod dzielony w `libs/`.
 | Front — tryb dev | `pnpm --filter web dev` |
 | Środowisko lokalne | `docker compose -f deploy/compose/docker-compose.yml up -d` (`down -v` czyści dane) |
 | Wszystko w kontenerach | `docker compose -f deploy/compose/docker-compose.yml --profile full up -d --build` |
+| Front w kontenerze, serwisy na hoście | `docker compose -f deploy/compose/docker-compose.yml -f deploy/compose/docker-compose.web-only.yml --profile full up -d --build --no-deps web` |
 | E2E | `pnpm --filter e2e test` |
 
 ## Nienegocjowalne
