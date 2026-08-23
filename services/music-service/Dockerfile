@@ -11,6 +11,10 @@ WORKDIR /build
 COPY pom.xml ./
 COPY libs/java/logging-starter/pom.xml libs/java/logging-starter/
 COPY services/music-service/pom.xml services/music-service/
+# POM-y pozostałych modułów reaktora: Maven czyta całą listę <module> z roota,
+# zanim zawęzi build do -pl, i przerywa, gdy któregokolwiek brakuje. Same POM-y,
+# bez źródeł — te moduły się tutaj nie budują.
+COPY services/finance-service/pom.xml services/finance-service/
 RUN mvn -B -q -pl services/music-service -am dependency:go-offline
 
 COPY libs/java/logging-starter/src libs/java/logging-starter/src
