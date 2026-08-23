@@ -152,10 +152,12 @@ public class ReportService {
     private void requireValidRange(ReportRange range) {
 
         Objects.requireNonNull(range, "range");
-        if (range.from().isAfter(range.to())) {
+        LocalDate from = range.from();
+        LocalDate to = range.to();
+        if (from.isAfter(to)) {
 
             throw new ValidationException(ErrorCodes.INVALID_DATE_RANGE,
-                ExceptionMessageConstants.INVALID_DATE_RANGE.formatted(range.from(), range.to()));
+                ExceptionMessageConstants.INVALID_DATE_RANGE.formatted(from, to));
         }
     }
 }

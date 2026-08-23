@@ -69,12 +69,12 @@ class StatementImportIntegrationTest {
 
         // given
         long account = createAccount("Bieżące", "PLN");
-        byte[] wyciag = statement(row("2026-01-05", "-45,00", "ZAKUP", ""));
-        upload(account, "styczen.csv", wyciag);
+        byte[] statementFile = statement(row("2026-01-05", "-45,00", "ZAKUP", ""));
+        upload(account, "styczen.csv", statementFile);
 
         // when & then: nazwa pliku nie ma znaczenia — liczy się zawartość
         mockMvc.perform(multipart("/finance/api/v1/imports")
-                .file(new MockMultipartFile("file", "inna-nazwa.csv", "text/csv", wyciag))
+                .file(new MockMultipartFile("file", "inna-nazwa.csv", "text/csv", statementFile))
                 .param("accountId", String.valueOf(account)))
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.errorCode").value("STATEMENT_ALREADY_IMPORTED"));
@@ -87,12 +87,12 @@ class StatementImportIntegrationTest {
         // given: dwie takie same kawy tego samego dnia zdarzają się naprawdę
         long account = createAccount("Bieżące", "PLN");
         long category = createCategory("Jedzenie", "EXPENSE");
-        byte[] wyciag = statement(
+        byte[] statementFile = statement(
             row("2026-01-05", "-12,00", "KAWA", ""),
             row("2026-01-05", "-12,00", "KAWA", ""));
 
         // when
-        long batch = upload(account, "styczen.csv", wyciag);
+        long batch = upload(account, "styczen.csv", statementFile);
         JsonNode committed = commit(batch, category);
 
         // then
@@ -108,27 +108,27 @@ class StatementImportIntegrationTest {
         // styczniem w środku
         long account = createAccount("Bieżące", "PLN");
         long category = createCategory("Jedzenie", "EXPENSE");
-        byte[] styczen = statement(
+        byte[] january = statement(
             row("2026-01-05", "-45,00", "ZAKUP", ""),
             row("2026-01-12", "-30,00", "OBIAD", ""));
-        long pierwsza = upload(account, "styczen.csv", styczen);
-        commit(pierwsza, category);
+        long firstBatch = upload(account, "styczen.csv", january);
+        commit(firstBatch, category);
 
-        byte[] kwartal = statement(
+        byte[] quarter = statement(
             row("2026-01-05", "-45,00", "ZAKUP", ""),
             row("2026-01-12", "-30,00", "OBIAD", ""),
             row("2026-02-03", "-60,00", "KOLACJA", ""));
 
         // when
-        long druga = upload(account, "kwartal.csv", kwartal);
-        JsonNode podglad = preview(druga);
-        JsonNode wynik = commit(druga, category);
+        long secondBatch = upload(account, "kwartal.csv", quarter);
+        JsonNode preview = preview(secondBatch);
+        JsonNode result = commit(secondBatch, category);
 
         // then: dwa wiersze rozpoznane jako duplikaty, wchodzi wyłącznie luty
-        assertThat(podglad.get("batch").get("duplicateCount").asInt()).isEqualTo(2);
-        assertThat(podglad.get("batch").get("newCount").asInt()).isEqualTo(1);
-        assertThat(wynik.get("committedCount").asInt()).isEqualTo(1);
-        assertThat(wynik.get("skippedDuplicateCount").asInt()).isEqualTo(2);
+        assertThat(preview.get("batch").get("duplicateCount").asInt()).isEqualTo(2);
+        assertThat(preview.get("batch").get("newCount").asInt()).isEqualTo(1);
+        assertThat(result.get("committedCount").asInt()).isEqualTo(1);
+        assertThat(result.get("skippedDuplicateCount").asInt()).isEqualTo(2);
         assertThat(transactionCount(account)).isEqualTo(3);
     }
 
@@ -139,16 +139,16 @@ class StatementImportIntegrationTest {
         // given: przy referencji bankowej zmiana opisu nie robi z operacji nowej
         long account = createAccount("Bieżące", "PLN");
         long category = createCategory("Jedzenie", "EXPENSE");
-        long pierwsza = upload(account, "a.csv", statement(row("2026-01-05", "-45,00", "ZAKUP", "REF-1")));
-        commit(pierwsza, category);
+        long firstBatch = upload(account, "a.csv", statement(row("2026-01-05", "-45,00", "ZAKUP", "REF-1")));
+        commit(firstBatch, category);
 
         // when: ten sam identyfikator operacji, inny opis
-        long druga = upload(account, "b.csv",
+        long secondBatch = upload(account, "b.csv",
             statement(row("2026-01-05", "-45,00", "ZAKUP KARTĄ W SKLEPIE", "REF-1")));
-        JsonNode wynik = commit(druga, category);
+        JsonNode result = commit(secondBatch, category);
 
         // then
-        assertThat(wynik.get("committedCount").asInt()).isZero();
+        assertThat(result.get("committedCount").asInt()).isZero();
         assertThat(transactionCount(account)).isEqualTo(1);
     }
 
@@ -204,12 +204,12 @@ class StatementImportIntegrationTest {
         long batch = upload(account, "styczen.csv", statement(row("2026-01-05", "-45,00", "ZAKUP", "")));
 
         // when
-        JsonNode wynik = commit(batch, category);
+        JsonNode result = commit(batch, category);
 
         // then
-        JsonNode uzgodnienie = wynik.get("reconciliation");
-        assertThat(uzgodnienie.get("matched").asBoolean()).isTrue();
-        assertThat(uzgodnienie.get("computedBalanceMinor").asLong()).isEqualTo(-4500L);
+        JsonNode reconciliation = result.get("reconciliation");
+        assertThat(reconciliation.get("matched").asBoolean()).isTrue();
+        assertThat(reconciliation.get("computedBalanceMinor").asLong()).isEqualTo(-4500L);
     }
 
     private long upload(long accountId, String fileName, byte[] content) throws Exception {

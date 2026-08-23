@@ -72,18 +72,18 @@ class RecurringScheduleIntegrationTest {
         long account = createAccount("Bieżące", "PLN");
         long category = createCategory("Mieszkanie", "EXPENSE");
         createRule(account, category, "MONTHLY", 10, TODAY.withDayOfMonth(1), null);
-        int poZapisie = occurrenceCount();
+        int afterSave = occurrenceCount();
 
         // when: pierwszy ręczny przebieg po tym, który zrobił się przy zapisie
-        JsonNode pierwszy = generate();
-        int poPierwszym = occurrenceCount();
-        JsonNode drugi = generate();
+        JsonNode firstRun = generate();
+        int afterFirstRun = occurrenceCount();
+        JsonNode secondRun = generate();
 
         // then
-        assertThat(pierwszy.get("createdCount").asInt()).isZero();
-        assertThat(drugi.get("createdCount").asInt()).isZero();
-        assertThat(poPierwszym).isEqualTo(poZapisie);
-        assertThat(occurrenceCount()).isEqualTo(poZapisie);
+        assertThat(firstRun.get("createdCount").asInt()).isZero();
+        assertThat(secondRun.get("createdCount").asInt()).isZero();
+        assertThat(afterFirstRun).isEqualTo(afterSave);
+        assertThat(occurrenceCount()).isEqualTo(afterSave);
     }
 
     @Test
@@ -100,12 +100,12 @@ class RecurringScheduleIntegrationTest {
 
         // then: żaden termin nie wypada 1 dnia miesiąca — to byłby ślad po
         // naiwnym plusMonths, który przelewa 31 na kolejny miesiąc
-        JsonNode terminarz = occurrences();
-        assertThat(terminarz).isNotEmpty();
-        terminarz.forEach(pozycja -> {
+        JsonNode schedule = occurrences();
+        assertThat(schedule).isNotEmpty();
+        schedule.forEach(occurrenceId -> {
 
-            LocalDate termin = LocalDate.parse(pozycja.get("dueDate").asText());
-            assertThat(termin.getDayOfMonth()).isEqualTo(termin.lengthOfMonth());
+            LocalDate dueDate = LocalDate.parse(occurrenceId.get("dueDate").asText());
+            assertThat(dueDate.getDayOfMonth()).isEqualTo(dueDate.lengthOfMonth());
         });
     }
 
@@ -117,16 +117,16 @@ class RecurringScheduleIntegrationTest {
         long account = createAccount("Bieżące", "PLN");
         long category = createCategory("Mieszkanie", "EXPENSE");
         LocalDate start = TODAY.withDayOfMonth(1);
-        LocalDate koniec = start.plusMonths(3);
+        LocalDate endsOn = start.plusMonths(3);
 
         // when
-        createRule(account, category, "MONTHLY", 1, start, koniec);
+        createRule(account, category, "MONTHLY", 1, start, endsOn);
 
         // then: cztery terminy — start i trzy kolejne miesiące
-        JsonNode terminarz = occurrences();
-        assertThat(terminarz).hasSize(4);
-        LocalDate ostatni = LocalDate.parse(terminarz.get(3).get("dueDate").asText());
-        assertThat(ostatni).isEqualTo(koniec);
+        JsonNode schedule = occurrences();
+        assertThat(schedule).hasSize(4);
+        LocalDate lastDueDate = LocalDate.parse(schedule.get(3).get("dueDate").asText());
+        assertThat(lastDueDate).isEqualTo(endsOn);
     }
 
     @Test
@@ -139,15 +139,15 @@ class RecurringScheduleIntegrationTest {
         createRule(account, category, "MONTHLY", 1, TODAY.minusMonths(6).withDayOfMonth(1), null);
 
         // when
-        JsonNode zalegle = occurrences("status=OVERDUE");
+        JsonNode overdue = occurrences("status=OVERDUE");
 
         // then
-        assertThat(zalegle).isNotEmpty();
-        zalegle.forEach(pozycja -> {
+        assertThat(overdue).isNotEmpty();
+        overdue.forEach(occurrenceId -> {
 
-            LocalDate termin = LocalDate.parse(pozycja.get("dueDate").asText());
-            assertThat(termin).isBefore(TODAY);
-            assertThat(pozycja.get("status").asText()).isEqualTo("OVERDUE");
+            LocalDate dueDate = LocalDate.parse(occurrenceId.get("dueDate").asText());
+            assertThat(dueDate).isBefore(TODAY);
+            assertThat(occurrenceId.get("status").asText()).isEqualTo("OVERDUE");
         });
         assertThat(storedStatuses()).doesNotContain("OVERDUE");
     }
@@ -160,12 +160,12 @@ class RecurringScheduleIntegrationTest {
         long account = createAccount("Bieżące", "PLN");
         long category = createCategory("Mieszkanie", "EXPENSE");
         createRule(account, category, "MONTHLY", 1, TODAY.minusMonths(1).withDayOfMonth(1), null);
-        long pozycja = occurrences().get(0).get("id").asLong();
+        long occurrenceId = occurrences().get(0).get("id").asLong();
 
         // when: rachunek przyszedł na więcej, niż zakładała reguła
         String body = """
             {"paidOn":"%s","paidAmountMinor":13750}""".formatted(TODAY);
-        String odpowiedz = mockMvc.perform(post("/finance/api/v1/occurrences/{id}/pay", pozycja)
+        String responseBody = mockMvc.perform(post("/finance/api/v1/occurrences/{id}/pay", occurrenceId)
                 .contentType(MediaType.APPLICATION_JSON).content(body))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("PAID"))
@@ -173,14 +173,14 @@ class RecurringScheduleIntegrationTest {
             .andReturn().getResponse().getContentAsString();
 
         // then
-        JsonNode zaplacona = objectMapper.readTree(odpowiedz);
-        long transakcja = zaplacona.get("transactionId").asLong();
-        mockMvc.perform(get("/finance/api/v1/transactions/{id}", transakcja))
+        JsonNode paidId = objectMapper.readTree(responseBody);
+        long transactionId = paidId.get("transactionId").asLong();
+        mockMvc.perform(get("/finance/api/v1/transactions/{id}", transactionId))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.amountMinor").value(13750))
             .andExpect(jsonPath("$.type").value("EXPENSE"))
             .andExpect(jsonPath("$.categoryId").value(Math.toIntExact(category)));
-        assertThat(zaplacona.get("expectedAmountMinor").asLong()).isEqualTo(12_000L);
+        assertThat(paidId.get("expectedAmountMinor").asLong()).isEqualTo(12_000L);
     }
 
     @Test
@@ -191,15 +191,15 @@ class RecurringScheduleIntegrationTest {
         long account = createAccount("Bieżące", "PLN");
         long category = createCategory("Mieszkanie", "EXPENSE");
         createRule(account, category, "MONTHLY", 1, TODAY.minusMonths(1).withDayOfMonth(1), null);
-        long pozycja = occurrences().get(0).get("id").asLong();
+        long occurrenceId = occurrences().get(0).get("id").asLong();
         String body = """
             {"paidOn":"%s","paidAmountMinor":12000}""".formatted(TODAY);
-        mockMvc.perform(post("/finance/api/v1/occurrences/{id}/pay", pozycja)
+        mockMvc.perform(post("/finance/api/v1/occurrences/{id}/pay", occurrenceId)
                 .contentType(MediaType.APPLICATION_JSON).content(body))
             .andExpect(status().isOk());
 
         // when & then: druga płatność założyłaby drugą transakcję na ten sam rachunek
-        mockMvc.perform(post("/finance/api/v1/occurrences/{id}/pay", pozycja)
+        mockMvc.perform(post("/finance/api/v1/occurrences/{id}/pay", occurrenceId)
                 .contentType(MediaType.APPLICATION_JSON).content(body))
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.errorCode").value("OCCURRENCE_ALREADY_SETTLED"));
@@ -214,15 +214,15 @@ class RecurringScheduleIntegrationTest {
         long category = createCategory("Mieszkanie", "EXPENSE");
         long rule = createRule(account, category, "MONTHLY", 1,
             TODAY.minusMonths(2).withDayOfMonth(1), null);
-        JsonNode zalegle = occurrences("status=OVERDUE");
-        long zaplacona = zalegle.get(0).get("id").asLong();
-        long pominieta = zalegle.get(1).get("id").asLong();
-        mockMvc.perform(post("/finance/api/v1/occurrences/{id}/pay", zaplacona)
+        JsonNode overdue = occurrences("status=OVERDUE");
+        long paidId = overdue.get(0).get("id").asLong();
+        long skippedId = overdue.get(1).get("id").asLong();
+        mockMvc.perform(post("/finance/api/v1/occurrences/{id}/pay", paidId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                     {"paidOn":"%s","paidAmountMinor":12000}""".formatted(TODAY)))
             .andExpect(status().isOk());
-        mockMvc.perform(post("/finance/api/v1/occurrences/{id}/skip", pominieta))
+        mockMvc.perform(post("/finance/api/v1/occurrences/{id}/skip", skippedId))
             .andExpect(status().isOk());
 
         // when
@@ -230,14 +230,14 @@ class RecurringScheduleIntegrationTest {
             .andExpect(status().isNoContent());
 
         // then: historia zostaje, przyszłość znika
-        JsonNode pozostale = occurrences();
-        assertThat(pozostale).isNotEmpty();
-        pozostale.forEach(pozycja -> {
+        JsonNode remaining = occurrences();
+        assertThat(remaining).isNotEmpty();
+        remaining.forEach(occurrenceId -> {
 
-            String status = pozycja.get("status").asText();
-            LocalDate termin = LocalDate.parse(pozycja.get("dueDate").asText());
-            boolean rozliczona = status.equals("PAID") || status.equals("SKIPPED");
-            assertThat(rozliczona || termin.isBefore(TODAY)).isTrue();
+            String status = occurrenceId.get("status").asText();
+            LocalDate dueDate = LocalDate.parse(occurrenceId.get("dueDate").asText());
+            boolean settled = status.equals("PAID") || status.equals("SKIPPED");
+            assertThat(settled || dueDate.isBefore(TODAY)).isTrue();
         });
         mockMvc.perform(get("/finance/api/v1/recurring-rules/{id}", rule))
             .andExpect(jsonPath("$.active").value(false));
@@ -249,10 +249,10 @@ class RecurringScheduleIntegrationTest {
 
         // given
         long account = createAccount("Bieżące", "PLN");
-        long przychody = createCategory("Wypłata", "INCOME");
+        long incomeCategory = createCategory("Wypłata", "INCOME");
 
         // when & then
-        String body = ruleBody(account, przychody, "MONTHLY", 1, TODAY.withDayOfMonth(1), null);
+        String body = ruleBody(account, incomeCategory, "MONTHLY", 1, TODAY.withDayOfMonth(1), null);
         mockMvc.perform(post("/finance/api/v1/recurring-rules")
                 .contentType(MediaType.APPLICATION_JSON).content(body))
             .andExpect(status().isBadRequest())
@@ -273,16 +273,16 @@ class RecurringScheduleIntegrationTest {
     private String ruleBody(long accountId, long categoryId, String frequency, int dayOfMonth,
                             LocalDate startsOn, LocalDate endsOn) {
 
-        String koniec = "null";
+        String endsOnJson = "null";
         if (Objects.nonNull(endsOn)) {
 
-            koniec = "\"%s\"".formatted(endsOn);
+            endsOnJson = "\"%s\"".formatted(endsOn);
         }
         return """
             {"name":"Prąd","accountId":%d,"categoryId":%d,"type":"EXPENSE",
              "amountMinor":12000,"frequency":"%s","dayOfMonth":%d,
              "startsOn":"%s","endsOn":%s}"""
-            .formatted(accountId, categoryId, frequency, dayOfMonth, startsOn, koniec);
+            .formatted(accountId, categoryId, frequency, dayOfMonth, startsOn, endsOnJson);
     }
 
     private JsonNode generate() throws Exception {

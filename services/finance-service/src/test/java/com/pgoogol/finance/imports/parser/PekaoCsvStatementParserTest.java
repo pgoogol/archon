@@ -25,7 +25,7 @@ class PekaoCsvStatementParserTest {
     private static final Charset WINDOWS_1250 = Charset.forName("windows-1250");
 
     /** Spacja niełamliwa w kwocie — dokładnie to, co wychodzi z eksportu. */
-    private static final String WYCIAG = """
+    private static final String STATEMENT = """
         Bank Pekao S.A.;;;;;;
         Historia operacji;;;;;;
         ;;;;;;
@@ -50,7 +50,7 @@ class PekaoCsvStatementParserTest {
     void supports_whenFileHasOperationsHeader_recognisesFormat() {
 
         // when & then
-        assertThat(parser.supports(wyciag())).isTrue();
+        assertThat(parser.supports(statementFile())).isTrue();
     }
 
     @Test
@@ -58,11 +58,11 @@ class PekaoCsvStatementParserTest {
     void supports_whenFileIsFromAnotherBank_doesNotRecogniseFormat() {
 
         // given
-        SourceFile obcy = new SourceFile("inny.csv",
+        SourceFile foreignFile = new SourceFile("inny.csv",
             "Date,Description,Amount\n2026-01-05,Coffee,-45.00\n".getBytes(StandardCharsets.UTF_8));
 
         // when & then
-        assertThat(parser.supports(obcy)).isFalse();
+        assertThat(parser.supports(foreignFile)).isFalse();
     }
 
     @Test
@@ -70,7 +70,7 @@ class PekaoCsvStatementParserTest {
     void parse_readsPeriodAndBalancesFromHeaderAndFooter() {
 
         // when
-        ParsedStatement statement = parser.parse(wyciag(), 2);
+        ParsedStatement statement = parser.parse(statementFile(), 2);
 
         // then
         assertThat(statement.periodFrom()).isEqualTo(LocalDate.of(2026, 1, 1));
@@ -84,12 +84,12 @@ class PekaoCsvStatementParserTest {
     void parse_whenFileIsWindows1250_keepsPolishCharacters() {
 
         // when
-        ParsedStatement statement = parser.parse(wyciag(), 2);
+        ParsedStatement statement = parser.parse(statementFile(), 2);
 
         // then
-        RawRow pierwszy = statement.rows().getFirst();
-        assertThat(pierwszy.description()).isEqualTo("ZAKUP PRZY UŻYCIU KARTY");
-        assertThat(pierwszy.counterparty()).isEqualTo("Żabka Kraków");
+        RawRow firstRow = statement.rows().getFirst();
+        assertThat(firstRow.description()).isEqualTo("ZAKUP PRZY UŻYCIU KARTY");
+        assertThat(firstRow.counterparty()).isEqualTo("Żabka Kraków");
     }
 
     @Test
@@ -97,7 +97,7 @@ class PekaoCsvStatementParserTest {
     void parse_readsOnlyTableRows_skippingHeaderAndFooter() {
 
         // when
-        ParsedStatement statement = parser.parse(wyciag(), 2);
+        ParsedStatement statement = parser.parse(statementFile(), 2);
 
         // then
         assertThat(statement.rows()).hasSize(3);
@@ -108,10 +108,10 @@ class PekaoCsvStatementParserTest {
     void parse_keepsAmountSignAndReadsNonBreakingThousandsSeparator() {
 
         // when
-        List<RawRow> rows = parser.parse(wyciag(), 2).rows();
+        List<RawRow> rows = parser.parse(statementFile(), 2).rows();
 
         // then
-        assertThat(rows.get(0).amountMinor()).isEqualTo(-4500L);
+        assertThat(rows.getFirst().amountMinor()).isEqualTo(-4500L);
         assertThat(rows.get(1).amountMinor()).isEqualTo(-123456L);
         assertThat(rows.get(2).amountMinor()).isEqualTo(500000L);
     }
@@ -121,12 +121,12 @@ class PekaoCsvStatementParserTest {
     void parse_forCardTransaction_readsBothAmountsAndOriginalCurrency() {
 
         // when
-        RawRow kartowa = parser.parse(wyciag(), 2).rows().get(1);
+        RawRow cardRow = parser.parse(statementFile(), 2).rows().get(1);
 
         // then
-        assertThat(kartowa.amountMinor()).isEqualTo(-123456L);
-        assertThat(kartowa.originalAmountMinor()).isEqualTo(-28990L);
-        assertThat(kartowa.originalCurrency()).isEqualTo("EUR");
+        assertThat(cardRow.amountMinor()).isEqualTo(-123456L);
+        assertThat(cardRow.originalAmountMinor()).isEqualTo(-28990L);
+        assertThat(cardRow.originalCurrency()).isEqualTo("EUR");
     }
 
     @Test
@@ -134,7 +134,7 @@ class PekaoCsvStatementParserTest {
     void parse_numbersRowsFromZeroInFileOrder() {
 
         // when
-        List<RawRow> rows = parser.parse(wyciag(), 2).rows();
+        List<RawRow> rows = parser.parse(statementFile(), 2).rows();
 
         // then
         assertThat(rows).extracting(RawRow::ordinal).containsExactly(0, 1, 2);
@@ -145,7 +145,7 @@ class PekaoCsvStatementParserTest {
     void parse_readsBankReference_whenFileProvidesIt() {
 
         // when
-        List<RawRow> rows = parser.parse(wyciag(), 2).rows();
+        List<RawRow> rows = parser.parse(statementFile(), 2).rows();
 
         // then
         assertThat(rows).extracting(RawRow::bankReference)
@@ -157,11 +157,11 @@ class PekaoCsvStatementParserTest {
     void parse_whenFileHasNoTableHeader_throwsInsteadOfReturningNothing() {
 
         // given
-        SourceFile bezTabeli = new SourceFile("puste.csv",
+        SourceFile withoutTable = new SourceFile("puste.csv",
             "#Saldo początkowe;100,00\n".getBytes(WINDOWS_1250));
 
         // when & then
-        assertThatThrownBy(() -> parser.parse(bezTabeli, 2))
+        assertThatThrownBy(() -> parser.parse(withoutTable, 2))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("nagłówka");
     }
@@ -171,11 +171,11 @@ class PekaoCsvStatementParserTest {
     void parse_whenOriginalAmountLacksCurrencyCode_throws() {
 
         // given
-        String zepsuty = """
+        String malformedCsv = """
             #Data księgowania;#Tytułem;#Kwota operacji;#Kwota w walucie operacji
             2026-01-07;"PŁATNOŚĆ";-100,00;-25,00
             """;
-        SourceFile file = new SourceFile("zepsuty.csv", zepsuty.getBytes(WINDOWS_1250));
+        SourceFile file = new SourceFile("zepsuty.csv", malformedCsv.getBytes(WINDOWS_1250));
 
         // when & then
         assertThatThrownBy(() -> parser.parse(file, 2))
@@ -188,11 +188,11 @@ class PekaoCsvStatementParserTest {
     void parse_whenCurrencyHasNoFraction_readsAmountsWithoutMinorPart() {
 
         // given: JPY ma minor_unit = 0
-        String jenowy = """
+        String yenCsv = """
             #Data księgowania;#Tytułem;#Kwota operacji
             2026-01-07;"SUSHI";-1200
             """;
-        SourceFile file = new SourceFile("jpy.csv", jenowy.getBytes(WINDOWS_1250));
+        SourceFile file = new SourceFile("jpy.csv", yenCsv.getBytes(WINDOWS_1250));
 
         // when
         RawRow row = parser.parse(file, 0).rows().getFirst();
@@ -206,12 +206,12 @@ class PekaoCsvStatementParserTest {
     void parse_whenDateUsesDots_stillReadsIt() {
 
         // given: nie każdy eksport używa ISO
-        String zKropkami = """
+        String withDots = """
             #Data księgowania;#Tytułem;#Kwota operacji
             07.01.2026;"SKLEP";-100,00
             07-01-2026;"SKLEP";-200,00
             """;
-        SourceFile file = new SourceFile("kropki.csv", zKropkami.getBytes(WINDOWS_1250));
+        SourceFile file = new SourceFile("kropki.csv", withDots.getBytes(WINDOWS_1250));
 
         // when
         List<RawRow> rows = parser.parse(file, 2).rows();
@@ -226,11 +226,11 @@ class PekaoCsvStatementParserTest {
     void parse_whenOptionalColumnsAreMissing_leavesThemEmpty() {
 
         // given: minimalny plik — sama data, opis i kwota
-        String minimalny = """
+        String minimalCsv = """
             #Data księgowania;#Tytułem;#Kwota operacji
             2026-01-07;"SKLEP";-100,00
             """;
-        SourceFile file = new SourceFile("minimalny.csv", minimalny.getBytes(WINDOWS_1250));
+        SourceFile file = new SourceFile("minimalny.csv", minimalCsv.getBytes(WINDOWS_1250));
 
         // when
         RawRow row = parser.parse(file, 2).rows().getFirst();
@@ -246,11 +246,11 @@ class PekaoCsvStatementParserTest {
     void parse_whenPeriodAndBalanceHeadersAreMissing_leavesThemEmpty() {
 
         // given
-        String bezNaglowka = """
+        String withoutHeader = """
             #Data księgowania;#Tytułem;#Kwota operacji
             2026-01-07;"SKLEP";-100,00
             """;
-        SourceFile file = new SourceFile("bez.csv", bezNaglowka.getBytes(WINDOWS_1250));
+        SourceFile file = new SourceFile("bez.csv", withoutHeader.getBytes(WINDOWS_1250));
 
         // when
         ParsedStatement statement = parser.parse(file, 2);
@@ -267,12 +267,12 @@ class PekaoCsvStatementParserTest {
     void parse_skipsTableRowsWithoutDate() {
 
         // given: podsumowanie wewnątrz tabeli nie jest operacją
-        String zPodsumowaniem = """
+        String withSummary = """
             #Data księgowania;#Tytułem;#Kwota operacji
             2026-01-07;"SKLEP";-100,00
             ;"RAZEM";-100,00
             """;
-        SourceFile file = new SourceFile("podsumowanie.csv", zPodsumowaniem.getBytes(WINDOWS_1250));
+        SourceFile file = new SourceFile("podsumowanie.csv", withSummary.getBytes(WINDOWS_1250));
 
         // when
         ParsedStatement statement = parser.parse(file, 2);
@@ -286,11 +286,11 @@ class PekaoCsvStatementParserTest {
     void parse_whenAmountCarriesCurrencyCode_readsItAsRowCurrency() {
 
         // given: wyciąg konta walutowego potrafi dokleić kod do każdej kwoty
-        String zWaluta = """
+        String withCurrency = """
             #Data księgowania;#Tytułem;#Kwota operacji
             2026-01-07;"SKLEP";-100,00 EUR
             """;
-        SourceFile file = new SourceFile("waluta.csv", zWaluta.getBytes(WINDOWS_1250));
+        SourceFile file = new SourceFile("waluta.csv", withCurrency.getBytes(WINDOWS_1250));
 
         // when
         RawRow row = parser.parse(file, 2).rows().getFirst();
@@ -304,11 +304,11 @@ class PekaoCsvStatementParserTest {
     void parse_whenOriginalAmountColumnIsBlank_readsNothingFromIt() {
 
         // given: kolumna jest, ale w tym wierszu stoją w niej same spacje
-        String zPusta = """
+        String withBlank = """
             #Data księgowania;#Tytułem;#Kwota operacji;#Kwota w walucie operacji
             2026-01-07;"SKLEP";-100,00;"   "
             """;
-        SourceFile file = new SourceFile("pusta.csv", zPusta.getBytes(WINDOWS_1250));
+        SourceFile file = new SourceFile("pusta.csv", withBlank.getBytes(WINDOWS_1250));
 
         // when
         RawRow row = parser.parse(file, 2).rows().getFirst();
@@ -322,11 +322,11 @@ class PekaoCsvStatementParserTest {
     void parse_whenRowIsShorterThanHeader_doesNotFailOnMissingColumn() {
 
         // given: bank potrafi uciąć końcowe puste kolumny
-        String krotki = """
+        String truncatedCsv = """
             #Data księgowania;#Tytułem;#Kwota operacji;#Kwota w walucie operacji
             2026-01-07;"SKLEP";-100,00
             """;
-        SourceFile file = new SourceFile("krotki.csv", krotki.getBytes(WINDOWS_1250));
+        SourceFile file = new SourceFile("krotki.csv", truncatedCsv.getBytes(WINDOWS_1250));
 
         // when
         RawRow row = parser.parse(file, 2).rows().getFirst();
@@ -341,18 +341,18 @@ class PekaoCsvStatementParserTest {
     void supports_whenFileHasDateColumnButNoAmount_doesNotRecogniseFormat() {
 
         // given: sam nagłówek daty to za mało — to mógłby być dowolny raport
-        String bezKwoty = """
+        String withoutAmount = """
             #Data księgowania;#Tytułem
             2026-01-07;"SKLEP"
             """;
-        SourceFile file = new SourceFile("bez-kwoty.csv", bezKwoty.getBytes(WINDOWS_1250));
+        SourceFile file = new SourceFile("bez-kwoty.csv", withoutAmount.getBytes(WINDOWS_1250));
 
         // when & then
         assertThat(parser.supports(file)).isFalse();
     }
 
-    private SourceFile wyciag() {
+    private SourceFile statementFile() {
 
-        return new SourceFile("lista_operacji.csv", WYCIAG.getBytes(WINDOWS_1250));
+        return new SourceFile("lista_operacji.csv", STATEMENT.getBytes(WINDOWS_1250));
     }
 }

@@ -15,8 +15,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class ScheduleMatcherTest {
 
-    private static final LocalDate TERMIN = LocalDate.of(2026, 3, 10);
-    private static final long OCZEKIWANA = 10_000L;
+    private static final LocalDate DUE_DATE = LocalDate.of(2026, 3, 10);
+    private static final long EXPECTED_MINOR = 10_000L;
 
     private final ScheduleMatcher matcher = new ScheduleMatcher(new TextMatcher());
 
@@ -25,7 +25,7 @@ class ScheduleMatcherTest {
     void matches_whenAmountIs5PercentHigherAndThreeDaysEarlier_suggests() {
 
         // given
-        RowFacts row = row(TERMIN.minusDays(3), -10_500L, "OPLATA ZA PRAD");
+        RowFacts row = row(DUE_DATE.minusDays(3), -10_500L, "OPLATA ZA PRAD");
 
         // when
         boolean matched = matcher.matches(row, candidate(null));
@@ -39,7 +39,7 @@ class ScheduleMatcherTest {
     void matches_whenAmountDiffersBy20Percent_doesNotSuggest() {
 
         // given
-        RowFacts row = row(TERMIN, -12_000L, "OPLATA ZA PRAD");
+        RowFacts row = row(DUE_DATE, -12_000L, "OPLATA ZA PRAD");
 
         // when
         boolean matched = matcher.matches(row, candidate(null));
@@ -53,7 +53,7 @@ class ScheduleMatcherTest {
     void matches_whenAmountIsExactlyAtTolerance_stillSuggests() {
 
         // given: granica jest domknięta — 11 000 to dokładnie 10% więcej
-        RowFacts row = row(TERMIN, -11_000L, "PRAD");
+        RowFacts row = row(DUE_DATE, -11_000L, "PRAD");
 
         // when
         boolean matched = matcher.matches(row, candidate(null));
@@ -67,7 +67,7 @@ class ScheduleMatcherTest {
     void matches_whenDueDateIsEightDaysAway_doesNotSuggest() {
 
         // given
-        RowFacts row = row(TERMIN.plusDays(8), -10_000L, "PRAD");
+        RowFacts row = row(DUE_DATE.plusDays(8), -10_000L, "PRAD");
 
         // when
         boolean matched = matcher.matches(row, candidate(null));
@@ -81,7 +81,7 @@ class ScheduleMatcherTest {
     void matches_whenCurrencyDiffers_doesNotSuggest() {
 
         // given
-        RowFacts row = new RowFacts(TERMIN, -10_000L, "EUR", "PRAD", null);
+        RowFacts row = new RowFacts(DUE_DATE, -10_000L, "EUR", "PRAD", null);
 
         // when
         boolean matched = matcher.matches(row, candidate(null));
@@ -95,7 +95,7 @@ class ScheduleMatcherTest {
     void matches_whenPatternIsAbsentFromText_doesNotSuggest() {
 
         // given
-        RowFacts row = row(TERMIN, -10_000L, "ZAKUPY SPOZYWCZE");
+        RowFacts row = row(DUE_DATE, -10_000L, "ZAKUPY SPOZYWCZE");
 
         // when
         boolean matched = matcher.matches(row, candidate("prad"));
@@ -109,7 +109,7 @@ class ScheduleMatcherTest {
     void matches_whenPatternIsInCounterparty_suggests() {
 
         // given
-        RowFacts row = new RowFacts(TERMIN, -10_000L, "PLN", "PRZELEW", "Tauron  Sprzedaż");
+        RowFacts row = new RowFacts(DUE_DATE, -10_000L, "PLN", "PRZELEW", "Tauron  Sprzedaż");
 
         // when: wzorzec porównujemy po zwinięciu spacji i bez wielkości liter
         boolean matched = matcher.matches(row, candidate("tauron sprzedaż"));
@@ -123,15 +123,15 @@ class ScheduleMatcherTest {
     void bestMatch_whenSeveralMatch_picksClosestByAmount() {
 
         // given
-        RowFacts row = row(TERMIN, -10_100L, "PRAD");
-        ScheduleCandidate dalsza = new ScheduleCandidate(1L, TERMIN, 10_900L, "PLN", null);
-        ScheduleCandidate blizsza = new ScheduleCandidate(2L, TERMIN, 10_000L, "PLN", null);
+        RowFacts row = row(DUE_DATE, -10_100L, "PRAD");
+        ScheduleCandidate farther = new ScheduleCandidate(1L, DUE_DATE, 10_900L, "PLN", null);
+        ScheduleCandidate closer = new ScheduleCandidate(2L, DUE_DATE, 10_000L, "PLN", null);
 
         // when
-        Optional<ScheduleCandidate> best = matcher.bestMatch(row, List.of(dalsza, blizsza));
+        Optional<ScheduleCandidate> best = matcher.bestMatch(row, List.of(farther, closer));
 
         // then
-        assertThat(best).contains(blizsza);
+        assertThat(best).contains(closer);
     }
 
     @Test
@@ -139,7 +139,7 @@ class ScheduleMatcherTest {
     void bestMatch_whenNothingMatches_returnsEmpty() {
 
         // given
-        RowFacts row = row(TERMIN, -50_000L, "PRAD");
+        RowFacts row = row(DUE_DATE, -50_000L, "PRAD");
 
         // when
         Optional<ScheduleCandidate> best = matcher.bestMatch(row, List.of(candidate(null)));
@@ -155,6 +155,6 @@ class ScheduleMatcherTest {
 
     private ScheduleCandidate candidate(String matchPattern) {
 
-        return new ScheduleCandidate(7L, TERMIN, OCZEKIWANA, "PLN", matchPattern);
+        return new ScheduleCandidate(7L, DUE_DATE, EXPECTED_MINOR, "PLN", matchPattern);
     }
 }

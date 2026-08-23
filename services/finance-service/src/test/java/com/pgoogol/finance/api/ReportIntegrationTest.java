@@ -54,11 +54,11 @@ class ReportIntegrationTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private long biezace;
-    private long walutowe;
-    private long jedzenie;
-    private long restauracje;
-    private long wyplata;
+    private long currentAccount;
+    private long foreignAccount;
+    private long food;
+    private long restaurants;
+    private long salary;
 
     @BeforeEach
     void prepareData() throws Exception {
@@ -72,16 +72,16 @@ class ReportIntegrationTest {
                 finance.account, finance.category restart identity cascade""");
             statement.execute("delete from finance.exchange_rate");
         }
-        biezace = createAccount("Bieżące", "PLN");
-        walutowe = createAccount("Walutowe", "EUR");
-        jedzenie = createCategory("Jedzenie", "EXPENSE", null);
-        restauracje = createCategory("Restauracje", "EXPENSE", jedzenie);
-        wyplata = createCategory("Wypłata", "INCOME", null);
+        currentAccount = createAccount("Bieżące", "PLN");
+        foreignAccount = createAccount("Walutowe", "EUR");
+        food = createCategory("Jedzenie", "EXPENSE", null);
+        restaurants = createCategory("Restauracje", "EXPENSE", food);
+        salary = createCategory("Wypłata", "INCOME", null);
 
-        expense("2026-03-05", 12_000L, jedzenie);
-        expense("2026-03-18", 8_000L, restauracje);
-        expense("2026-04-02", 5_000L, restauracje);
-        income("2026-03-01", 900_000L, wyplata);
+        expense("2026-03-05", 12_000L, food);
+        expense("2026-03-18", 8_000L, restaurants);
+        expense("2026-04-02", 5_000L, restaurants);
+        income("2026-03-01", 900_000L, salary);
         transfer("2026-03-20", TRANSFER_MINOR, 180_000L);
     }
 
@@ -104,11 +104,11 @@ class ReportIntegrationTest {
                 .doesNotContain(String.valueOf(TRANSFER_MINOR));
         }
         JsonNode cashflow = objectMapper.readTree(report("/finance/api/v1/reports/cashflow", ""));
-        JsonNode marzec = periodRow(cashflow.get("rows"), "2026-03-01");
+        JsonNode march = periodRow(cashflow.get("rows"), "2026-03-01");
         assertAll(
-            () -> assertThat(marzec.get("expenseMinor").asLong()).isEqualTo(20_000L),
-            () -> assertThat(marzec.get("incomeMinor").asLong()).isEqualTo(900_000L),
-            () -> assertThat(marzec.get("netMinor").asLong()).isEqualTo(880_000L));
+            () -> assertThat(march.get("expenseMinor").asLong()).isEqualTo(20_000L),
+            () -> assertThat(march.get("incomeMinor").asLong()).isEqualTo(900_000L),
+            () -> assertThat(march.get("netMinor").asLong()).isEqualTo(880_000L));
     }
 
     @Test
@@ -121,15 +121,15 @@ class ReportIntegrationTest {
 
         // when
         JsonNode rows = objectMapper.readTree(body).get("rows");
-        JsonNode biezaceMarzec = accountRow(rows, "2026-03-01", biezace);
-        JsonNode walutoweMarzec = accountRow(rows, "2026-03-01", walutowe);
+        JsonNode currentAccountMarch = accountRow(rows, "2026-03-01", currentAccount);
+        JsonNode foreignAccountMarch = accountRow(rows, "2026-03-01", foreignAccount);
 
         // then: 900 000 przychodu − 20 000 wydatków − 777 777 transferu
         assertAll(
-            () -> assertThat(biezaceMarzec.get("balanceMinor").asLong()).isEqualTo(102_223L),
-            () -> assertThat(biezaceMarzec.get("currency").asText()).isEqualTo("PLN"),
-            () -> assertThat(walutoweMarzec.get("balanceMinor").asLong()).isEqualTo(180_000L),
-            () -> assertThat(walutoweMarzec.get("currency").asText()).isEqualTo("EUR"));
+            () -> assertThat(currentAccountMarch.get("balanceMinor").asLong()).isEqualTo(102_223L),
+            () -> assertThat(currentAccountMarch.get("currency").asText()).isEqualTo("PLN"),
+            () -> assertThat(foreignAccountMarch.get("balanceMinor").asLong()).isEqualTo(180_000L),
+            () -> assertThat(foreignAccountMarch.get("currency").asText()).isEqualTo("EUR"));
     }
 
     @Test
@@ -137,19 +137,19 @@ class ReportIntegrationTest {
     void byCategory_parentCarriesSubcategorySums() throws Exception {
 
         // given & when
-        JsonNode raport = objectMapper.readTree(report("/finance/api/v1/reports/by-category", ""));
-        JsonNode rows = raport.get("rows");
-        JsonNode jedzenieMarzec = categoryRow(rows, "2026-03-01", jedzenie);
-        JsonNode restauracjeMarzec = categoryRow(rows, "2026-03-01", restauracje);
+        JsonNode report = objectMapper.readTree(report("/finance/api/v1/reports/by-category", ""));
+        JsonNode rows = report.get("rows");
+        JsonNode foodMarch = categoryRow(rows, "2026-03-01", food);
+        JsonNode restaurantsMarch = categoryRow(rows, "2026-03-01", restaurants);
 
         // then: rodzic ma 12 000 własne + 8 000 z podkategorii
         assertAll(
-            () -> assertThat(jedzenieMarzec.get("amountMinor").asLong()).isEqualTo(20_000L),
-            () -> assertThat(jedzenieMarzec.get("ownAmountMinor").asLong()).isEqualTo(12_000L),
-            () -> assertThat(jedzenieMarzec.get("transactionCount").asInt()).isEqualTo(2),
-            () -> assertThat(restauracjeMarzec.get("amountMinor").asLong()).isEqualTo(8_000L),
-            () -> assertThat(restauracjeMarzec.get("parentCategoryId").asLong())
-                .isEqualTo(jedzenie));
+            () -> assertThat(foodMarch.get("amountMinor").asLong()).isEqualTo(20_000L),
+            () -> assertThat(foodMarch.get("ownAmountMinor").asLong()).isEqualTo(12_000L),
+            () -> assertThat(foodMarch.get("transactionCount").asInt()).isEqualTo(2),
+            () -> assertThat(restaurantsMarch.get("amountMinor").asLong()).isEqualTo(8_000L),
+            () -> assertThat(restaurantsMarch.get("parentCategoryId").asLong())
+                .isEqualTo(food));
     }
 
     @Test
@@ -157,12 +157,12 @@ class ReportIntegrationTest {
     void byCategory_totalsCountEachTransactionOnce() throws Exception {
 
         // given & when
-        JsonNode raport = objectMapper.readTree(report("/finance/api/v1/reports/by-category", ""));
-        JsonNode totals = raport.get("totals");
+        JsonNode report = objectMapper.readTree(report("/finance/api/v1/reports/by-category", ""));
+        JsonNode totals = report.get("totals");
 
         // then: 12 000 + 8 000, a nie 12 000 + 8 000 + 8 000 przez rodzica
-        JsonNode marzec = periodRow(totals, "2026-03-01");
-        assertThat(marzec.get("amountMinor").asLong()).isEqualTo(20_000L);
+        JsonNode march = periodRow(totals, "2026-03-01");
+        assertThat(march.get("amountMinor").asLong()).isEqualTo(20_000L);
     }
 
     @Test
@@ -171,15 +171,15 @@ class ReportIntegrationTest {
 
         // given: filtr po „Jedzeniu" bez podkategorii pokazywałby zero
         // w drzewie, w którym wszystko siedzi w liściach
-        String query = "&categoryIds=" + jedzenie;
+        String query = "&categoryIds=" + food;
 
         // when
-        JsonNode raport =
+        JsonNode report =
             objectMapper.readTree(report("/finance/api/v1/reports/by-category", query));
 
         // then
-        JsonNode marzec = periodRow(raport.get("totals"), "2026-03-01");
-        assertThat(marzec.get("amountMinor").asLong()).isEqualTo(20_000L);
+        JsonNode march = periodRow(report.get("totals"), "2026-03-01");
+        assertThat(march.get("amountMinor").asLong()).isEqualTo(20_000L);
     }
 
     @Test
@@ -187,11 +187,11 @@ class ReportIntegrationTest {
     void cashflow_yearlyGranularityMergesMonths() throws Exception {
 
         // given & when
-        JsonNode raport = objectMapper.readTree(
+        JsonNode report = objectMapper.readTree(
             report("/finance/api/v1/reports/cashflow", "&granularity=YEAR"));
 
         // then: marzec i kwiecień razem
-        JsonNode rows = raport.get("rows");
+        JsonNode rows = report.get("rows");
         assertThat(rows).hasSize(1);
         assertThat(rows.get(0).get("expenseMinor").asLong()).isEqualTo(25_000L);
     }
@@ -260,7 +260,7 @@ class ReportIntegrationTest {
         String body = """
             {"type":"EXPENSE","bookedOn":"%s","amountMinor":%d,"currency":"PLN",
              "accountId":%d,"categoryId":%d}"""
-            .formatted(bookedOn, amountMinor, biezace, categoryId);
+            .formatted(bookedOn, amountMinor, currentAccount, categoryId);
         createTransaction(body);
     }
 
@@ -269,7 +269,7 @@ class ReportIntegrationTest {
         String body = """
             {"type":"INCOME","bookedOn":"%s","amountMinor":%d,"currency":"PLN",
              "accountId":%d,"categoryId":%d}"""
-            .formatted(bookedOn, amountMinor, biezace, categoryId);
+            .formatted(bookedOn, amountMinor, currentAccount, categoryId);
         createTransaction(body);
     }
 
@@ -278,7 +278,7 @@ class ReportIntegrationTest {
         String body = """
             {"type":"TRANSFER","bookedOn":"%s","amountMinor":%d,"currency":"PLN",
              "accountId":%d,"toAccountId":%d,"toAmountMinor":%d}"""
-            .formatted(bookedOn, amountMinor, biezace, walutowe, toAmountMinor);
+            .formatted(bookedOn, amountMinor, currentAccount, foreignAccount, toAmountMinor);
         createTransaction(body);
     }
 

@@ -166,10 +166,10 @@ class OccurrenceScheduleTest {
     void dayIn_whenDayExceedsMonthLength_clampsToLastDay() {
 
         // given
-        YearMonth luty = YearMonth.of(2026, 2);
+        YearMonth february = YearMonth.of(2026, 2);
 
         // when
-        LocalDate due = schedule.dayIn(luty, 31);
+        LocalDate due = schedule.dayIn(february, 31);
 
         // then
         assertThat(due).isEqualTo(LocalDate.of(2026, 2, 28));
@@ -180,10 +180,10 @@ class OccurrenceScheduleTest {
     void dayIn_whenDayOutOfRange_rejectsIt() {
 
         // given
-        YearMonth styczen = YearMonth.of(2026, 1);
+        YearMonth january = YearMonth.of(2026, 1);
 
         // when & then
-        assertThatThrownBy(() -> schedule.dayIn(styczen, 32))
+        assertThatThrownBy(() -> schedule.dayIn(january, 32))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("32");
     }

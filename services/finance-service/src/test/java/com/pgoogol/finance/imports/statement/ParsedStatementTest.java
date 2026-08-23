@@ -12,15 +12,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ParsedStatementTest {
 
-    private static final LocalDate STYCZEN = LocalDate.of(2026, 1, 1);
-    private static final LocalDate LUTY = LocalDate.of(2026, 2, 1);
+    private static final LocalDate JANUARY = LocalDate.of(2026, 1, 1);
+    private static final LocalDate FEBRUARY = LocalDate.of(2026, 2, 1);
 
     @Test
     @DisplayName("konstruktor gdy okres jest odwrócony, wywala się")
     void constructor_whenPeriodIsReversed_throws() {
 
         // when & then
-        assertThatThrownBy(() -> new ParsedStatement(LUTY, STYCZEN, null, null, List.of()))
+        assertThatThrownBy(() -> new ParsedStatement(FEBRUARY, JANUARY, null, null, List.of()))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -29,10 +29,10 @@ class ParsedStatementTest {
     void constructor_whenPeriodHasOnlyOneDate_passes() {
 
         // when & then: nie każdy format podaje oba końce okresu
-        assertThat(new ParsedStatement(STYCZEN, null, null, null, List.of()).periodFrom())
-            .isEqualTo(STYCZEN);
-        assertThat(new ParsedStatement(null, LUTY, null, null, List.of()).periodTo())
-            .isEqualTo(LUTY);
+        assertThat(new ParsedStatement(JANUARY, null, null, null, List.of()).periodFrom())
+            .isEqualTo(JANUARY);
+        assertThat(new ParsedStatement(null, FEBRUARY, null, null, List.of()).periodTo())
+            .isEqualTo(FEBRUARY);
     }
 
     @Test
@@ -40,12 +40,12 @@ class ParsedStatementTest {
     void constructor_copiesRows_soChangingSourceListChangesNothing() {
 
         // given
-        List<RawRow> mutowalna = new ArrayList<>();
-        mutowalna.add(new RawRow(0, STYCZEN, -100L, null, null, null, "opis", null, null));
-        ParsedStatement statement = new ParsedStatement(STYCZEN, LUTY, null, null, mutowalna);
+        List<RawRow> mutable = new ArrayList<>();
+        mutable.add(new RawRow(0, JANUARY, -100L, null, null, null, "opis", null, null));
+        ParsedStatement statement = new ParsedStatement(JANUARY, FEBRUARY, null, null, mutable);
 
         // when
-        mutowalna.clear();
+        mutable.clear();
 
         // then
         assertThat(statement.rows()).hasSize(1);
@@ -56,6 +56,6 @@ class ParsedStatementTest {
     void isEmpty_whenThereAreNoRows_returnsTrue() {
 
         // when & then
-        assertThat(new ParsedStatement(STYCZEN, LUTY, null, null, List.of()).isEmpty()).isTrue();
+        assertThat(new ParsedStatement(JANUARY, FEBRUARY, null, null, List.of()).isEmpty()).isTrue();
     }
 }

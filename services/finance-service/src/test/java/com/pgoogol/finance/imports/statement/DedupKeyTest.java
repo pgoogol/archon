@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class DedupKeyTest {
 
-    private static final LocalDate DZIEN = LocalDate.of(2026, 1, 5);
+    private static final LocalDate DAY = LocalDate.of(2026, 1, 5);
 
     private final DedupKey dedupKey = new DedupKey();
 
@@ -18,8 +18,8 @@ class DedupKeyTest {
     void fromContent_forSameData_returnsSameKey() {
 
         // when
-        String first = dedupKey.fromContent(1L, DZIEN, -1200L, "Kawa", 0);
-        String second = dedupKey.fromContent(1L, DZIEN, -1200L, "Kawa", 0);
+        String first = dedupKey.fromContent(1L, DAY, -1200L, "Kawa", 0);
+        String second = dedupKey.fromContent(1L, DAY, -1200L, "Kawa", 0);
 
         // then
         assertThat(first).isEqualTo(second);
@@ -31,13 +31,13 @@ class DedupKeyTest {
 
         // given: dwie identyczne kawy tego samego dnia to dwie operacje,
         // nie jedna — numer kolejny jest jedynym, co je odróżnia
-        String pierwsza = dedupKey.fromContent(1L, DZIEN, -1200L, "Kawa", 0);
+        String first = dedupKey.fromContent(1L, DAY, -1200L, "Kawa", 0);
 
         // when
-        String druga = dedupKey.fromContent(1L, DZIEN, -1200L, "Kawa", 1);
+        String second = dedupKey.fromContent(1L, DAY, -1200L, "Kawa", 1);
 
         // then
-        assertThat(druga).isNotEqualTo(pierwsza);
+        assertThat(second).isNotEqualTo(first);
     }
 
     @Test
@@ -45,13 +45,13 @@ class DedupKeyTest {
     void fromContent_whenAccountDiffers_returnsDifferentKey() {
 
         // given
-        String naPierwszym = dedupKey.fromContent(1L, DZIEN, -1200L, "Kawa", 0);
+        String onFirstAccount = dedupKey.fromContent(1L, DAY, -1200L, "Kawa", 0);
 
         // when
-        String naDrugim = dedupKey.fromContent(2L, DZIEN, -1200L, "Kawa", 0);
+        String onSecondAccount = dedupKey.fromContent(2L, DAY, -1200L, "Kawa", 0);
 
         // then
-        assertThat(naDrugim).isNotEqualTo(naPierwszym);
+        assertThat(onSecondAccount).isNotEqualTo(onFirstAccount);
     }
 
     @Test
@@ -59,13 +59,13 @@ class DedupKeyTest {
     void fromContent_whenDescriptionDiffersOnlyInSpacingAndCase_returnsSameKey() {
 
         // given: bank potrafi wyeksportować ten sam opis raz z podwójną spacją
-        String kanoniczny = dedupKey.fromContent(1L, DZIEN, -1200L, "Kawa u Zbycha", 0);
+        String canonical = dedupKey.fromContent(1L, DAY, -1200L, "Kawa u Zbycha", 0);
 
         // when
-        String rozjechany = dedupKey.fromContent(1L, DZIEN, -1200L, "  kawa   U ZBYCHA ", 0);
+        String messy = dedupKey.fromContent(1L, DAY, -1200L, "  kawa   U ZBYCHA ", 0);
 
         // then
-        assertThat(rozjechany).isEqualTo(kanoniczny);
+        assertThat(messy).isEqualTo(canonical);
     }
 
     @Test
@@ -73,7 +73,7 @@ class DedupKeyTest {
     void fromContent_whenDescriptionIsMissing_stillReturnsKey() {
 
         // when
-        String key = dedupKey.fromContent(1L, DZIEN, -1200L, null, 0);
+        String key = dedupKey.fromContent(1L, DAY, -1200L, null, 0);
 
         // then
         assertThat(key).hasSize(64);
@@ -96,13 +96,13 @@ class DedupKeyTest {
     void fromBankReference_neverCollidesWithContentKey() {
 
         // given
-        String zReferencji = dedupKey.fromBankReference(1L, "REF-001");
+        String referenceKey = dedupKey.fromBankReference(1L, "REF-001");
 
         // when
-        String zTresci = dedupKey.fromContent(1L, DZIEN, -1200L, "REF-001", 0);
+        String contentKey = dedupKey.fromContent(1L, DAY, -1200L, "REF-001", 0);
 
         // then
-        assertThat(zReferencji).isNotEqualTo(zTresci);
+        assertThat(referenceKey).isNotEqualTo(contentKey);
     }
 
     @Test

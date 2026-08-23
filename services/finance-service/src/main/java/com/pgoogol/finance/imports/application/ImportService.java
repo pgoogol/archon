@@ -123,9 +123,9 @@ public class ImportService {
         ParsedStatement statement = parse(parser, file, minorUnits);
 
         ImportBatch batch = new ImportBatch(account, file.name(), fileHash);
+        int rowCount = statement.rows().size();
         batch.describeStatement(statement.periodFrom(), statement.periodTo(),
-            statement.openingBalanceMinor(), statement.closingBalanceMinor(),
-            statement.rows().size());
+            statement.openingBalanceMinor(), statement.closingBalanceMinor(), rowCount);
         ImportBatch saved = importBatchRepository.save(batch);
 
         List<ImportRow> rows = toRows(saved, account, statement);

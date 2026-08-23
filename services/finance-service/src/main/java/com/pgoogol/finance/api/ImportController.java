@@ -1,5 +1,6 @@
 package com.pgoogol.finance.api;
 
+import org.apache.commons.lang3.StringUtils;
 import com.pgoogol.finance.categorization.application.CategorizationService;
 import com.pgoogol.finance.categorization.domain.MatchField;
 import com.pgoogol.finance.common.ErrorCodes;
@@ -44,6 +45,9 @@ public class ImportController {
      * a nie przebić je tylko dlatego, że powstała później.
      */
     private static final int DEFAULT_RULE_PRIORITY = 200;
+
+    /** Nazwa zastępcza, gdy przeglądarka nie przysłała nazwy pliku. */
+    private static final String FALLBACK_FILE_NAME = "wyciąg";
 
     private final ImportService importService;
     private final TransactionService transactionService;
@@ -121,7 +125,7 @@ public class ImportController {
     private void rememberCorrection(ImportCategoryAssignment assignment) {
 
         String pattern = assignment.rememberPattern();
-        if (Objects.isNull(pattern) || pattern.isBlank()) {
+        if (StringUtils.isBlank(pattern)) {
 
             return;
         }
@@ -208,9 +212,9 @@ public class ImportController {
     private String originalName(MultipartFile file) {
 
         String name = file.getOriginalFilename();
-        if (Objects.isNull(name) || name.isBlank()) {
+        if (StringUtils.isBlank(name)) {
 
-            return "wyciąg";
+            return FALLBACK_FILE_NAME;
         }
         return name;
     }

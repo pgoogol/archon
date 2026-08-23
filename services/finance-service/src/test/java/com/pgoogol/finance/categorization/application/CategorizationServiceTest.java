@@ -51,18 +51,18 @@ class CategorizationServiceTest {
     void suggestFor_whenSeveralRulesMatch_takesTheFirstInOrder() {
 
         // given: kolejność ustala repozytorium priorytetem, serwis jej nie zmienia
-        Category jedzenie = FinanceFixtures.category(1L, "Jedzenie", CategoryDirection.EXPENSE);
-        Category sklepy = FinanceFixtures.category(2L, "Sklepy", CategoryDirection.EXPENSE);
+        Category food = FinanceFixtures.category(1L, "Jedzenie", CategoryDirection.EXPENSE);
+        Category shops = FinanceFixtures.category(2L, "Sklepy", CategoryDirection.EXPENSE);
         List<CategoryRule> rules = List.of(
-            new CategoryRule("biedronka", MatchField.ANY, jedzenie, 10),
-            new CategoryRule("zakup", MatchField.ANY, sklepy, 20));
+            new CategoryRule("biedronka", MatchField.ANY, food, 10),
+            new CategoryRule("zakup", MatchField.ANY, shops, 20));
         RowFacts row = row("ZAKUP BIEDRONKA 1234", null);
 
         // when
         Optional<Category> suggested = service.suggestFor(row, rules);
 
         // then
-        assertThat(suggested).contains(jedzenie);
+        assertThat(suggested).contains(food);
     }
 
     @Test
@@ -133,10 +133,10 @@ class CategorizationServiceTest {
     void rememberCorrection_whenRuleIsNew_savesItWithTrimmedPattern() {
 
         // given
-        Category jedzenie = FinanceFixtures.category(1L, "Jedzenie", CategoryDirection.EXPENSE);
+        Category food = FinanceFixtures.category(1L, "Jedzenie", CategoryDirection.EXPENSE);
         when(categoryRuleRepository.existsByPatternIgnoreCaseAndCategoryId("Biedronka", 1L))
             .thenReturn(false);
-        when(categoryService.get(1L)).thenReturn(jedzenie);
+        when(categoryService.get(1L)).thenReturn(food);
         when(categoryRuleRepository.save(any(CategoryRule.class)))
             .thenAnswer(call -> call.getArgument(0));
 

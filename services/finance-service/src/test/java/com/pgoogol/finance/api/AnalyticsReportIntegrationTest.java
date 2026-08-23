@@ -50,10 +50,10 @@ class AnalyticsReportIntegrationTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private long biezace;
-    private long walutowe;
-    private long jedzenie;
-    private long mieszkanie;
+    private long currentAccount;
+    private long foreignAccount;
+    private long food;
+    private long housing;
 
     @BeforeEach
     void prepareData() throws Exception {
@@ -67,14 +67,14 @@ class AnalyticsReportIntegrationTest {
                 finance.account, finance.category restart identity cascade""");
             statement.execute("delete from finance.exchange_rate");
         }
-        biezace = createAccount("Bieżące", "PLN");
-        walutowe = createAccount("Walutowe", "EUR");
-        jedzenie = createCategory("Jedzenie", "EXPENSE");
-        mieszkanie = createCategory("Mieszkanie", "EXPENSE");
+        currentAccount = createAccount("Bieżące", "PLN");
+        foreignAccount = createAccount("Walutowe", "EUR");
+        food = createCategory("Jedzenie", "EXPENSE");
+        housing = createCategory("Mieszkanie", "EXPENSE");
 
-        expense(LAST_MONTH.atDay(5), 10_000L, jedzenie, "Biedronka");
-        expense(THIS_MONTH.atDay(4), 15_000L, jedzenie, "Biedronka");
-        expense(THIS_MONTH.atDay(6), 40_000L, mieszkanie, "Wspólnota");
+        expense(LAST_MONTH.atDay(5), 10_000L, food, "Biedronka");
+        expense(THIS_MONTH.atDay(4), 15_000L, food, "Biedronka");
+        expense(THIS_MONTH.atDay(6), 40_000L, housing, "Wspólnota");
     }
 
     @Test
@@ -84,15 +84,15 @@ class AnalyticsReportIntegrationTest {
         // given & when
         String url = "/finance/api/v1/reports/comparison?from=%s&to=%s"
             .formatted(THIS_MONTH.atDay(1), THIS_MONTH.atEndOfMonth());
-        JsonNode raport = objectMapper.readTree(body(url));
+        JsonNode report = objectMapper.readTree(body(url));
 
         // then: jedzenie 150 zł teraz wobec 100 zł poprzednio to +50%
-        JsonNode row = categoryRow(raport.get("rows"), jedzenie);
+        JsonNode row = categoryRow(report.get("rows"), food);
         assertAll(
             () -> assertThat(row.get("currentMinor").asLong()).isEqualTo(15_000L),
             () -> assertThat(row.get("previousMinor").asLong()).isEqualTo(10_000L),
             () -> assertThat(row.get("changePercent").asText()).isEqualTo("50.00"),
-            () -> assertThat(raport.get("previousTo").asText())
+            () -> assertThat(report.get("previousTo").asText())
                 .isEqualTo(THIS_MONTH.atDay(1).minusDays(1).toString()));
     }
 
@@ -105,10 +105,10 @@ class AnalyticsReportIntegrationTest {
             .formatted(THIS_MONTH.atDay(1), THIS_MONTH.atEndOfMonth());
 
         // when
-        JsonNode raport = objectMapper.readTree(body(url));
+        JsonNode report = objectMapper.readTree(body(url));
 
         // then: wzrost z zera nie ma procentu — null zamiast nieskończoności
-        JsonNode row = categoryRow(raport.get("rows"), mieszkanie);
+        JsonNode row = categoryRow(report.get("rows"), housing);
         assertThat(row.get("changePercent").isNull()).isTrue();
     }
 
@@ -119,20 +119,20 @@ class AnalyticsReportIntegrationTest {
         // given & when
         String url = "/finance/api/v1/reports/top-spend?from=%s&to=%s"
             .formatted(LAST_MONTH.atDay(1), THIS_MONTH.atEndOfMonth());
-        JsonNode raport = objectMapper.readTree(body(url));
+        JsonNode report = objectMapper.readTree(body(url));
 
         // then
-        JsonNode transakcje = raport.get("transactions");
-        JsonNode kontrahenci = raport.get("counterparties");
+        JsonNode transactions = report.get("transactions");
+        JsonNode counterparties = report.get("counterparties");
         assertAll(
-            () -> assertThat(transakcje.get(0).get("amountMinor").asLong()).isEqualTo(40_000L),
-            () -> assertThat(transakcje.get(0).get("counterparty").asText())
+            () -> assertThat(transactions.get(0).get("amountMinor").asLong()).isEqualTo(40_000L),
+            () -> assertThat(transactions.get(0).get("counterparty").asText())
                 .isEqualTo("Wspólnota"),
-            () -> assertThat(kontrahenci.get(0).get("counterparty").asText())
+            () -> assertThat(counterparties.get(0).get("counterparty").asText())
                 .isEqualTo("Wspólnota"),
-            () -> assertThat(kontrahenci.get(1).get("counterparty").asText())
+            () -> assertThat(counterparties.get(1).get("counterparty").asText())
                 .isEqualTo("Biedronka"),
-            () -> assertThat(kontrahenci.get(1).get("transactionCount").asInt()).isEqualTo(2));
+            () -> assertThat(counterparties.get(1).get("transactionCount").asInt()).isEqualTo(2));
     }
 
     @Test
@@ -140,17 +140,17 @@ class AnalyticsReportIntegrationTest {
     void fixedVsVariable_countsOnlyOccurrenceBackedExpenses() throws Exception {
 
         // given: rachunek cykliczny zapłacony przez terminarz
-        long rule = createRule(mieszkanie, 40_000L, LAST_MONTH.atDay(1));
+        long rule = createRule(housing, 40_000L, LAST_MONTH.atDay(1));
         long occurrence = firstOccurrence(rule);
         pay(occurrence, 42_000L);
 
         // when
         String url = "/finance/api/v1/reports/fixed-vs-variable?from=%s&to=%s"
             .formatted(LAST_MONTH.atDay(1), THIS_MONTH.atEndOfMonth());
-        JsonNode raport = objectMapper.readTree(body(url));
+        JsonNode report = objectMapper.readTree(body(url));
 
         // then: tylko płatność z terminarza jest kosztem stałym
-        JsonNode row = periodRow(raport.get("rows"), THIS_MONTH.atDay(1).toString());
+        JsonNode row = periodRow(report.get("rows"), THIS_MONTH.atDay(1).toString());
         assertAll(
             () -> assertThat(row.get("fixedMinor").asLong()).isEqualTo(42_000L),
             () -> assertThat(row.get("variableMinor").asLong()).isEqualTo(55_000L),
@@ -162,19 +162,19 @@ class AnalyticsReportIntegrationTest {
     void upcoming_separatesOverdueFromAhead() throws Exception {
 
         // given: reguła sprzed dwóch miesięcy ma zaległości
-        createRule(mieszkanie, 40_000L, THIS_MONTH.minusMonths(2).atDay(1));
+        createRule(housing, 40_000L, THIS_MONTH.minusMonths(2).atDay(1));
 
         // when
-        JsonNode raport = objectMapper.readTree(body("/finance/api/v1/reports/upcoming"));
+        JsonNode report = objectMapper.readTree(body("/finance/api/v1/reports/upcoming"));
 
         // then
-        assertThat(raport.get("overdue")).isNotEmpty();
-        raport.get("overdue").forEach(item -> {
+        assertThat(report.get("overdue")).isNotEmpty();
+        report.get("overdue").forEach(item -> {
 
             assertThat(item.get("overdue").asBoolean()).isTrue();
             assertThat(LocalDate.parse(item.get("dueDate").asText())).isBefore(TODAY);
         });
-        raport.get("upcoming").forEach(item ->
+        report.get("upcoming").forEach(item ->
             assertThat(item.get("overdue").asBoolean()).isFalse());
     }
 
@@ -183,21 +183,21 @@ class AnalyticsReportIntegrationTest {
     void forecast_startsFromTodayBalanceAndSubtractsScheduledPayments() throws Exception {
 
         // given: konto PLN ma dziś −65 000, a za kilka dni wypada rachunek
-        LocalDate termin = TODAY.plusDays(5);
-        createRule(mieszkanie, 30_000L, termin);
+        LocalDate dueDate = TODAY.plusDays(5);
+        createRule(housing, 30_000L, dueDate);
 
         // when: prognoza wyłącznie dla konta w walucie bazowej — dla konta
         // walutowego bez kursu nie da się jej policzyć uczciwie
-        String url = "/finance/api/v1/reports/forecast?horizonDays=10&accountIds=" + biezace;
-        JsonNode raport = objectMapper.readTree(body(url));
+        String url = "/finance/api/v1/reports/forecast?horizonDays=10&accountIds=" + currentAccount;
+        JsonNode report = objectMapper.readTree(body(url));
 
         // then
-        JsonNode punkty = raport.get("points");
+        JsonNode points = report.get("points");
         assertAll(
-            () -> assertThat(raport.get("startingBalanceMinor").asLong()).isEqualTo(-65_000L),
-            () -> assertThat(punkty).hasSize(11),
-            () -> assertThat(punkty.get(0).get("date").asText()).isEqualTo(TODAY.toString()),
-            () -> assertThat(punkty.get(10).get("balanceMinor").asLong()).isEqualTo(-95_000L));
+            () -> assertThat(report.get("startingBalanceMinor").asLong()).isEqualTo(-65_000L),
+            () -> assertThat(points).hasSize(11),
+            () -> assertThat(points.get(0).get("date").asText()).isEqualTo(TODAY.toString()),
+            () -> assertThat(points.get(10).get("balanceMinor").asLong()).isEqualTo(-95_000L));
     }
 
     @Test
@@ -206,19 +206,19 @@ class AnalyticsReportIntegrationTest {
 
         // given & when
         String url = "/finance/api/v1/reports/yearly-matrix?year=" + TODAY.getYear();
-        JsonNode raport = objectMapper.readTree(body(url));
+        JsonNode report = objectMapper.readTree(body(url));
 
         // then
-        JsonNode rows = raport.get("rows");
+        JsonNode rows = report.get("rows");
         assertThat(rows).isNotEmpty();
         rows.forEach(row -> assertThat(row.get("monthsMinor")).hasSize(12));
-        assertThat(raport.get("monthlyTotalsMinor")).hasSize(12);
-        long sumaWierszy = 0L;
+        assertThat(report.get("monthlyTotalsMinor")).hasSize(12);
+        long rowsTotal = 0L;
         for (JsonNode row : rows) {
 
-            sumaWierszy = sumaWierszy + row.get("totalMinor").asLong();
+            rowsTotal = rowsTotal + row.get("totalMinor").asLong();
         }
-        assertThat(raport.get("totalMinor").asLong()).isEqualTo(sumaWierszy);
+        assertThat(report.get("totalMinor").asLong()).isEqualTo(rowsTotal);
     }
 
     @Test
@@ -229,17 +229,17 @@ class AnalyticsReportIntegrationTest {
         transfer(THIS_MONTH.atDay(10), 20_000L, 5_000L);
 
         // when
-        JsonNode raport = objectMapper.readTree(body("/finance/api/v1/reports/currency-exposure"));
+        JsonNode report = objectMapper.readTree(body("/finance/api/v1/reports/currency-exposure"));
 
         // then: euro widać, wyceny nie ma — i to jest lepsze niż pusta strona
-        JsonNode euro = currencyRow(raport.get("rows"), "EUR");
-        JsonNode zloty = currencyRow(raport.get("rows"), "PLN");
+        JsonNode euro = currencyRow(report.get("rows"), "EUR");
+        JsonNode zloty = currencyRow(report.get("rows"), "PLN");
         assertAll(
             () -> assertThat(euro.get("balanceMinor").asLong()).isEqualTo(5_000L),
             () -> assertThat(euro.get("baseValueMinor").isNull()).isTrue(),
             () -> assertThat(zloty.get("baseValueMinor").asLong())
                 .isEqualTo(zloty.get("balanceMinor").asLong()),
-            () -> assertThat(raport.get("totalBaseMinor").asLong())
+            () -> assertThat(report.get("totalBaseMinor").asLong())
                 .isEqualTo(zloty.get("balanceMinor").asLong()));
     }
 
@@ -306,7 +306,7 @@ class AnalyticsReportIntegrationTest {
         String body = """
             {"name":"Czynsz","accountId":%d,"categoryId":%d,"type":"EXPENSE",
              "amountMinor":%d,"frequency":"MONTHLY","dayOfMonth":%d,"startsOn":"%s"}"""
-            .formatted(biezace, categoryId, amountMinor, startsOn.getDayOfMonth(), startsOn);
+            .formatted(currentAccount, categoryId, amountMinor, startsOn.getDayOfMonth(), startsOn);
         String response = mockMvc.perform(post("/finance/api/v1/recurring-rules")
                 .contentType(MediaType.APPLICATION_JSON).content(body))
             .andExpect(status().isCreated())
@@ -316,9 +316,9 @@ class AnalyticsReportIntegrationTest {
 
     private long firstOccurrence(long ruleId) throws Exception {
 
-        JsonNode terminarz =
+        JsonNode schedule =
             objectMapper.readTree(body("/finance/api/v1/occurrences?ruleId=" + ruleId));
-        return terminarz.get(0).get("id").asLong();
+        return schedule.get(0).get("id").asLong();
     }
 
     private void pay(long occurrenceId, long paidAmountMinor) throws Exception {
@@ -336,7 +336,7 @@ class AnalyticsReportIntegrationTest {
         String body = """
             {"type":"EXPENSE","bookedOn":"%s","amountMinor":%d,"currency":"PLN",
              "accountId":%d,"categoryId":%d,"counterparty":"%s"}"""
-            .formatted(bookedOn, amountMinor, biezace, categoryId, counterparty);
+            .formatted(bookedOn, amountMinor, currentAccount, categoryId, counterparty);
         createTransaction(body);
     }
 
@@ -346,7 +346,7 @@ class AnalyticsReportIntegrationTest {
         String body = """
             {"type":"TRANSFER","bookedOn":"%s","amountMinor":%d,"currency":"PLN",
              "accountId":%d,"toAccountId":%d,"toAmountMinor":%d}"""
-            .formatted(bookedOn, amountMinor, biezace, walutowe, toAmountMinor);
+            .formatted(bookedOn, amountMinor, currentAccount, foreignAccount, toAmountMinor);
         createTransaction(body);
     }
 

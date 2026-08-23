@@ -1,5 +1,6 @@
 package com.pgoogol.finance.transaction.application;
 
+import com.pgoogol.finance.account.domain.Account;
 import com.pgoogol.finance.common.ErrorCodes;
 import com.pgoogol.finance.common.ExceptionMessageConstants;
 import com.pgoogol.finance.common.ValidationException;
@@ -86,8 +87,10 @@ public class TransferSuggestionService {
 
     private TransactionCommand transferCommand(Transaction expense, Transaction income) {
 
-        Long fromAccountId = expense.getAccount().getId();
-        Long toAccountId = income.getAccount().getId();
+        Account fromAccount = expense.getAccount();
+        Account toAccount = income.getAccount();
+        Long fromAccountId = fromAccount.getId();
+        Long toAccountId = toAccount.getId();
         Long toAmountMinor = targetAmountOrNull(expense, income);
         String description = expense.getDescription();
         return new TransactionCommand(TransactionType.TRANSFER, expense.getBookedOn(),
@@ -101,8 +104,10 @@ public class TransferSuggestionService {
      */
     private Long targetAmountOrNull(Transaction expense, Transaction income) {
 
-        String fromCurrency = expense.getAccount().getCurrency();
-        String toCurrency = income.getAccount().getCurrency();
+        Account fromAccount = expense.getAccount();
+        Account toAccount = income.getAccount();
+        String fromCurrency = fromAccount.getCurrency();
+        String toCurrency = toAccount.getCurrency();
         if (Objects.equals(fromCurrency, toCurrency)) {
 
             return null;
@@ -130,18 +135,19 @@ public class TransferSuggestionService {
     private TransferCandidate toCandidate(Transaction expense, Transaction income) {
 
         long daysApart = daysBetween(expense, income);
+        Account fromAccount = expense.getAccount();
+        Account toAccount = income.getAccount();
         return new TransferCandidate(
-            expense.getId(), expense.getAccount().getId(), expense.getAccount().getName(),
-            expense.getBookedOn(),
-            income.getId(), income.getAccount().getId(), income.getAccount().getName(),
-            income.getBookedOn(),
+            expense.getId(), fromAccount.getId(), fromAccount.getName(), expense.getBookedOn(),
+            income.getId(), toAccount.getId(), toAccount.getName(), income.getBookedOn(),
             expense.getAmountMinor(), expense.getCurrency(), daysApart);
     }
 
     private boolean looksLikeTransfer(Transaction expense, Transaction income) {
 
-        boolean sameAccount = Objects.equals(expense.getAccount().getId(),
-            income.getAccount().getId());
+        Account fromAccount = expense.getAccount();
+        Account toAccount = income.getAccount();
+        boolean sameAccount = Objects.equals(fromAccount.getId(), toAccount.getId());
         if (sameAccount) {
 
             return false;
@@ -159,7 +165,9 @@ public class TransferSuggestionService {
 
     private long daysBetween(Transaction expense, Transaction income) {
 
-        long days = ChronoUnit.DAYS.between(expense.getBookedOn(), income.getBookedOn());
+        LocalDate expenseOn = expense.getBookedOn();
+        LocalDate incomeOn = income.getBookedOn();
+        long days = ChronoUnit.DAYS.between(expenseOn, incomeOn);
         return Math.abs(days);
     }
 

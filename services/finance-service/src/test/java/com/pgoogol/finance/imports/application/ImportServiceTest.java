@@ -51,8 +51,8 @@ import static org.mockito.Mockito.when;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class ImportServiceTest {
 
-    private static final long KONTO = 7L;
-    private static final LocalDate DZIEN = LocalDate.of(2026, 1, 5);
+    private static final long ACCOUNT_ID = 7L;
+    private static final LocalDate DAY = LocalDate.of(2026, 1, 5);
 
     @Mock
     private ImportBatchRepository importBatchRepository;
@@ -81,7 +81,7 @@ class ImportServiceTest {
     @Mock
     private StatementParser parser;
 
-    private final Account account = FinanceFixtures.account(KONTO, "Bieżące", FinanceFixtures.PLN);
+    private final Account account = FinanceFixtures.account(ACCOUNT_ID, "Bieżące", FinanceFixtures.PLN);
 
     @Test
     @DisplayName("upload gdy ten sam plik był już wgrany, odrzuca go przed parsowaniem")
@@ -89,12 +89,12 @@ class ImportServiceTest {
 
         // given
         SourceFile file = file("cokolwiek");
-        when(accountService.get(KONTO)).thenReturn(account);
-        when(importBatchRepository.findByAccountIdAndFileHash(KONTO, file.fileHash()))
+        when(accountService.get(ACCOUNT_ID)).thenReturn(account);
+        when(importBatchRepository.findByAccountIdAndFileHash(ACCOUNT_ID, file.fileHash()))
             .thenReturn(Optional.of(batch()));
 
         // when & then
-        assertThatThrownBy(() -> service().upload(KONTO, file))
+        assertThatThrownBy(() -> service().upload(ACCOUNT_ID, file))
             .isInstanceOf(ConflictException.class);
         verify(parser, never()).parse(any(), anyInt());
     }
@@ -109,7 +109,7 @@ class ImportServiceTest {
         when(parser.supports(file)).thenReturn(false);
 
         // when & then
-        assertThatThrownBy(() -> service().upload(KONTO, file))
+        assertThatThrownBy(() -> service().upload(ACCOUNT_ID, file))
             .isInstanceOf(ValidationException.class);
     }
 
@@ -125,7 +125,7 @@ class ImportServiceTest {
             .thenReturn(new ParsedStatement(null, null, null, null, List.of()));
 
         // when & then
-        assertThatThrownBy(() -> service().upload(KONTO, file))
+        assertThatThrownBy(() -> service().upload(ACCOUNT_ID, file))
             .isInstanceOf(ValidationException.class);
     }
 
@@ -142,7 +142,7 @@ class ImportServiceTest {
             .thenThrow(new IllegalArgumentException("Nie jest kwotą: abc"));
 
         // when & then
-        assertThatThrownBy(() -> service().upload(KONTO, file))
+        assertThatThrownBy(() -> service().upload(ACCOUNT_ID, file))
             .isInstanceOf(ValidationException.class);
     }
 
@@ -158,7 +158,7 @@ class ImportServiceTest {
             .thenReturn(statement(row(0, -4500L, "EUR", "Kawa", null)));
 
         // when & then
-        assertThatThrownBy(() -> service().upload(KONTO, file))
+        assertThatThrownBy(() -> service().upload(ACCOUNT_ID, file))
             .isInstanceOf(ValidationException.class);
     }
 
@@ -174,7 +174,7 @@ class ImportServiceTest {
             .thenReturn(statement(row(0, -4500L, FinanceFixtures.PLN, "Kawa", null)));
 
         // when
-        service().upload(KONTO, file);
+        service().upload(ACCOUNT_ID, file);
 
         // then
         assertThat(capturedRows().getFirst().getCurrency()).isEqualTo(FinanceFixtures.PLN);
@@ -193,12 +193,12 @@ class ImportServiceTest {
             row(1, -1200L, null, "Kawa", null)));
 
         // when
-        service().upload(KONTO, file);
+        service().upload(ACCOUNT_ID, file);
 
         // then
         List<ImportRow> saved = capturedRows();
         assertThat(saved).hasSize(2);
-        assertThat(saved.get(0).getDedupKey()).isNotEqualTo(saved.get(1).getDedupKey());
+        assertThat(saved.getFirst().getDedupKey()).isNotEqualTo(saved.get(1).getDedupKey());
         assertThat(saved).extracting(ImportRow::getStatus)
             .containsOnly(ImportRowStatus.NEW);
     }
@@ -216,7 +216,7 @@ class ImportServiceTest {
         when(importRowRepository.existsActiveByDedupKey(anyString(), any())).thenReturn(true);
 
         // when
-        service().upload(KONTO, file);
+        service().upload(ACCOUNT_ID, file);
 
         // then
         assertThat(capturedRows().getFirst().getStatus()).isEqualTo(ImportRowStatus.DUPLICATE);
@@ -234,11 +234,11 @@ class ImportServiceTest {
             .thenReturn(statement(row(0, -1200L, null, "Kawa", "REF-001")));
 
         // when
-        service().upload(KONTO, file);
+        service().upload(ACCOUNT_ID, file);
 
         // then
-        String oczekiwany = new DedupKey().fromBankReference(KONTO, "REF-001");
-        assertThat(capturedRows().getFirst().getDedupKey()).isEqualTo(oczekiwany);
+        String expected = new DedupKey().fromBankReference(ACCOUNT_ID, "REF-001");
+        assertThat(capturedRows().getFirst().getDedupKey()).isEqualTo(expected);
     }
 
     @Test
@@ -297,8 +297,8 @@ class ImportServiceTest {
 
         // given
         ImportBatch batch = batch();
-        ImportRow duplikat = savedRow(batch, -4500L, ImportRowStatus.DUPLICATE);
-        prepareCommit(batch, duplikat);
+        ImportRow duplicateRow = savedRow(batch, -4500L, ImportRowStatus.DUPLICATE);
+        prepareCommit(batch, duplicateRow);
 
         // when
         ImportService.CommitResult result = service().commit(1L, Map.of(), Map.of());
@@ -390,8 +390,8 @@ class ImportServiceTest {
 
     private void prepareUpload() {
 
-        when(accountService.get(KONTO)).thenReturn(account);
-        when(importBatchRepository.findByAccountIdAndFileHash(eq(KONTO), anyString()))
+        when(accountService.get(ACCOUNT_ID)).thenReturn(account);
+        when(importBatchRepository.findByAccountIdAndFileHash(eq(ACCOUNT_ID), anyString()))
             .thenReturn(Optional.empty());
         when(currencyService.minorUnitsOf(FinanceFixtures.PLN)).thenReturn(new MinorUnits(2));
         when(importBatchRepository.save(any())).thenAnswer(call -> call.getArgument(0));
@@ -424,13 +424,13 @@ class ImportServiceTest {
 
     private ParsedStatement statement(RawRow... rows) {
 
-        return new ParsedStatement(DZIEN, DZIEN, 0L, 0L, List.of(rows));
+        return new ParsedStatement(DAY, DAY, 0L, 0L, List.of(rows));
     }
 
     private RawRow row(int ordinal, long amountMinor, String currency, String description,
                        String bankReference) {
 
-        return new RawRow(ordinal, DZIEN, amountMinor, currency, null, null, description, null,
+        return new RawRow(ordinal, DAY, amountMinor, currency, null, null, description, null,
             bankReference);
     }
 
@@ -447,7 +447,7 @@ class ImportServiceTest {
 
     private Transaction transaction() {
 
-        return new Transaction(TransactionType.EXPENSE, DZIEN, 4500L, FinanceFixtures.PLN, account);
+        return new Transaction(TransactionType.EXPENSE, DAY, 4500L, FinanceFixtures.PLN, account);
     }
 
     private SourceFile file(String content) {

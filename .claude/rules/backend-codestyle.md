@@ -50,6 +50,25 @@ paths:
 | Config class | suffix `Config` | `EnrichmentJobConfig` |
 | Entity | plain noun, no suffix | `TrackCatalog`, `Playlist` |
 
+**Identifiers are English — always.** Class, method, field, variable, parameter and
+constant names, in production code and in tests alike. A codebase that mixes
+`biezaceKonto` with `currentAccount` makes every name a guess about which language
+it was written in, and a rename in an IDE stops finding half the occurrences.
+
+**Comments and Javadoc stay Polish**, and so does display text: exception messages,
+`@DisplayName`, log messages, and string literals carrying domain data (a bank's
+Polish column headers are data, not identifiers).
+
+```java
+// WRONG
+long biezace = createAccount("Bieżące", "PLN");
+JsonNode raport = objectMapper.readTree(body);
+
+// CORRECT — kod po angielsku, komentarz i dane po polsku
+long currentAccount = createAccount("Bieżące", "PLN");
+JsonNode report = objectMapper.readTree(body);
+```
+
 ## Code structure
 
 - Maximum method length: **30 lines** — extract if longer.

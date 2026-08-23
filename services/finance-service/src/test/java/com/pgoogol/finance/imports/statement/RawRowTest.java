@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class RawRowTest {
 
-    private static final LocalDate DZIEN = LocalDate.of(2026, 1, 5);
+    private static final LocalDate DAY = LocalDate.of(2026, 1, 5);
 
     @Test
     @DisplayName("konstruktor gdy kwota jest zerowa, wywala się")
@@ -26,7 +26,7 @@ class RawRowTest {
     void constructor_whenOrdinalIsNegative_throws() {
 
         // when & then
-        assertThatThrownBy(() -> new RawRow(-1, DZIEN, -100L, null, null, null, null, null, null))
+        assertThatThrownBy(() -> new RawRow(-1, DAY, -100L, null, null, null, null, null, null))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -64,12 +64,12 @@ class RawRowTest {
     void hasBankReference_whenReferenceIsMissingOrBlank_returnsFalse() {
 
         // given
-        RawRow bezReferencji = new RawRow(0, DZIEN, -100L, null, null, null, null, null, null);
-        RawRow zPusta = new RawRow(0, DZIEN, -100L, null, null, null, null, null, "  ");
+        RawRow withoutReference = new RawRow(0, DAY, -100L, null, null, null, null, null, null);
+        RawRow withBlank = new RawRow(0, DAY, -100L, null, null, null, null, null, "  ");
 
         // when & then
-        assertThat(bezReferencji.hasBankReference()).isFalse();
-        assertThat(zPusta.hasBankReference()).isFalse();
+        assertThat(withoutReference.hasBankReference()).isFalse();
+        assertThat(withBlank.hasBankReference()).isFalse();
     }
 
     @Test
@@ -77,7 +77,7 @@ class RawRowTest {
     void hasBankReference_whenReferenceIsPresent_returnsTrue() {
 
         // given
-        RawRow row = new RawRow(0, DZIEN, -100L, null, null, null, null, null, "REF-1");
+        RawRow row = new RawRow(0, DAY, -100L, null, null, null, null, null, "REF-1");
 
         // when & then
         assertThat(row.hasBankReference()).isTrue();
@@ -85,7 +85,7 @@ class RawRowTest {
 
     private RawRow row(long amountMinor, Long originalAmountMinor, String originalCurrency) {
 
-        return new RawRow(0, DZIEN, amountMinor, "PLN", originalAmountMinor, originalCurrency,
+        return new RawRow(0, DAY, amountMinor, "PLN", originalAmountMinor, originalCurrency,
             "opis", null, null);
     }
 }

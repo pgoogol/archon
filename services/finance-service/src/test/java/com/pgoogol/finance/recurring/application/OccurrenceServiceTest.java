@@ -38,7 +38,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class OccurrenceServiceTest {
 
-    private static final LocalDate TERMIN = LocalDate.of(2026, 3, 10);
+    private static final LocalDate DUE_DATE = LocalDate.of(2026, 3, 10);
 
     @Mock
     private ScheduledOccurrenceRepository occurrenceRepository;
@@ -59,20 +59,20 @@ class OccurrenceServiceTest {
         // given: rachunek za prąd rzadko wychodzi co do grosza tak samo
         ScheduledOccurrence occurrence = pendingOccurrence(10_000L);
         when(occurrenceRepository.findDetailedById(5L)).thenReturn(Optional.of(occurrence));
-        Transaction transaction = new Transaction(TransactionType.EXPENSE, TERMIN, 11_350L,
+        Transaction transaction = new Transaction(TransactionType.EXPENSE, DUE_DATE, 11_350L,
             FinanceFixtures.PLN, occurrence.getRule().getAccount());
         when(transactionService.create(any(TransactionCommand.class))).thenReturn(transaction);
 
         // when
-        ScheduledOccurrence paid = service.pay(5L, TERMIN, 11_350L, null);
+        ScheduledOccurrence paid = service.pay(5L, DUE_DATE, 11_350L, null);
 
         // then
-        ArgumentCaptor<TransactionCommand> polecenie =
+        ArgumentCaptor<TransactionCommand> command =
             ArgumentCaptor.forClass(TransactionCommand.class);
-        verify(transactionService).create(polecenie.capture());
+        verify(transactionService).create(command.capture());
         assertAll(
-            () -> assertThat(polecenie.getValue().amountMinor()).isEqualTo(11_350L),
-            () -> assertThat(polecenie.getValue().type()).isEqualTo(TransactionType.EXPENSE),
+            () -> assertThat(command.getValue().amountMinor()).isEqualTo(11_350L),
+            () -> assertThat(command.getValue().type()).isEqualTo(TransactionType.EXPENSE),
             () -> assertThat(paid.getStatus()).isEqualTo(OccurrenceStatus.PAID),
             () -> assertThat(paid.getPaidAmountMinor()).isEqualTo(11_350L),
             () -> assertThat(paid.getExpectedAmountMinor()).isEqualTo(10_000L),
@@ -89,7 +89,7 @@ class OccurrenceServiceTest {
         when(occurrenceRepository.findDetailedById(5L)).thenReturn(Optional.of(occurrence));
 
         // when & then: druga płatność założyłaby drugą transakcję na ten sam rachunek
-        assertThatThrownBy(() -> service.pay(5L, TERMIN, 10_000L, null))
+        assertThatThrownBy(() -> service.pay(5L, DUE_DATE, 10_000L, null))
             .isInstanceOf(ConflictException.class);
         verify(transactionService, never()).create(any());
     }
@@ -101,11 +101,11 @@ class OccurrenceServiceTest {
         // given
         ScheduledOccurrence occurrence = pendingOccurrence(10_000L);
         when(occurrenceRepository.findDetailedById(5L)).thenReturn(Optional.of(occurrence));
-        Account walutowe = FinanceFixtures.account(9L, "Walutowe", FinanceFixtures.EUR);
-        when(accountService.get(9L)).thenReturn(walutowe);
+        Account foreignAccount = FinanceFixtures.account(9L, "Walutowe", FinanceFixtures.EUR);
+        when(accountService.get(9L)).thenReturn(foreignAccount);
 
         // when & then
-        assertThatThrownBy(() -> service.pay(5L, TERMIN, 10_000L, 9L))
+        assertThatThrownBy(() -> service.pay(5L, DUE_DATE, 10_000L, 9L))
             .isInstanceOf(ValidationException.class);
         verify(transactionService, never()).create(any());
     }
@@ -143,6 +143,6 @@ class OccurrenceServiceTest {
         Category category = FinanceFixtures.category(2L, "Mieszkanie", CategoryDirection.EXPENSE);
         RecurringRule rule = FinanceFixtures.recurringRule(7L, account, category,
             expectedAmountMinor, LocalDate.of(2026, 1, 10));
-        return FinanceFixtures.occurrence(5L, rule, TERMIN);
+        return FinanceFixtures.occurrence(5L, rule, DUE_DATE);
     }
 }

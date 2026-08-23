@@ -57,13 +57,13 @@ class ArchitectureTest {
     void service_doesNotDependOnAnotherService() {
 
         // given
-        DescribedPredicate<JavaClass> obcaDomena = resideInAPackage("com.pgoogol..")
+        DescribedPredicate<JavaClass> foreignDomain = resideInAPackage("com.pgoogol..")
             .and(resideOutsideOfPackages(BASE + "..", LOGGING_STARTER + ".."))
             .as("klasa z innej domeny com.pgoogol");
 
         ArchRule rule = noClasses()
             .that().resideInAPackage(BASE + "..")
-            .should().dependOnClassesThat(obcaDomena)
+            .should().dependOnClassesThat(foreignDomain)
             .because("zależności wewnątrz reaktora prowadzą wyłącznie do libs/java");
 
         // when / then

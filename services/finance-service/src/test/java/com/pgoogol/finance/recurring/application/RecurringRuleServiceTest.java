@@ -141,9 +141,9 @@ class RecurringRuleServiceTest {
         RecurringRule updated = service.update(7L, command(TransactionType.EXPENSE, 15_000L, null));
 
         // then: kasujemy wyłącznie czekające od dziś, resztę zostawiamy
-        ArgumentCaptor<LocalDate> odKiedy = ArgumentCaptor.forClass(LocalDate.class);
-        verify(occurrenceRepository).deletePendingFrom(anyLong(), odKiedy.capture());
-        assertThat(odKiedy.getValue()).isEqualTo(LocalDate.now());
+        ArgumentCaptor<LocalDate> deletedFrom = ArgumentCaptor.forClass(LocalDate.class);
+        verify(occurrenceRepository).deletePendingFrom(anyLong(), deletedFrom.capture());
+        assertThat(deletedFrom.getValue()).isEqualTo(LocalDate.now());
         assertThat(updated.getAmountMinor()).isEqualTo(15_000L);
         verify(occurrenceGenerator).generateFor(rule);
     }

@@ -50,6 +50,25 @@ paths:
 | Klasa konfiguracji | sufiks `Config` | `EnrichmentJobConfig` |
 | Encja | goły rzeczownik, bez sufiksu | `TrackCatalog`, `Playlist` |
 
+**Identyfikatory są po angielsku — zawsze.** Nazwy klas, metod, pól, zmiennych,
+parametrów i stałych, tak samo w kodzie produkcyjnym jak w testach. Kod mieszający
+`biezaceKonto` z `currentAccount` zamienia każdą nazwę w zgadywankę, w którym
+języku została napisana, a zmiana nazwy w IDE przestaje znajdować połowę wystąpień.
+
+**Komentarze i Javadoc zostają po polsku**, podobnie jak teksty dla człowieka:
+komunikaty wyjątków, `@DisplayName`, wpisy do logu i literały niosące dane domenowe
+(polskie nagłówki kolumn z wyciągu bankowego to dane, nie identyfikatory).
+
+```java
+// ŹLE
+long biezace = createAccount("Bieżące", "PLN");
+JsonNode raport = objectMapper.readTree(body);
+
+// DOBRZE — kod po angielsku, komentarz i dane po polsku
+long currentAccount = createAccount("Bieżące", "PLN");
+JsonNode report = objectMapper.readTree(body);
+```
+
 ## Struktura kodu
 
 - Maksymalna długość metody: **30 linii** — dłuższą wydziel.

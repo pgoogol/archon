@@ -29,12 +29,12 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class TransferSuggestionServiceTest {
 
-    private static final LocalDate DZIEN = LocalDate.of(2026, 3, 10);
-    private static final LocalDate OD = LocalDate.of(2026, 3, 1);
-    private static final LocalDate DO = LocalDate.of(2026, 3, 31);
+    private static final LocalDate DAY = LocalDate.of(2026, 3, 10);
+    private static final LocalDate FROM = LocalDate.of(2026, 3, 1);
+    private static final LocalDate TO = LocalDate.of(2026, 3, 31);
 
-    private final Account biezace = FinanceFixtures.account(1L, "Bieżące", FinanceFixtures.PLN);
-    private final Account oszczednosciowe =
+    private final Account currentAccount = FinanceFixtures.account(1L, "Bieżące", FinanceFixtures.PLN);
+    private final Account savingsAccount =
         FinanceFixtures.account(2L, "Oszczędnościowe", FinanceFixtures.PLN);
 
     @Mock
@@ -51,13 +51,13 @@ class TransferSuggestionServiceTest {
     void candidates_whenAmountsMatchWithinThreeDays_proposesMerge() {
 
         // given
-        Transaction wydatek = transaction(10L, TransactionType.EXPENSE, biezace, DZIEN, 50_000L);
-        Transaction wplyw =
-            transaction(11L, TransactionType.INCOME, oszczednosciowe, DZIEN.plusDays(2), 50_000L);
-        when(transactionRepository.findFlowsBetween(OD, DO)).thenReturn(List.of(wydatek, wplyw));
+        Transaction expense = transaction(10L, TransactionType.EXPENSE, currentAccount, DAY, 50_000L);
+        Transaction income =
+            transaction(11L, TransactionType.INCOME, savingsAccount, DAY.plusDays(2), 50_000L);
+        when(transactionRepository.findFlowsBetween(FROM, TO)).thenReturn(List.of(expense, income));
 
         // when
-        List<TransferSuggestionService.TransferCandidate> candidates = service.candidates(OD, DO);
+        List<TransferSuggestionService.TransferCandidate> candidates = service.candidates(FROM, TO);
 
         // then
         assertThat(candidates).hasSize(1);
@@ -72,13 +72,13 @@ class TransferSuggestionServiceTest {
     void candidates_whenFourDaysApart_proposesNothing() {
 
         // given
-        Transaction wydatek = transaction(10L, TransactionType.EXPENSE, biezace, DZIEN, 50_000L);
-        Transaction wplyw =
-            transaction(11L, TransactionType.INCOME, oszczednosciowe, DZIEN.plusDays(4), 50_000L);
-        when(transactionRepository.findFlowsBetween(OD, DO)).thenReturn(List.of(wydatek, wplyw));
+        Transaction expense = transaction(10L, TransactionType.EXPENSE, currentAccount, DAY, 50_000L);
+        Transaction income =
+            transaction(11L, TransactionType.INCOME, savingsAccount, DAY.plusDays(4), 50_000L);
+        when(transactionRepository.findFlowsBetween(FROM, TO)).thenReturn(List.of(expense, income));
 
         // when
-        List<TransferSuggestionService.TransferCandidate> candidates = service.candidates(OD, DO);
+        List<TransferSuggestionService.TransferCandidate> candidates = service.candidates(FROM, TO);
 
         // then
         assertThat(candidates).isEmpty();
@@ -89,12 +89,12 @@ class TransferSuggestionServiceTest {
     void candidates_whenBothSidesAreOnOneAccount_proposesNothing() {
 
         // given: zwrot za zakup na tym samym koncie nie jest przelewem
-        Transaction wydatek = transaction(10L, TransactionType.EXPENSE, biezace, DZIEN, 50_000L);
-        Transaction wplyw = transaction(11L, TransactionType.INCOME, biezace, DZIEN, 50_000L);
-        when(transactionRepository.findFlowsBetween(OD, DO)).thenReturn(List.of(wydatek, wplyw));
+        Transaction expense = transaction(10L, TransactionType.EXPENSE, currentAccount, DAY, 50_000L);
+        Transaction income = transaction(11L, TransactionType.INCOME, currentAccount, DAY, 50_000L);
+        when(transactionRepository.findFlowsBetween(FROM, TO)).thenReturn(List.of(expense, income));
 
         // when
-        List<TransferSuggestionService.TransferCandidate> candidates = service.candidates(OD, DO);
+        List<TransferSuggestionService.TransferCandidate> candidates = service.candidates(FROM, TO);
 
         // then
         assertThat(candidates).isEmpty();
@@ -105,15 +105,15 @@ class TransferSuggestionServiceTest {
     void candidates_whenOneIncomeFitsTwoExpenses_usesItOnce() {
 
         // given
-        Transaction pierwszy = transaction(10L, TransactionType.EXPENSE, biezace, DZIEN, 50_000L);
-        Transaction drugi = transaction(12L, TransactionType.EXPENSE, biezace, DZIEN, 50_000L);
-        Transaction wplyw =
-            transaction(11L, TransactionType.INCOME, oszczednosciowe, DZIEN, 50_000L);
-        when(transactionRepository.findFlowsBetween(OD, DO))
-            .thenReturn(List.of(pierwszy, drugi, wplyw));
+        Transaction firstExpense = transaction(10L, TransactionType.EXPENSE, currentAccount, DAY, 50_000L);
+        Transaction secondExpense = transaction(12L, TransactionType.EXPENSE, currentAccount, DAY, 50_000L);
+        Transaction income =
+            transaction(11L, TransactionType.INCOME, savingsAccount, DAY, 50_000L);
+        when(transactionRepository.findFlowsBetween(FROM, TO))
+            .thenReturn(List.of(firstExpense, secondExpense, income));
 
         // when
-        List<TransferSuggestionService.TransferCandidate> candidates = service.candidates(OD, DO);
+        List<TransferSuggestionService.TransferCandidate> candidates = service.candidates(FROM, TO);
 
         // then: druga strona przelewu jest jedna, więc para też jest jedna
         assertThat(candidates).hasSize(1);
@@ -125,29 +125,29 @@ class TransferSuggestionServiceTest {
     void merge_createsTransferAndRemovesBothSides() {
 
         // given
-        Transaction wydatek = transaction(10L, TransactionType.EXPENSE, biezace, DZIEN, 50_000L);
-        Transaction wplyw =
-            transaction(11L, TransactionType.INCOME, oszczednosciowe, DZIEN.plusDays(1), 50_000L);
-        when(transactionService.get(10L)).thenReturn(wydatek);
-        when(transactionService.get(11L)).thenReturn(wplyw);
+        Transaction expense = transaction(10L, TransactionType.EXPENSE, currentAccount, DAY, 50_000L);
+        Transaction income =
+            transaction(11L, TransactionType.INCOME, savingsAccount, DAY.plusDays(1), 50_000L);
+        when(transactionService.get(10L)).thenReturn(expense);
+        when(transactionService.get(11L)).thenReturn(income);
         when(transactionService.create(any(TransactionCommand.class)))
-            .thenReturn(transaction(12L, TransactionType.TRANSFER, biezace, DZIEN, 50_000L));
+            .thenReturn(transaction(12L, TransactionType.TRANSFER, currentAccount, DAY, 50_000L));
 
         // when
         service.merge(10L, 11L);
 
         // then
-        ArgumentCaptor<TransactionCommand> polecenie =
+        ArgumentCaptor<TransactionCommand> command =
             ArgumentCaptor.forClass(TransactionCommand.class);
-        verify(transactionService).create(polecenie.capture());
+        verify(transactionService).create(command.capture());
         assertAll(
-            () -> assertThat(polecenie.getValue().type()).isEqualTo(TransactionType.TRANSFER),
-            () -> assertThat(polecenie.getValue().accountId()).isEqualTo(1L),
-            () -> assertThat(polecenie.getValue().toAccountId()).isEqualTo(2L),
+            () -> assertThat(command.getValue().type()).isEqualTo(TransactionType.TRANSFER),
+            () -> assertThat(command.getValue().accountId()).isEqualTo(1L),
+            () -> assertThat(command.getValue().toAccountId()).isEqualTo(2L),
             // ta sama waluta po obu stronach — kwota docelowa byłaby powtórzeniem
-            () -> assertThat(polecenie.getValue().toAmountMinor()).isNull());
-        verify(transactionRepository).delete(wydatek);
-        verify(transactionRepository).delete(wplyw);
+            () -> assertThat(command.getValue().toAmountMinor()).isNull());
+        verify(transactionRepository).delete(expense);
+        verify(transactionRepository).delete(income);
     }
 
     @Test
@@ -155,11 +155,11 @@ class TransferSuggestionServiceTest {
     void merge_whenPairNoLongerMatches_rejectsIt() {
 
         // given: między podglądem a potwierdzeniem ktoś zmienił kwotę
-        Transaction wydatek = transaction(10L, TransactionType.EXPENSE, biezace, DZIEN, 50_000L);
-        Transaction wplyw =
-            transaction(11L, TransactionType.INCOME, oszczednosciowe, DZIEN, 40_000L);
-        when(transactionService.get(10L)).thenReturn(wydatek);
-        when(transactionService.get(11L)).thenReturn(wplyw);
+        Transaction expense = transaction(10L, TransactionType.EXPENSE, currentAccount, DAY, 50_000L);
+        Transaction income =
+            transaction(11L, TransactionType.INCOME, savingsAccount, DAY, 40_000L);
+        when(transactionService.get(10L)).thenReturn(expense);
+        when(transactionService.get(11L)).thenReturn(income);
 
         // when & then
         assertThatThrownBy(() -> service.merge(10L, 11L))

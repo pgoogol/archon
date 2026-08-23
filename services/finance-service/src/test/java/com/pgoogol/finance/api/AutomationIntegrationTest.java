@@ -41,7 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AutomationIntegrationTest {
 
     private static final Charset WINDOWS_1250 = Charset.forName("windows-1250");
-    private static final LocalDate TERMIN = LocalDate.of(2026, 2, 10);
+    private static final LocalDate DUE_DATE = LocalDate.of(2026, 2, 10);
 
     @Autowired
     private MockMvc mockMvc;
@@ -51,9 +51,9 @@ class AutomationIntegrationTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private long biezace;
-    private long oszczednosciowe;
-    private long jedzenie;
+    private long currentAccount;
+    private long savingsAccount;
+    private long food;
     private long media;
 
     @BeforeEach
@@ -69,9 +69,9 @@ class AutomationIntegrationTest {
                 cascade""");
             statement.execute("delete from finance.exchange_rate");
         }
-        biezace = createAccount("Bieżące", "PLN");
-        oszczednosciowe = createAccount("Oszczędnościowe", "PLN");
-        jedzenie = createCategory("Jedzenie", "EXPENSE");
+        currentAccount = createAccount("Bieżące", "PLN");
+        savingsAccount = createAccount("Oszczędnościowe", "PLN");
+        food = createCategory("Jedzenie", "EXPENSE");
         media = createCategory("Media", "EXPENSE");
     }
 
@@ -80,19 +80,19 @@ class AutomationIntegrationTest {
     void categoryRule_suggestsCategoryWithoutSavingIt() throws Exception {
 
         // given
-        createCategoryRule("biedronka", "ANY", jedzenie);
-        byte[] wyciag = statement(row("2026-02-05", "-45,00", "ZAKUP BIEDRONKA 1234", ""));
+        createCategoryRule("biedronka", "ANY", food);
+        byte[] statementFile = statement(row("2026-02-05", "-45,00", "ZAKUP BIEDRONKA 1234", ""));
 
         // when
-        long batch = upload(biezace, "luty.csv", wyciag);
-        JsonNode podglad = preview(batch);
+        long batch = upload(currentAccount, "luty.csv", statementFile);
+        JsonNode preview = preview(batch);
 
         // then: podpowiedź jest, transakcji nie ma
-        JsonNode wiersz = podglad.get("rows").get(0);
+        JsonNode row = preview.get("rows").get(0);
         assertAll(
-            () -> assertThat(wiersz.get("suggestedCategoryId").asLong()).isEqualTo(jedzenie),
-            () -> assertThat(wiersz.get("suggestedCategoryName").asText()).isEqualTo("Jedzenie"),
-            () -> assertThat(wiersz.get("transactionId").isNull()).isTrue());
+            () -> assertThat(row.get("suggestedCategoryId").asLong()).isEqualTo(food),
+            () -> assertThat(row.get("suggestedCategoryName").asText()).isEqualTo("Jedzenie"),
+            () -> assertThat(row.get("transactionId").isNull()).isTrue());
     }
 
     @Test
@@ -100,7 +100,7 @@ class AutomationIntegrationTest {
     void commit_whenUserProvidesPattern_remembersRule() throws Exception {
 
         // given
-        long batch = upload(biezace, "luty.csv",
+        long batch = upload(currentAccount, "luty.csv",
             statement(row("2026-02-05", "-45,00", "ZAKUP ZABKA 77", "")));
         long rowId = preview(batch).get("rows").get(0).get("id").asLong();
 
@@ -108,17 +108,17 @@ class AutomationIntegrationTest {
         String body = """
             {"categoryAssignments":[
               {"rowId":%d,"categoryId":%d,"rememberPattern":"ZABKA"}]}"""
-            .formatted(rowId, jedzenie);
+            .formatted(rowId, food);
         mockMvc.perform(post("/finance/api/v1/imports/{id}/commit", batch)
                 .contentType(MediaType.APPLICATION_JSON).content(body))
             .andExpect(status().isOk());
 
         // then
-        JsonNode reguly = objectMapper.readTree(body("/finance/api/v1/category-rules"));
-        assertThat(reguly).hasSize(1);
+        JsonNode rules = objectMapper.readTree(body("/finance/api/v1/category-rules"));
+        assertThat(rules).hasSize(1);
         assertAll(
-            () -> assertThat(reguly.get(0).get("pattern").asText()).isEqualTo("ZABKA"),
-            () -> assertThat(reguly.get(0).get("categoryId").asLong()).isEqualTo(jedzenie));
+            () -> assertThat(rules.get(0).get("pattern").asText()).isEqualTo("ZABKA"),
+            () -> assertThat(rules.get(0).get("categoryId").asLong()).isEqualTo(food));
     }
 
     @Test
@@ -126,18 +126,18 @@ class AutomationIntegrationTest {
     void upload_whenRowMatchesSchedule_suggestsOccurrence() throws Exception {
 
         // given: rachunek na 100 zł z terminem 10 lutego
-        long rule = createRule("Prąd", media, 10_000L, TERMIN, "PRAD");
-        long occurrence = occurrenceOn(rule, TERMIN);
+        long rule = createRule("Prąd", media, 10_000L, DUE_DATE, "PRAD");
+        long occurrence = occurrenceOn(rule, DUE_DATE);
 
         // when: wyciąg pokazuje 105 zł zaksięgowane trzy dni wcześniej
-        long batch = upload(biezace, "luty.csv",
+        long batch = upload(currentAccount, "luty.csv",
             statement(row("2026-02-07", "-105,00", "OPLATA ZA PRAD", "")));
 
         // then
-        JsonNode wiersz = preview(batch).get("rows").get(0);
+        JsonNode row = preview(batch).get("rows").get(0);
         assertAll(
-            () -> assertThat(wiersz.get("suggestedOccurrenceId").asLong()).isEqualTo(occurrence),
-            () -> assertThat(wiersz.get("suggestedOccurrenceName").asText()).isEqualTo("Prąd"));
+            () -> assertThat(row.get("suggestedOccurrenceId").asLong()).isEqualTo(occurrence),
+            () -> assertThat(row.get("suggestedOccurrenceName").asText()).isEqualTo("Prąd"));
         // sama sugestia niczego nie rozliczyła
         assertThat(occurrenceStatus(occurrence)).isEqualTo("OVERDUE");
     }
@@ -147,15 +147,15 @@ class AutomationIntegrationTest {
     void upload_whenAmountDiffersTooMuch_suggestsNoOccurrence() throws Exception {
 
         // given
-        createRule("Prąd", media, 10_000L, TERMIN, "PRAD");
+        createRule("Prąd", media, 10_000L, DUE_DATE, "PRAD");
 
         // when: 120 zł zamiast 100 zł
-        long batch = upload(biezace, "luty.csv",
+        long batch = upload(currentAccount, "luty.csv",
             statement(row("2026-02-09", "-120,00", "OPLATA ZA PRAD", "")));
 
         // then
-        JsonNode wiersz = preview(batch).get("rows").get(0);
-        assertThat(wiersz.get("suggestedOccurrenceId").isNull()).isTrue();
+        JsonNode row = preview(batch).get("rows").get(0);
+        assertThat(row.get("suggestedOccurrenceId").isNull()).isTrue();
     }
 
     @Test
@@ -163,9 +163,9 @@ class AutomationIntegrationTest {
     void commit_whenOccurrenceConfirmed_settlesItWithImportedTransaction() throws Exception {
 
         // given
-        long rule = createRule("Prąd", media, 10_000L, TERMIN, "PRAD");
-        long occurrence = occurrenceOn(rule, TERMIN);
-        long batch = upload(biezace, "luty.csv",
+        long rule = createRule("Prąd", media, 10_000L, DUE_DATE, "PRAD");
+        long occurrence = occurrenceOn(rule, DUE_DATE);
+        long batch = upload(currentAccount, "luty.csv",
             statement(row("2026-02-09", "-105,00", "OPLATA ZA PRAD", "")));
         long rowId = preview(batch).get("rows").get(0).get("id").asLong();
 
@@ -179,11 +179,11 @@ class AutomationIntegrationTest {
             .andExpect(status().isOk());
 
         // then: rachunek zapłacony faktyczną kwotą z wyciągu, nie oczekiwaną
-        JsonNode pozycja = occurrence(occurrence);
+        JsonNode occurrenceRow = occurrence(occurrence);
         assertAll(
-            () -> assertThat(pozycja.get("status").asText()).isEqualTo("PAID"),
-            () -> assertThat(pozycja.get("paidAmountMinor").asLong()).isEqualTo(10_500L),
-            () -> assertThat(pozycja.get("transactionId").isNull()).isFalse());
+            () -> assertThat(occurrenceRow.get("status").asText()).isEqualTo("PAID"),
+            () -> assertThat(occurrenceRow.get("paidAmountMinor").asLong()).isEqualTo(10_500L),
+            () -> assertThat(occurrenceRow.get("transactionId").isNull()).isFalse());
     }
 
     @Test
@@ -191,21 +191,21 @@ class AutomationIntegrationTest {
     void transferCandidates_proposeMergeForMatchingPair() throws Exception {
 
         // given
-        long wydatek = createExpense(biezace, "2026-02-10", 50_000L, jedzenie);
-        long wplyw = createIncome(oszczednosciowe, "2026-02-12", 50_000L);
+        long expense = createExpense(currentAccount, "2026-02-10", 50_000L, food);
+        long income = createIncome(savingsAccount, "2026-02-12", 50_000L);
 
         // when
         String url = "/finance/api/v1/transfers/candidates?from=2026-02-01&to=2026-02-28";
-        JsonNode propozycje = objectMapper.readTree(body(url));
+        JsonNode candidates = objectMapper.readTree(body(url));
 
         // then
-        assertThat(propozycje).hasSize(1);
+        assertThat(candidates).hasSize(1);
         assertAll(
-            () -> assertThat(propozycje.get(0).get("expenseTransactionId").asLong())
-                .isEqualTo(wydatek),
-            () -> assertThat(propozycje.get(0).get("incomeTransactionId").asLong())
-                .isEqualTo(wplyw),
-            () -> assertThat(propozycje.get(0).get("daysApart").asLong()).isEqualTo(2L));
+            () -> assertThat(candidates.get(0).get("expenseTransactionId").asLong())
+                .isEqualTo(expense),
+            () -> assertThat(candidates.get(0).get("incomeTransactionId").asLong())
+                .isEqualTo(income),
+            () -> assertThat(candidates.get(0).get("daysApart").asLong()).isEqualTo(2L));
     }
 
     @Test
@@ -213,12 +213,12 @@ class AutomationIntegrationTest {
     void mergeTransfer_leavesSingleTransferTransaction() throws Exception {
 
         // given
-        long wydatek = createExpense(biezace, "2026-02-10", 50_000L, jedzenie);
-        long wplyw = createIncome(oszczednosciowe, "2026-02-12", 50_000L);
+        long expense = createExpense(currentAccount, "2026-02-10", 50_000L, food);
+        long income = createIncome(savingsAccount, "2026-02-12", 50_000L);
 
         // when
         String body = """
-            {"expenseTransactionId":%d,"incomeTransactionId":%d}""".formatted(wydatek, wplyw);
+            {"expenseTransactionId":%d,"incomeTransactionId":%d}""".formatted(expense, income);
         mockMvc.perform(post("/finance/api/v1/transfers/merge")
                 .contentType(MediaType.APPLICATION_JSON).content(body))
             .andExpect(status().isOk())
@@ -226,10 +226,10 @@ class AutomationIntegrationTest {
             .andExpect(jsonPath("$.amountMinor").value(50_000));
 
         // then: obie strony zniknęły, została jedna operacja
-        mockMvc.perform(get("/finance/api/v1/transactions/{id}", wydatek))
+        mockMvc.perform(get("/finance/api/v1/transactions/{id}", expense))
             .andExpect(status().isNotFound());
-        JsonNode lista = objectMapper.readTree(body("/finance/api/v1/transactions"));
-        assertThat(lista.get("totalElements").asInt()).isEqualTo(1);
+        JsonNode rows = objectMapper.readTree(body("/finance/api/v1/transactions"));
+        assertThat(rows.get("totalElements").asInt()).isEqualTo(1);
     }
 
     private String occurrenceStatus(long occurrenceId) throws Exception {
@@ -239,8 +239,8 @@ class AutomationIntegrationTest {
 
     private JsonNode occurrence(long occurrenceId) throws Exception {
 
-        JsonNode terminarz = objectMapper.readTree(body("/finance/api/v1/occurrences"));
-        for (JsonNode item : terminarz) {
+        JsonNode schedule = objectMapper.readTree(body("/finance/api/v1/occurrences"));
+        for (JsonNode item : schedule) {
 
             if (item.get("id").asLong() == occurrenceId) {
 
@@ -252,9 +252,9 @@ class AutomationIntegrationTest {
 
     private long occurrenceOn(long ruleId, LocalDate dueDate) throws Exception {
 
-        JsonNode terminarz =
+        JsonNode schedule =
             objectMapper.readTree(body("/finance/api/v1/occurrences?ruleId=" + ruleId));
-        for (JsonNode item : terminarz) {
+        for (JsonNode item : schedule) {
 
             if (item.get("dueDate").asText().equals(dueDate.toString())) {
 
@@ -270,7 +270,7 @@ class AutomationIntegrationTest {
         String body = """
             {"name":"%s","accountId":%d,"categoryId":%d,"type":"EXPENSE","amountMinor":%d,
              "frequency":"MONTHLY","dayOfMonth":%d,"startsOn":"%s","matchPattern":"%s"}"""
-            .formatted(name, biezace, categoryId, amountMinor, startsOn.getDayOfMonth(),
+            .formatted(name, currentAccount, categoryId, amountMinor, startsOn.getDayOfMonth(),
                 startsOn, matchPattern);
         String response = mockMvc.perform(post("/finance/api/v1/recurring-rules")
                 .contentType(MediaType.APPLICATION_JSON).content(body))
@@ -302,11 +302,11 @@ class AutomationIntegrationTest {
 
     private long createIncome(long accountId, String bookedOn, long amountMinor) throws Exception {
 
-        long przychod = createCategory("Zwroty", "INCOME");
+        long incomeCategory = createCategory("Zwroty", "INCOME");
         String body = """
             {"type":"INCOME","bookedOn":"%s","amountMinor":%d,"currency":"PLN",
              "accountId":%d,"categoryId":%d}"""
-            .formatted(bookedOn, amountMinor, accountId, przychod);
+            .formatted(bookedOn, amountMinor, accountId, incomeCategory);
         return createTransaction(body);
     }
 

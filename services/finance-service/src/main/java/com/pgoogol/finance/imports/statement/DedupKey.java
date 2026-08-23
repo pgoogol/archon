@@ -1,5 +1,6 @@
 package com.pgoogol.finance.imports.statement;
 
+import org.apache.commons.lang3.StringUtils;
 import com.pgoogol.finance.common.ExceptionMessageConstants;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -8,6 +9,7 @@ import java.time.LocalDate;
 import java.util.HexFormat;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -55,10 +57,11 @@ public class DedupKey {
 
         if (Objects.isNull(description)) {
 
-            return "";
+            return StringUtils.EMPTY;
         }
         String trimmed = description.trim();
-        String collapsed = SPACES.matcher(trimmed).replaceAll(" ");
+        Matcher spaces = SPACES.matcher(trimmed);
+        String collapsed = spaces.replaceAll(" ");
         return collapsed.toUpperCase(Locale.ROOT);
     }
 

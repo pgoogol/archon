@@ -19,7 +19,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class ReconciliationServiceTest {
 
-    private static final LocalDate KONIEC = LocalDate.of(2026, 1, 31);
+    private static final LocalDate PERIOD_END = LocalDate.of(2026, 1, 31);
 
     @Mock
     private AccountRepository accountRepository;
@@ -29,8 +29,8 @@ class ReconciliationServiceTest {
     void reconcile_whenStatementBalanceMatchesComputed_reportsMatch() {
 
         // given
-        ImportBatch batch = batch(495501L, KONIEC);
-        when(accountRepository.findBalanceMinorAsOf(7L, KONIEC)).thenReturn(Optional.of(495501L));
+        ImportBatch batch = batch(495501L, PERIOD_END);
+        when(accountRepository.findBalanceMinorAsOf(7L, PERIOD_END)).thenReturn(Optional.of(495501L));
 
         // when
         ReconciliationService.Reconciliation result = service().reconcile(batch);
@@ -45,8 +45,8 @@ class ReconciliationServiceTest {
     void reconcile_whenBalancesDiffer_showsDifferenceInsteadOfFixingIt() {
 
         // given: w bazie brakuje 45,00 względem wyciągu
-        ImportBatch batch = batch(495501L, KONIEC);
-        when(accountRepository.findBalanceMinorAsOf(7L, KONIEC)).thenReturn(Optional.of(491001L));
+        ImportBatch batch = batch(495501L, PERIOD_END);
+        when(accountRepository.findBalanceMinorAsOf(7L, PERIOD_END)).thenReturn(Optional.of(491001L));
 
         // when
         ReconciliationService.Reconciliation result = service().reconcile(batch);
@@ -63,7 +63,7 @@ class ReconciliationServiceTest {
     void reconcile_whenStatementHasNoClosingBalance_reportsNotAvailable() {
 
         // given
-        ImportBatch batch = batch(null, KONIEC);
+        ImportBatch batch = batch(null, PERIOD_END);
 
         // when
         ReconciliationService.Reconciliation result = service().reconcile(batch);
@@ -94,8 +94,8 @@ class ReconciliationServiceTest {
     void reconcile_whenAccountHasNoBalanceYet_assumesZero() {
 
         // given
-        ImportBatch batch = batch(1000L, KONIEC);
-        when(accountRepository.findBalanceMinorAsOf(7L, KONIEC)).thenReturn(Optional.empty());
+        ImportBatch batch = batch(1000L, PERIOD_END);
+        when(accountRepository.findBalanceMinorAsOf(7L, PERIOD_END)).thenReturn(Optional.empty());
 
         // when
         ReconciliationService.Reconciliation result = service().reconcile(batch);

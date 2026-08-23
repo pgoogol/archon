@@ -1,7 +1,9 @@
 package com.pgoogol.finance.categorization.match;
 
+import org.apache.commons.lang3.StringUtils;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -34,10 +36,11 @@ public class TextMatcher {
 
         if (Objects.isNull(value)) {
 
-            return "";
+            return StringUtils.EMPTY;
         }
         String trimmed = value.trim();
-        String collapsed = SPACES.matcher(trimmed).replaceAll(" ");
+        Matcher spaces = SPACES.matcher(trimmed);
+        String collapsed = spaces.replaceAll(" ");
         return collapsed.toUpperCase(Locale.ROOT);
     }
 }
