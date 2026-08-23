@@ -1,0 +1,37 @@
+# Nakładka: front w kontenerze, serwisy backendowe na hoście.
+#
+# Wariant na pracę nad backendem bez przebudowy frontu — front stoi w obrazie
+# nginx dokładnie takim, jaki idzie na serwer, a serwisy odpala się z IDE albo
+# przez `./mvnw spring-boot:run -Dspring-boot.run.profiles=local`, z debuggerem
+# i hot swapem.
+#
+#   docker compose -f deploy/compose/docker-compose.yml \
+#                  -f deploy/compose/docker-compose.web-only.yml \
+#                  --profile full up -d --build --no-deps web
+#
+# `--no-deps` jest konieczne: w bazowym pliku `web` czeka na zdrowe kontenery
+# music-service i finance-service, a tutaj tych kontenerów nie ma wcale.
+# Bazę podnosi się osobno: `docker compose -f deploy/compose/docker-compose.yml up -d`.
+#
+# Front nadal woła adresy względne — zmienia się wyłącznie to, dokąd nginx
+# przekazuje /music/api/v1 i /finance/api/v1.
+#
+# UWAGA: przebudowa obrazu po każdej zmianie w apps/web. Do pracy nad samym
+# frontem szybszy jest `pnpm --filter web dev` — Vite proxuje na te same porty.
+
+services:
+
+  web:
+    extra_hosts:
+      # host.docker.internal rozwiązuje się z automatu tylko na Docker Desktop;
+      # na Linuksie wpis z host-gateway jest jedynym sposobem, żeby kontener
+      # trafił na porty hosta. Na Desktopie ten wpis nic nie psuje.
+      - "host.docker.internal:host-gateway"
+    environment:
+      # nginx podstawia te adresy do proxy_pass przy starcie kontenera i wtedy
+      # rozwiązuje nazwę — sam serwis nie musi jeszcze słuchać, ale nazwa musi
+      # być rozwiązywalna, inaczej nginx nie wstanie.
+      MUSIC_API_HOST: host.docker.internal
+      MUSIC_API_PORT: "8080"
+      FINANCE_API_HOST: host.docker.internal
+      FINANCE_API_PORT: "8081"

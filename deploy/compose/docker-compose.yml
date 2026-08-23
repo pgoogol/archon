@@ -10,6 +10,9 @@
 #   docker compose -f deploy/compose/docker-compose.yml --profile full up -d --build
 #   front http://localhost:5173 · API http://localhost:8080
 #
+# Front w kontenerze, serwisy na hoście — nakładka `docker-compose.web-only.yml`,
+# komenda w jej nagłówku.
+#
 # UWAGA: Spotify wymaga zgodności redirect URI znak w znak i nie przyjmie
 # adresu w sieci lokalnej po HTTP, więc konto łączy się raz z laptopa po
 # loopbacku. Telefon w LAN korzysta z konta już połączonego — tokeny żyją
