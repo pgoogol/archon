@@ -41,6 +41,18 @@ describe('powłoka', () => {
     })
   })
 
+  it('podpis nad ekranem bierze z manifestu, a nie z własnego napisu', async () => {
+
+    render(<App />)
+    await screen.findByRole('heading', { name: feature.title })
+
+    // powłoka nie zna hasła żadnej domeny — gdyby je miała wpisane na sztywno,
+    // wisiałoby nad ekranami wszystkich pozostałych domen
+    if (feature.subtitle) {
+      expect(screen.getByText(feature.subtitle)).toBeInTheDocument()
+    }
+  })
+
   it('przełączenie zakładką zapisuje w adresie domenę razem z ekranem', async () => {
 
     const user = userEvent.setup()
@@ -64,11 +76,18 @@ describe('powłoka', () => {
     expect(await screen.findByRole('heading', { name: feature.title })).toBeInTheDocument()
   })
 
-  it('przy jednej domenie nie pokazuje przełącznika domen', async () => {
+  it('przełącznik domen wymienia każdą pozycję rejestru', async () => {
 
+    // Powłoka pokazuje przełącznik dopiero przy drugiej domenie. Lista bierze
+    // się z rejestru, nie z własnego spisu — inaczej dołożenie domeny
+    // wymagałoby zmiany w powłoce, a to jest dokładnie ta zależność,
+    // której cały ten układ ma nie mieć.
     render(<App />)
     await screen.findByRole('heading', { name: feature.title })
 
-    expect(screen.queryByRole('navigation', { name: 'domeny' })).not.toBeInTheDocument()
+    const switcher = screen.getByRole('navigation', { name: 'domeny' })
+    features.forEach((entry) => {
+      expect(switcher).toHaveTextContent(entry.title)
+    })
   })
 })

@@ -3,6 +3,7 @@ package com.pgoogol.music.ingestion;
 import com.pgoogol.music.catalog.GenreFamily;
 import com.pgoogol.music.catalog.GenreFamilyMapper;
 import com.pgoogol.music.common.ValidationException;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.springframework.stereotype.Component;
@@ -26,6 +27,7 @@ import java.util.Optional;
  * trafia do {@link RowError} i nie przerywa importu.
  */
 @Component
+@RequiredArgsConstructor
 public class MetricsCsvParser {
 
     private static final List<String> ID_COLUMNS =
@@ -61,17 +63,6 @@ public class MetricsCsvParser {
     private final MetricValueParser valueParser;
     private final GenreFamilyMapper genreFamilyMapper;
 
-    public MetricsCsvParser(CsvReader csvReader, CsvHeaderResolver headerResolver,
-                            SpotifyTrackIdParser trackIdParser, MetricValueParser valueParser,
-                            GenreFamilyMapper genreFamilyMapper) {
-
-        this.csvReader = csvReader;
-        this.headerResolver = headerResolver;
-        this.trackIdParser = trackIdParser;
-        this.valueParser = valueParser;
-        this.genreFamilyMapper = genreFamilyMapper;
-    }
-
     public MetricsParseResult parse(InputStream input) {
 
         Objects.requireNonNull(input, "input");
@@ -86,6 +77,7 @@ public class MetricsCsvParser {
             csvReader.forEachRow(csvParser, row -> parseRow(row, headers, rows, errors));
             return new MetricsParseResult(List.copyOf(rows), List.copyOf(errors));
         } catch (IOException | UncheckedIOException ex) {
+
             throw new ValidationException("CSV_UNREADABLE", "Nie udało się odczytać pliku CSV");
         }
     }
@@ -99,11 +91,13 @@ public class MetricsCsvParser {
         Optional<String> isrc = headerResolver.value(row, headers, ISRC_COLUMNS)
             .map(value -> value.replace("-", "").toUpperCase(Locale.ROOT));
         if (spotifyId.isEmpty() && isrc.isEmpty()) {
+
             errors.add(new RowError(line, "brak Spotify Track Id i ISRC — nie ma po czym dopasować"));
             return;
         }
         TrackMetrics metrics = readMetrics(row, headers);
         if (metrics.isEmpty()) {
+
             errors.add(new RowError(line, "wiersz bez metryk"));
             return;
         }
@@ -150,6 +144,7 @@ public class MetricsCsvParser {
 
         if (headerResolver.find(headers, ID_COLUMNS).isEmpty()
             && headerResolver.find(headers, ISRC_COLUMNS).isEmpty()) {
+
             throw new ValidationException("CSV_MISSING_COLUMNS",
                 "Plik CSV nie zawiera kolumny identyfikującej utwór: Spotify Track Id albo ISRC");
         }
@@ -160,6 +155,7 @@ public class MetricsCsvParser {
         boolean anyMetric = METRIC_COLUMNS.stream()
             .anyMatch(columns -> headerResolver.find(headers, columns).isPresent());
         if (!anyMetric) {
+
             throw new ValidationException("CSV_MISSING_COLUMNS",
                 "Plik CSV nie zawiera żadnej kolumny z metrykami (BPM, Key, Camelot, Energy, Dance…)");
         }

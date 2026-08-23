@@ -39,15 +39,18 @@ public class MusicBrainzIsrcCache {
     }
 
     public String getIsrc() {
+
         return isrc;
     }
 
     @Nullable
     public String getMbid() {
+
         return mbid;
     }
 
     public Instant getResolvedAt() {
+
         return resolvedAt;
     }
 }

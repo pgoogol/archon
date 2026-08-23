@@ -45,6 +45,7 @@ class CamelotKeyTest {
     @Test
     @DisplayName("brak trybu czyta jako dur — tak samo jak normalizacja importu")
     void shouldTreatMissingModeAsMajor() {
+
         assertThat(CamelotKey.ofMusicalKey("C")).contains(new CamelotKey(8, false));
     }
 
@@ -52,6 +53,7 @@ class CamelotKeyTest {
     @ValueSource(strings = {"", "   ", "H minor", "8A", "123", "minor"})
     @DisplayName("odrzuca wejście, które nie jest tonacją")
     void shouldRejectNonKeys(String raw) {
+
         assertThat(CamelotKey.ofMusicalKey(raw)).isEmpty();
     }
 
@@ -59,6 +61,7 @@ class CamelotKeyTest {
     @CsvSource({"8A, 8, true", "12b, 12, false", " 1A , 1, true", "10B, 10, false"})
     @DisplayName("czyta etykietę koła, także z odstępami i małą literą")
     void shouldParseLabel(String raw, int number, boolean minor) {
+
         assertThat(CamelotKey.ofLabel(raw)).contains(new CamelotKey(number, minor));
     }
 
@@ -66,6 +69,7 @@ class CamelotKeyTest {
     @ValueSource(strings = {"0A", "13A", "8C", "A8", "8"})
     @DisplayName("odrzuca etykietę spoza koła")
     void shouldRejectLabelOutsideWheel(String raw) {
+
         assertThat(CamelotKey.ofLabel(raw)).isEmpty();
     }
 

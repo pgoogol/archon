@@ -53,6 +53,7 @@ public class GenreFamilyMapper {
             .filter(value -> !value.isBlank())
             .collect(Collectors.joining(", "));
         if (genres.isBlank()) {
+
             return Optional.empty();
         }
         return RULES.stream()
@@ -64,6 +65,7 @@ public class GenreFamilyMapper {
     private String normalize(@Nullable String raw) {
 
         if (Objects.isNull(raw)) {
+
             return "";
         }
         String withoutDiacritics = DIACRITICS.matcher(
@@ -74,6 +76,7 @@ public class GenreFamilyMapper {
     private record Rule(GenreFamily family, List<String> keywords) {
 
         boolean matches(String genres) {
+
             return keywords.stream().anyMatch(genres::contains);
         }
     }

@@ -79,7 +79,7 @@ class OptimisticLockingIntegrationTest {
     @DisplayName("wpis biblioteki oddaje swoją wersję, a zapis ją podbija")
     void libraryEntry_exposesAndAdvancesVersion() throws Exception {
 
-        mockMvc.perform(get("/api/library/tracks/sp-vivir"))
+        mockMvc.perform(get("/music/api/v1/library/tracks/sp-vivir"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.version").value(0));
 
@@ -100,7 +100,7 @@ class OptimisticLockingIntegrationTest {
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.errorCode").value("RESOURCE_MODIFIED"));
 
-        mockMvc.perform(get("/api/library/tracks/sp-vivir"))
+        mockMvc.perform(get("/music/api/v1/library/tracks/sp-vivir"))
             .andExpect(jsonPath("$.djNotes").value("notatka z pierwszej karty"));
     }
 
@@ -108,7 +108,7 @@ class OptimisticLockingIntegrationTest {
     @DisplayName("PATCH bez wersji nie przechodzi — kontrakt jej wymaga")
     void libraryEntry_whenVersionMissing_returns400() throws Exception {
 
-        mockMvc.perform(patch("/api/library/tracks/sp-vivir")
+        mockMvc.perform(patch("/music/api/v1/library/tracks/sp-vivir")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"djNotes\": \"bez wersji\"}"))
             .andExpect(status().isBadRequest());
@@ -148,7 +148,7 @@ class OptimisticLockingIntegrationTest {
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.errorCode").value("RESOURCE_MODIFIED"));
 
-        mockMvc.perform(get("/api/playlists/" + playlistId))
+        mockMvc.perform(get("/music/api/v1/playlists/" + playlistId))
             .andExpect(jsonPath("$.tracks[0].track.spotifyId").value("sp-carnaval"));
     }
 
@@ -158,12 +158,12 @@ class OptimisticLockingIntegrationTest {
 
         long playlistId = createPlaylist();
 
-        mockMvc.perform(patch("/api/playlists/" + playlistId)
+        mockMvc.perform(patch("/music/api/v1/playlists/" + playlistId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\": \"Wesele\", \"version\": 0}"))
             .andExpect(status().isOk());
 
-        mockMvc.perform(patch("/api/playlists/" + playlistId)
+        mockMvc.perform(patch("/music/api/v1/playlists/" + playlistId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\": \"Osiemnastka\", \"version\": 0}"))
             .andExpect(status().isConflict())
@@ -173,7 +173,7 @@ class OptimisticLockingIntegrationTest {
     private org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder patchNotes(
             String notes, int version) {
 
-        return patch("/api/library/tracks/sp-vivir")
+        return patch("/music/api/v1/library/tracks/sp-vivir")
             .contentType(MediaType.APPLICATION_JSON)
             .content("{\"djNotes\": \"%s\", \"version\": %d}".formatted(notes, version));
     }
@@ -181,7 +181,7 @@ class OptimisticLockingIntegrationTest {
     private org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder reorder(
             long playlistId, String first, String second, int version) {
 
-        return put("/api/playlists/%d/tracks".formatted(playlistId))
+        return put("/music/api/v1/playlists/%d/tracks".formatted(playlistId))
             .contentType(MediaType.APPLICATION_JSON)
             .content("{\"spotifyIds\": [\"%s\", \"%s\"], \"version\": %d}"
                 .formatted(first, second, version));
@@ -189,7 +189,7 @@ class OptimisticLockingIntegrationTest {
 
     private long createPlaylist() throws Exception {
 
-        String body = mockMvc.perform(post("/api/playlists")
+        String body = mockMvc.perform(post("/music/api/v1/playlists")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\": \"Set\"}"))
             .andExpect(status().isCreated())
@@ -199,7 +199,7 @@ class OptimisticLockingIntegrationTest {
 
     private void addTrack(long playlistId, String spotifyId) throws Exception {
 
-        mockMvc.perform(post("/api/playlists/%d/tracks".formatted(playlistId))
+        mockMvc.perform(post("/music/api/v1/playlists/%d/tracks".formatted(playlistId))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"spotifyId\": \"%s\"}".formatted(spotifyId)))
             .andExpect(status().isOk());
@@ -207,7 +207,7 @@ class OptimisticLockingIntegrationTest {
 
     private int playlistVersion(long playlistId) throws Exception {
 
-        String body = mockMvc.perform(get("/api/playlists/" + playlistId))
+        String body = mockMvc.perform(get("/music/api/v1/playlists/" + playlistId))
             .andExpect(status().isOk())
             .andReturn().getResponse().getContentAsString();
         return objectMapper.readTree(body).get("version").asInt();

@@ -428,15 +428,18 @@ class PlaylistServiceTest {
     }
 
     private TrackCatalog track(String spotifyId) {
+
         return TrackCatalogFixtures.skeletonTrack(spotifyId);
     }
 
     private void givenPlaylist(Playlist playlist) {
+
         given(playlistRepository.findById(PLAYLIST_ID)).willReturn(Optional.of(playlist));
     }
 
     /** Plan po zmianie składu — treść nieistotna dla testów samej mutacji. */
     private void givenEmptyPlan() {
+
         given(playlistTrackRepository.findAllWithTrackByPlaylistId(PLAYLIST_ID))
             .willReturn(List.of());
     }

@@ -38,12 +38,14 @@ jobs:
       - name: mvnw verify
         run: ./mvnw -T 1C -B --no-transfer-progress verify
 
+      # ścieżka obejmuje każdy serwis, żeby dołożenie kolejnego nie wymagało
+      # pamiętania o tym kroku
       - name: Raport pokrycia
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: jacoco
-          path: services/music-service/target/site/jacoco/
+          path: services/*/target/site/jacoco/
           if-no-files-found: ignore
 
   front:
@@ -140,11 +142,11 @@ jobs:
         image: postgres:16-alpine
         env:
           POSTGRES_DB: music
-          POSTGRES_USER: music
-          POSTGRES_PASSWORD: music
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: qwerty
         ports: ['5432:5432']
         options: >-
-          --health-cmd "pg_isready -U music -d music"
+          --health-cmd "pg_isready -U postgres -d music"
           --health-interval 5s --health-timeout 3s --health-retries 10
     steps:
       - uses: actions/checkout@v4

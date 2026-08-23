@@ -140,6 +140,7 @@ public class EnrichmentJobConfig {
 
         Set<FieldGroup> fieldGroups = parseFields(fields);
         return chunk -> {
+
             List<TrackCatalog> tracks = trackCatalogRepository.findAllById(List.copyOf(chunk.getItems()));
             trackEnricher.enrich(tracks, fieldGroups);
             trackCatalogRepository.saveAll(tracks);
@@ -160,6 +161,7 @@ public class EnrichmentJobConfig {
     static Set<FieldGroup> parseFields(String fields) {
 
         if (Objects.isNull(fields) || fields.isBlank()) {
+
             throw new ValidationException("ENRICH_FIELDS_EMPTY", "Brak grup pól do wzbogacenia");
         }
         return Arrays.stream(fields.split(","))
@@ -171,6 +173,7 @@ public class EnrichmentJobConfig {
     private static List<String> parseIds(String spotifyIds) {
 
         if (Objects.isNull(spotifyIds) || spotifyIds.isBlank()) {
+
             return List.of();
         }
         return Arrays.stream(spotifyIds.split(",")).map(String::strip).toList();
@@ -181,6 +184,7 @@ public class EnrichmentJobConfig {
                                       Long outdatedVersion) {
 
         return switch (scope) {
+
             case MISSING -> "where " + missingCondition(fields);
             case OUTDATED -> "where " + outdatedCondition(outdatedModel, outdatedVersion);
             case SINGLE, SELECTED -> "where spotify_id in (" + quotedIds(ids) + ")";
@@ -196,6 +200,7 @@ public class EnrichmentJobConfig {
     static String outdatedCondition(String model, Long version) {
 
         if (Objects.isNull(model) || !SAFE_MODEL.matcher(model).matches()) {
+
             throw new ValidationException("ENRICH_BAD_MODEL",
                 "Nieprawidłowa nazwa modelu w parametrach joba: '%s'".formatted(model));
         }
@@ -210,6 +215,7 @@ public class EnrichmentJobConfig {
 
         return fields.stream()
             .map(group -> switch (group) {
+
                 case METADATA -> METADATA_MISSING_SQL;
                 case AUDIO -> AUDIO_MISSING_SQL;
                 case AI -> AI_MISSING_SQL;
@@ -220,6 +226,7 @@ public class EnrichmentJobConfig {
     private static String quotedIds(List<String> ids) {
 
         if (ids.isEmpty()) {
+
             throw new ValidationException("ENRICH_IDS_REQUIRED",
                 "Zakres SINGLE/SELECTED wymaga listy spotify_id");
         }
@@ -228,6 +235,7 @@ public class EnrichmentJobConfig {
             .filter(id -> !SAFE_SPOTIFY_ID.matcher(id).matches())
             .findFirst()
             .ifPresent(bad -> {
+
                 throw new ValidationException("ENRICH_BAD_ID",
                     "Nieprawidłowy spotify_id: '%s'".formatted(bad));
             });

@@ -5,6 +5,7 @@ import com.pgoogol.music.catalog.TrackCatalogRepository;
 import com.pgoogol.music.common.ConflictException;
 import com.pgoogol.music.common.NotFoundException;
 import com.pgoogol.music.common.ValidationException;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -21,6 +22,7 @@ import java.util.Objects;
  * dane deterministyczne deduplikują koszt wzbogacania).
  */
 @Service
+@RequiredArgsConstructor
 public class LibraryService {
 
     private static final Logger log = LoggerFactory.getLogger(LibraryService.class);
@@ -31,17 +33,9 @@ public class LibraryService {
     private final TrackCatalogRepository trackCatalogRepository;
     private final LibraryOverviewRepository libraryOverviewRepository;
 
-    public LibraryService(LibraryEntryRepository libraryEntryRepository,
-                          TrackCatalogRepository trackCatalogRepository,
-                          LibraryOverviewRepository libraryOverviewRepository) {
-
-        this.libraryEntryRepository = libraryEntryRepository;
-        this.trackCatalogRepository = trackCatalogRepository;
-        this.libraryOverviewRepository = libraryOverviewRepository;
-    }
-
     @Transactional(readOnly = true)
     public Page<LibraryEntry> list(Pageable pageable) {
+
         return libraryEntryRepository.findPageWithTrack(pageable);
     }
 
@@ -60,12 +54,14 @@ public class LibraryService {
 
     @Transactional(readOnly = true)
     public LibraryEntry get(String spotifyId) {
+
         return requireEntry(spotifyId);
     }
 
     /** Custom tagi użyte w bibliotece — podpowiedzi filtra wyszukiwarki (M3.2). */
     @Transactional(readOnly = true)
     public List<String> listTags() {
+
         return libraryEntryRepository.findDistinctTags();
     }
 
@@ -75,11 +71,13 @@ public class LibraryService {
 
         Objects.requireNonNull(spotifyId, "spotifyId");
         if (libraryEntryRepository.existsByTrackSpotifyId(spotifyId)) {
+
             throw new ConflictException("LIBRARY_ENTRY_EXISTS",
                 "Utwór '%s' jest już w bibliotece".formatted(spotifyId));
         }
         TrackCatalog track = trackCatalogRepository.findById(spotifyId)
             .orElseGet(() -> {
+
                 TrackCatalog skeleton = new TrackCatalog(spotifyId, title, artist);
                 skeleton.setAlbum(album);
                 return trackCatalogRepository.save(skeleton);
@@ -96,15 +94,19 @@ public class LibraryService {
         LibraryEntry entry = requireEntry(spotifyId);
         requireCurrentVersion(entry, update.expectedVersion());
         if (Objects.nonNull(update.djNotes())) {
+
             entry.setDjNotes(update.djNotes().isBlank() ? null : update.djNotes());
         }
         if (Objects.nonNull(update.customTags())) {
+
             entry.setCustomTags(update.customTags().isEmpty() ? null : List.copyOf(update.customTags()));
         }
         if (Objects.nonNull(update.rating())) {
+
             entry.setRating(normalizedRating(update.rating()));
         }
         if (Objects.nonNull(update.djSlotOverride())) {
+
             entry.setDjSlotOverride(update.djSlotOverride().isBlank() ? null : update.djSlotOverride());
         }
         return entry;
@@ -134,6 +136,7 @@ public class LibraryService {
     private void requireCurrentVersion(LibraryEntry entry, int expectedVersion) {
 
         if (entry.getVersion() != expectedVersion) {
+
             throw new ConflictException("RESOURCE_MODIFIED",
                 ("""
                     Wpis zmienił się w innym miejscu (wersja %d, przysłano %d) — \
@@ -145,9 +148,11 @@ public class LibraryService {
     private Integer normalizedRating(int rating) {
 
         if (rating == 0) {
+
             return null;
         }
         if (rating < MIN_RATING || rating > MAX_RATING) {
+
             throw new ValidationException("RATING_OUT_OF_RANGE",
                 "Rating musi być w zakresie %d–%d (0 czyści ocenę)".formatted(MIN_RATING, MAX_RATING));
         }

@@ -80,6 +80,7 @@ public class EnrichmentService {
             .addString("spotifyIds", String.join(",", spotifyIds))
             .addString("requestedAt", Instant.now().toString());
         if (scope == EnrichmentScope.OUTDATED) {
+
             // model i wersja wchodzą w tożsamość joba, żeby restart dokończył
             // dokładnie ten zakres, a nie ten wynikający z konfiguracji po zmianie
             parameters.addString("outdatedModel", requiredModel());
@@ -107,6 +108,7 @@ public class EnrichmentService {
         Objects.requireNonNull(scope, "scope");
         validate(scope, fields, spotifyIds);
         long trackCount = switch (scope) {
+
             case SINGLE, SELECTED -> spotifyIds.size();
             case MISSING -> trackCatalogRepository.countMissingForFields(
                 fields.contains(FieldGroup.METADATA),
@@ -133,6 +135,7 @@ public class EnrichmentService {
 
         JobExecution failed = requireExecution(executionId);
         if (!RESTARTABLE_STATUSES.contains(failed.getStatus().name())) {
+
             throw new ValidationException("JOB_NOT_RESTARTABLE",
                 "Wykonanie %d ma status %s — restart możliwy tylko dla FAILED/STOPPED"
                     .formatted(executionId, failed.getStatus()));
@@ -143,6 +146,7 @@ public class EnrichmentService {
     }
 
     public EnrichmentJobStatus status(long executionId) {
+
         return EnrichmentJobStatus.from(requireExecution(executionId));
     }
 
@@ -151,6 +155,7 @@ public class EnrichmentService {
      * szczegóły w {@link EnrichmentJobHistory}.
      */
     public List<EnrichmentJobStatus> listJobs(int limit) {
+
         return jobHistory.recent(EnrichmentJobConfig.JOB_NAME, Math.max(1, limit));
     }
 
@@ -175,6 +180,7 @@ public class EnrichmentService {
     private void requireWithinLimit(EnrichmentScope scope, EnrichmentEstimate estimate) {
 
         if (estimate.withinLimit()) {
+
             return;
         }
         String cost = Optional.ofNullable(estimate.estimatedCost())
@@ -192,6 +198,7 @@ public class EnrichmentService {
 
         String model = llmProperties.model();
         if (Objects.isNull(model) || model.isBlank()) {
+
             throw new ValidationException("LLM_MODEL_NOT_CONFIGURED",
                 "Zakres OUTDATED porównuje utwory z bieżącym modelem — ustaw llm.model (LLM_MODEL)");
         }
@@ -201,11 +208,13 @@ public class EnrichmentService {
     private JobExecution launch(JobParameters parameters) {
 
         try {
+
             return asyncJobLauncher.run(enrichmentJob, parameters);
         } catch (org.springframework.batch.core.launch.JobRestartException
                  | org.springframework.batch.core.launch.JobExecutionAlreadyRunningException
                  | org.springframework.batch.core.launch.JobInstanceAlreadyCompleteException
                  | org.springframework.batch.core.job.parameters.InvalidJobParametersException ex) {
+
             throw new IllegalStateException("Nie udało się uruchomić joba wzbogacania", ex);
         }
     }
@@ -222,22 +231,29 @@ public class EnrichmentService {
     private void validate(EnrichmentScope scope, Set<FieldGroup> fields, List<String> spotifyIds) {
 
         if (Objects.isNull(fields) || fields.isEmpty()) {
+
             throw new ValidationException("ENRICH_FIELDS_EMPTY", "Wybierz co najmniej jedną grupę pól");
         }
         Objects.requireNonNull(spotifyIds, "spotifyIds");
         switch (scope) {
+
             case SINGLE -> {
+
                 if (spotifyIds.size() != 1) {
+
                     throw new ValidationException("ENRICH_IDS_REQUIRED",
                         "Zakres SINGLE wymaga dokładnie jednego spotify_id");
                 }
             }
             case SELECTED -> {
+
                 if (spotifyIds.isEmpty()) {
+
                     throw new ValidationException("ENRICH_IDS_REQUIRED",
                         "Zakres SELECTED wymaga listy spotify_id");
                 }
                 if (spotifyIds.size() > MAX_SELECTED_TRACKS) {
+
                     // to nie jest limit kosztowy, tylko szerokość kolumny
                     // BATCH_JOB_EXECUTION_PARAMS.PARAMETER_VALUE: lista id-ków jedzie
                     // w parametrze joba, żeby restart dokończył dokładnie ten zakres
@@ -251,10 +267,12 @@ public class EnrichmentService {
             }
             case MISSING -> requireNoIds(scope, spotifyIds);
             case OUTDATED -> {
+
                 requireNoIds(scope, spotifyIds);
                 // fakty nie zależą od modelu ani promptu, więc ich przeliczanie
                 // byłoby wywołaniem cudzego API bez powodu
                 if (!EnumSet.copyOf(fields).equals(EnumSet.of(FieldGroup.AI))) {
+
                     throw new ValidationException("ENRICH_OUTDATED_AI_ONLY",
                         "Zakres OUTDATED przelicza wyłącznie estymaty — wybierz samą grupę AI");
                 }
@@ -264,6 +282,7 @@ public class EnrichmentService {
             .filter(id -> !EnrichmentJobConfig.SAFE_SPOTIFY_ID.matcher(id).matches())
             .findFirst()
             .ifPresent(bad -> {
+
                 throw new ValidationException("ENRICH_BAD_ID",
                     "Nieprawidłowy spotify_id: '%s'".formatted(bad));
             });
@@ -272,6 +291,7 @@ public class EnrichmentService {
     private void requireNoIds(EnrichmentScope scope, List<String> spotifyIds) {
 
         if (!spotifyIds.isEmpty()) {
+
             throw new ValidationException("ENRICH_IDS_UNEXPECTED",
                 "Zakres %s nie przyjmuje listy spotify_id".formatted(scope));
         }

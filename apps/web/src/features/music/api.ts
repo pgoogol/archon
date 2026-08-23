@@ -1,5 +1,5 @@
 // Klient API domeny muzycznej. Typy DTO NIE są tu pisane — pochodzą z kontraktu
-// (contracts/openapi/music.yaml) przez @archon/api-client. Ten plik trzyma już
+// (contracts/openapi/music.yaml) przez @archon/api-client/music. Ten plik trzyma już
 // tylko wywołania endpointów i kształty wejściowe samego frontu.
 
 import type {
@@ -33,7 +33,7 @@ import type {
   SpotifyAccountResponse,
   TrackMetricsResponse,
   UpdateLibraryEntryRequest,
-} from '@archon/api-client'
+} from '@archon/api-client/music'
 
 export type {
   AddLibraryTrackRequest,
@@ -85,7 +85,7 @@ export type {
   TrackMetricsResponse,
   TrackResponse,
   UpdateLibraryEntryRequest,
-} from '@archon/api-client'
+} from '@archon/api-client/music'
 
 // nazwy, pod którymi front znał te DTO wcześniej
 export type {
@@ -96,7 +96,7 @@ export type {
   SoundResponse as OverviewSoundResponse,
   TimelineResponse as OverviewTimelineResponse,
   TasteResponse as OverviewTasteResponse,
-} from '@archon/api-client'
+} from '@archon/api-client/music'
 
 /** Dane prywatne DJ-a pokazywane w wierszu biblioteki (M5.6) — reszta w szufladzie. */
 /**
@@ -222,141 +222,141 @@ export const api = {
         query.set(key, String(value))
       }
     })
-    return request(`/api/catalog/tracks?${query}`)
+    return request(`/music/api/v1/catalog/tracks?${query}`)
   },
 
   libraryOverview(): Promise<LibraryOverviewResponse> {
-    return request('/api/library/overview')
+    return request('/music/api/v1/library/overview')
   },
 
   proposeSet(body: SetProposalRequest): Promise<SetProposalResponse> {
-    return request('/api/sets/propose', jsonInit('POST', body))
+    return request('/music/api/v1/sets/propose', jsonInit('POST', body))
   },
 
   /** Dalszy ciąg gotowego setu (M4.4) — nic nie zapisuje, tak jak generator. */
   fillSet(playlistId: number, body: SetFillRequest): Promise<SetFillResponse> {
-    return request(`/api/sets/${playlistId}/fill`, jsonInit('POST', body))
+    return request(`/music/api/v1/sets/${playlistId}/fill`, jsonInit('POST', body))
   },
 
   /** Kandydaci na jedno miejsce w secie (M4.4) — bez losowania, uszeregowani. */
   suggestForSet(playlistId: number, body: SetSuggestionRequest): Promise<SetSuggestionResponse> {
-    return request(`/api/sets/${playlistId}/suggest`, jsonInit('POST', body))
+    return request(`/music/api/v1/sets/${playlistId}/suggest`, jsonInit('POST', body))
   },
 
   metricsCoverage(): Promise<MetricsCoverageResponse> {
-    return request('/api/catalog/metrics-coverage')
+    return request('/music/api/v1/catalog/metrics-coverage')
   },
 
   /** Słownik custom tagów DJ-a — podpowiedzi filtra bibliotecznego (M3.2). */
   listTags(): Promise<string[]> {
-    return request('/api/library/tags')
+    return request('/music/api/v1/library/tags')
   },
 
   getLibraryEntry(spotifyId: string): Promise<LibraryEntryResponse> {
-    return request(`/api/library/tracks/${encodeURIComponent(spotifyId)}`)
+    return request(`/music/api/v1/library/tracks/${encodeURIComponent(spotifyId)}`)
   },
 
   updateLibraryEntry(
     spotifyId: string,
     body: UpdateLibraryEntryRequest,
   ): Promise<LibraryEntryResponse> {
-    return request(`/api/library/tracks/${encodeURIComponent(spotifyId)}`, jsonInit('PATCH', body))
+    return request(`/music/api/v1/library/tracks/${encodeURIComponent(spotifyId)}`, jsonInit('PATCH', body))
   },
 
   deleteLibraryEntry(spotifyId: string): Promise<void> {
-    return request(`/api/library/tracks/${encodeURIComponent(spotifyId)}`, { method: 'DELETE' })
+    return request(`/music/api/v1/library/tracks/${encodeURIComponent(spotifyId)}`, { method: 'DELETE' })
   },
 
   ingestFile(file: File): Promise<IngestFileResponse> {
     const form = new FormData()
     form.append('file', file)
-    return request('/api/ingest/file', { method: 'POST', body: form })
+    return request('/music/api/v1/ingest/file', { method: 'POST', body: form })
   },
 
   ingestMetrics(files: File[]): Promise<IngestMetricsResponse> {
     const form = new FormData()
     files.forEach((file) => form.append('file', file))
-    return request('/api/ingest/metrics', { method: 'POST', body: form })
+    return request('/music/api/v1/ingest/metrics', { method: 'POST', body: form })
   },
 
   /** 204 z backendu (utwór bez metryk) wraca jako undefined — patrz `request`. */
   getTrackMetrics(spotifyId: string): Promise<TrackMetricsResponse | undefined> {
-    return request(`/api/catalog/tracks/${encodeURIComponent(spotifyId)}/metrics`)
+    return request(`/music/api/v1/catalog/tracks/${encodeURIComponent(spotifyId)}/metrics`)
   },
 
   ingestPlaylist(url: string): Promise<IngestPlaylistResponse> {
-    return request('/api/ingest/playlist', jsonInit('POST', { url }))
+    return request('/music/api/v1/ingest/playlist', jsonInit('POST', { url }))
   },
 
   ingestMyPlaylists(): Promise<IngestMyPlaylistsResponse> {
-    return request('/api/ingest/my-playlists', { method: 'POST' })
+    return request('/music/api/v1/ingest/my-playlists', { method: 'POST' })
   },
 
   spotifyAccount(): Promise<SpotifyAccountResponse> {
-    return request('/api/auth/spotify/status')
+    return request('/music/api/v1/auth/spotify/status')
   },
 
   playlistRefreshStatus(): Promise<PlaylistRefreshStatusResponse> {
-    return request('/api/ingest/my-playlists/refresh-status')
+    return request('/music/api/v1/ingest/my-playlists/refresh-status')
   },
 
   listPlaylists(): Promise<PlaylistSummaryResponse[]> {
-    return request('/api/playlists')
+    return request('/music/api/v1/playlists')
   },
 
   getPlaylist(id: number): Promise<PlaylistResponse> {
-    return request(`/api/playlists/${id}`)
+    return request(`/music/api/v1/playlists/${id}`)
   },
 
   createPlaylist(name: string): Promise<PlaylistSummaryResponse> {
-    return request('/api/playlists', jsonInit('POST', { name }))
+    return request('/music/api/v1/playlists', jsonInit('POST', { name }))
   },
 
   renamePlaylist(id: number, name: string, version: number): Promise<PlaylistSummaryResponse> {
-    return request(`/api/playlists/${id}`, jsonInit('PATCH', { name, version }))
+    return request(`/music/api/v1/playlists/${id}`, jsonInit('PATCH', { name, version }))
   },
 
   deletePlaylist(id: number): Promise<void> {
-    return request(`/api/playlists/${id}`, { method: 'DELETE' })
+    return request(`/music/api/v1/playlists/${id}`, { method: 'DELETE' })
   },
 
   addPlaylistTrack(id: number, spotifyId: string): Promise<PlaylistResponse> {
-    return request(`/api/playlists/${id}/tracks`, jsonInit('POST', { spotifyId }))
+    return request(`/music/api/v1/playlists/${id}/tracks`, jsonInit('POST', { spotifyId }))
   },
 
   removePlaylistTrack(id: number, spotifyId: string): Promise<PlaylistResponse> {
-    return request(`/api/playlists/${id}/tracks/${encodeURIComponent(spotifyId)}`, {
+    return request(`/music/api/v1/playlists/${id}/tracks/${encodeURIComponent(spotifyId)}`, {
       method: 'DELETE',
     })
   },
 
   reorderPlaylist(id: number, spotifyIds: string[], version: number): Promise<PlaylistResponse> {
-    return request(`/api/playlists/${id}/tracks`, jsonInit('PUT', { spotifyIds, version }))
+    return request(`/music/api/v1/playlists/${id}/tracks`, jsonInit('PUT', { spotifyIds, version }))
   },
 
   exportPlaylist(id: number): Promise<PlaylistExportResponse> {
-    return request(`/api/playlists/${id}/export-to-spotify`, { method: 'POST' })
+    return request(`/music/api/v1/playlists/${id}/export-to-spotify`, { method: 'POST' })
   },
 
   startEnrichment(scope: string, fields: string[], spotifyIds: string[]): Promise<{ executionId: number }> {
-    return request('/api/enrich', jsonInit('POST', { scope, fields, spotifyIds }))
+    return request('/music/api/v1/enrich', jsonInit('POST', { scope, fields, spotifyIds }))
   },
 
   listJobs(limit = 10): Promise<EnrichJobResponse[]> {
-    return request(`/api/enrich/jobs?limit=${limit}`)
+    return request(`/music/api/v1/enrich/jobs?limit=${limit}`)
   },
 
   jobStatus(executionId: number): Promise<EnrichJobResponse> {
-    return request(`/api/enrich/jobs/${executionId}`)
+    return request(`/music/api/v1/enrich/jobs/${executionId}`)
   },
 
   /** Co dokładnie odpadło w danym przebiegu i dlaczego. */
   jobFailures(executionId: number, limit = 200): Promise<EnrichFailureResponse[]> {
-    return request(`/api/enrich/jobs/${executionId}/failures?limit=${limit}`)
+    return request(`/music/api/v1/enrich/jobs/${executionId}/failures?limit=${limit}`)
   },
 
   restartJob(executionId: number): Promise<{ executionId: number }> {
-    return request(`/api/enrich/jobs/${executionId}/restart`, { method: 'POST' })
+    return request(`/music/api/v1/enrich/jobs/${executionId}/restart`, { method: 'POST' })
   },
 
   estimateEnrichment(
@@ -364,10 +364,10 @@ export const api = {
     fields: string[],
     spotifyIds: string[],
   ): Promise<EnrichmentEstimateResponse> {
-    return request('/api/enrich/estimate', jsonInit('POST', { scope, fields, spotifyIds }))
+    return request('/music/api/v1/enrich/estimate', jsonInit('POST', { scope, fields, spotifyIds }))
   },
 
   missingCount(): Promise<MissingCountResponse> {
-    return request('/api/enrich/missing-count')
+    return request('/music/api/v1/enrich/missing-count')
   },
 }

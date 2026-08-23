@@ -3,6 +3,7 @@ package com.pgoogol.music.library;
 import com.pgoogol.music.catalog.CamelotKey;
 import com.pgoogol.music.library.LibraryOverview.Bucket;
 import com.pgoogol.music.library.LibraryOverview.MatrixCell;
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -25,6 +26,7 @@ import java.util.Optional;
  * a nie czymś do ukrycia.</p>
  */
 @Repository
+@RequiredArgsConstructor
 public class LibraryDistributionsRepository {
 
     private static final String NO_KEY = "BEZ TONACJI";
@@ -120,10 +122,6 @@ public class LibraryDistributionsRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public LibraryDistributionsRepository(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
-
     /** Wszystkie rozkłady spod wspólnego zapytania, kluczowane nazwą wymiaru. */
     public Map<String, List<Bucket>> byDimension() {
 
@@ -140,6 +138,7 @@ public class LibraryDistributionsRepository {
     public List<Bucket> bpmHistogram() {
 
         return jdbcTemplate.query(BPM_HISTOGRAM, (resultSet, index) -> {
+
             int bucket = resultSet.getInt("bucket");
             return new Bucket("%d–%d".formatted(bucket, bucket + 9), resultSet.getLong("total"));
         });
@@ -173,6 +172,7 @@ public class LibraryDistributionsRepository {
 
         Map<String, Long> byLabel = new LinkedHashMap<>();
         rawKeys.forEach(bucket -> {
+
             Optional<CamelotKey> key = NO_KEY.equals(bucket.label())
                 ? Optional.empty()
                 : CamelotKey.ofMusicalKey(bucket.label());
@@ -194,6 +194,7 @@ public class LibraryDistributionsRepository {
     }
 
     private Bucket bucket(ResultSet resultSet, int index) throws SQLException {
+
         return new Bucket(resultSet.getString("label"), resultSet.getLong("total"));
     }
 }

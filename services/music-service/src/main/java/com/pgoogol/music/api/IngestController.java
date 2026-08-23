@@ -12,6 +12,7 @@ import com.pgoogol.music.ingestion.PlaylistRefreshStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,8 +28,9 @@ import java.util.List;
 import java.util.Objects;
 
 @RestController
-@RequestMapping("/api/ingest")
+@RequestMapping("/music/api/v1/ingest")
 @Tag(name = "Ingestion", description = "Import utworów do biblioteki")
+@RequiredArgsConstructor
 public class IngestController {
 
     private final FileIngestionService fileIngestionService;
@@ -39,23 +41,6 @@ public class IngestController {
     private final PlaylistRefreshProperties playlistRefreshProperties;
     private final IngestApiMapper mapper;
 
-    public IngestController(FileIngestionService fileIngestionService,
-                            PlaylistIngestionService playlistIngestionService,
-                            MyPlaylistsIngestionService myPlaylistsIngestionService,
-                            MetricsBatchIngestionService metricsBatchIngestionService,
-                            PlaylistRefreshScheduler playlistRefreshScheduler,
-                            PlaylistRefreshProperties playlistRefreshProperties,
-                            IngestApiMapper mapper) {
-
-        this.playlistRefreshScheduler = playlistRefreshScheduler;
-        this.playlistRefreshProperties = playlistRefreshProperties;
-        this.fileIngestionService = fileIngestionService;
-        this.playlistIngestionService = playlistIngestionService;
-        this.myPlaylistsIngestionService = myPlaylistsIngestionService;
-        this.metricsBatchIngestionService = metricsBatchIngestionService;
-        this.mapper = mapper;
-    }
-
     @PostMapping(value = "/file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Import CSV do biblioteki",
         description = """
@@ -65,11 +50,14 @@ public class IngestController {
     public IngestFileResponse ingestFile(@RequestParam("file") MultipartFile file) {
 
         if (file.isEmpty()) {
+
             throw new ValidationException("FILE_EMPTY", "Przesłany plik jest pusty");
         }
         try (InputStream input = file.getInputStream()) {
+
             return mapper.toResponse(fileIngestionService.ingestFile(input));
         } catch (IOException ex) {
+
             throw new ValidationException("FILE_UNREADABLE", "Nie udało się odczytać przesłanego pliku");
         }
     }
@@ -86,6 +74,7 @@ public class IngestController {
     public IngestMetricsResponse ingestMetrics(@RequestParam("file") List<MultipartFile> files) {
 
         if (files.stream().allMatch(MultipartFile::isEmpty)) {
+
             throw new ValidationException("FILE_EMPTY", "Przesłany plik jest pusty");
         }
         List<NamedCsv> uploads = files.stream()
@@ -109,7 +98,7 @@ public class IngestController {
     @PostMapping("/my-playlists")
     @Operation(summary = "Import wszystkich własnych playlist połączonego konta (tryb C)",
         description = """
-            Wymaga połączonego konta Spotify (GET /api/auth/spotify/login). \
+            Wymaga połączonego konta Spotify (GET /music/api/v1/auth/spotify/login). \
             Playlisty obserwowane, ale cudze, są pomijane — importuj je po linku. \
             Playlista, która padła, nie przerywa przebiegu: wraca w `failed` \
             z powodem i wystarczy powtórzyć ją osobno.""")

@@ -20,6 +20,7 @@ public class LlmClientConfig {
     public LlmClient llmClient(LlmProperties properties, RestClient.Builder restClientBuilder) {
 
         return switch (properties.provider().toLowerCase(Locale.ROOT)) {
+
             case "anthropic" -> new AnthropicLlmClient(restClientBuilder, properties);
             case "openai", "openai-compatible" -> new OpenAiCompatibleLlmClient(restClientBuilder, properties);
             default -> throw new IllegalStateException(

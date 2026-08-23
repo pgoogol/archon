@@ -24,14 +24,14 @@ function bodyOf(call: unknown[]): Record<string, unknown> {
 }
 
 function proposeCalls() {
-  return fetchMock.mock.calls.filter((call) => String(call[0]).includes('/api/sets/propose'))
+  return fetchMock.mock.calls.filter((call) => String(call[0]).includes('/music/api/v1/sets/propose'))
 }
 
 beforeEach(() => {
   fetchMock = vi.fn().mockImplementation((url: string) => {
     const target = String(url)
-    if (target.includes('/api/sets/propose')) return Promise.resolve(jsonResponse(proposal))
-    if (target.includes('/api/playlists/')) return Promise.resolve(jsonResponse({}))
+    if (target.includes('/music/api/v1/sets/propose')) return Promise.resolve(jsonResponse(proposal))
+    if (target.includes('/music/api/v1/playlists/')) return Promise.resolve(jsonResponse({}))
     return Promise.resolve(jsonResponse({ id: 9, name: 'Propozycja', trackCount: 0 }))
   })
   globalThis.fetch = fetchMock as unknown as typeof fetch
@@ -49,7 +49,7 @@ describe('SetGeneratorPanel', () => {
     expect(await screen.findByTestId('set-proposal')).toBeInTheDocument()
     expect(screen.getByText('Rozgrzewka')).toBeInTheDocument()
     expect(screen.getByTestId('proposal-notes')).toHaveTextContent('krótszy')
-    expect(fetchMock.mock.calls.some((call) => String(call[0]).match(/\/api\/playlists$/))).toBe(
+    expect(fetchMock.mock.calls.some((call) => String(call[0]).match(/\/music\/api\/v1\/playlists$/))).toBe(
       false,
     )
   })
@@ -117,7 +117,7 @@ describe('SetGeneratorPanel', () => {
 
     await waitFor(() => expect(onCreated).toHaveBeenCalledWith(9))
     const addCalls = fetchMock.mock.calls.filter((call) =>
-      String(call[0]).includes('/api/playlists/9/tracks'),
+      String(call[0]).includes('/music/api/v1/playlists/9/tracks'),
     )
     expect(addCalls).toHaveLength(2)
   })

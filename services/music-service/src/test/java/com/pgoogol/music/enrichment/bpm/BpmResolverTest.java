@@ -40,6 +40,7 @@ class BpmResolverTest {
 
     @BeforeEach
     void setUp() {
+
         resolver = new BpmResolver(manualMetricsRepository, audioFeaturesRepository,
             deezerClient, new HalfTimeCorrector());
     }

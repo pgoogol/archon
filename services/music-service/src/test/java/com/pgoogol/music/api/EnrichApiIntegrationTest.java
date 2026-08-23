@@ -53,7 +53,7 @@ class EnrichApiIntegrationTest {
             Set.of(FieldGroup.METADATA, FieldGroup.AI), List.of())).willReturn(42L);
 
         // when + then
-        mockMvc.perform(post("/api/enrich")
+        mockMvc.perform(post("/music/api/v1/enrich")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"scope\": \"MISSING\", \"fields\": [\"METADATA\", \"AI\"]}"))
             .andExpect(status().isAccepted())
@@ -63,7 +63,7 @@ class EnrichApiIntegrationTest {
     @Test
     void startEnrichment_whenFieldsMissing_returns400WithoutTouchingService() throws Exception {
 
-        mockMvc.perform(post("/api/enrich")
+        mockMvc.perform(post("/music/api/v1/enrich")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"scope\": \"MISSING\", \"fields\": []}"))
             .andExpect(status().isBadRequest())
@@ -81,7 +81,7 @@ class EnrichApiIntegrationTest {
             LocalDateTime.of(2026, 7, 5, 12, 0), LocalDateTime.of(2026, 7, 5, 12, 5), ""));
 
         // when + then
-        mockMvc.perform(get("/api/enrich/jobs/42"))
+        mockMvc.perform(get("/music/api/v1/enrich/jobs/42"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("COMPLETED"))
             .andExpect(jsonPath("$.writeCount").value(9))
@@ -98,7 +98,7 @@ class EnrichApiIntegrationTest {
             .willThrow(new NotFoundException("JOB_NOT_FOUND", "Brak wykonania"));
 
         // when + then
-        mockMvc.perform(get("/api/enrich/jobs/999"))
+        mockMvc.perform(get("/music/api/v1/enrich/jobs/999"))
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.errorCode").value("JOB_NOT_FOUND"));
     }
@@ -110,7 +110,7 @@ class EnrichApiIntegrationTest {
         given(enrichmentService.restart(42L)).willReturn(43L);
 
         // when + then
-        mockMvc.perform(post("/api/enrich/jobs/42/restart"))
+        mockMvc.perform(post("/music/api/v1/enrich/jobs/42/restart"))
             .andExpect(status().isAccepted())
             .andExpect(jsonPath("$.executionId").value(43));
     }
@@ -122,7 +122,7 @@ class EnrichApiIntegrationTest {
         given(enrichmentService.missingCount()).willReturn(new MissingFieldsCount(10, 20, 30));
 
         // when + then
-        mockMvc.perform(get("/api/enrich/missing-count"))
+        mockMvc.perform(get("/music/api/v1/enrich/missing-count"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.metadata").value(10))
             .andExpect(jsonPath("$.audio").value(20))

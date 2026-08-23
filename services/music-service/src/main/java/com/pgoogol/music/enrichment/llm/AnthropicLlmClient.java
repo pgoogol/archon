@@ -51,7 +51,9 @@ public class AnthropicLlmClient implements LlmClient {
             properties.maxTokens(),
             properties.temperature());
         MessagesResponse response = guard.execute(() -> {
+
             try {
+
                 return restClient.post()
                     .uri("/v1/messages")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -59,9 +61,11 @@ public class AnthropicLlmClient implements LlmClient {
                     .retrieve()
                     .body(MessagesResponse.class);
             } catch (HttpClientErrorException.TooManyRequests ex) {
+
                 throw new RateLimitedException("LLM_RATE_LIMITED",
                     "Provider LLM ograniczył liczbę zapytań", retryAfter(ex));
             } catch (HttpServerErrorException | ResourceAccessException ex) {
+
                 throw new ExternalServiceException("LLM_UNAVAILABLE", "Provider LLM niedostępny", ex);
             }
         });

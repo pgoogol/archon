@@ -26,6 +26,7 @@ public class SpotifyApiExecutor {
     private final ApiCallGuard guard;
 
     public SpotifyApiExecutor(SpotifyProperties properties) {
+
         this.guard = ApiCallGuard.of("spotify", properties.requestsPerSecond());
     }
 
@@ -35,15 +36,20 @@ public class SpotifyApiExecutor {
         Objects.requireNonNull(resource, "resource");
         Objects.requireNonNull(call, "call");
         return guard.execute(() -> {
+
             try {
+
                 return call.get();
             } catch (HttpClientErrorException.TooManyRequests ex) {
+
                 throw new RateLimitedException("SPOTIFY_RATE_LIMITED",
                     "Spotify ograniczył liczbę zapytań", retryAfter(ex));
             } catch (HttpClientErrorException.NotFound ex) {
+
                 throw new NotFoundException("SPOTIFY_RESOURCE_NOT_FOUND",
                     "Spotify nie zna zasobu: %s".formatted(resource));
             } catch (HttpServerErrorException | ResourceAccessException ex) {
+
                 throw new ExternalServiceException("SPOTIFY_UNAVAILABLE",
                     "Spotify API niedostępne", ex);
             }

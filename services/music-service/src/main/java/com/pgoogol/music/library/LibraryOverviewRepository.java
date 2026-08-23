@@ -3,6 +3,7 @@ package com.pgoogol.music.library;
 import com.pgoogol.music.library.LibraryOverview.Bucket;
 import com.pgoogol.music.library.LibraryOverview.Metric;
 import com.pgoogol.music.library.LibraryOverview.RecentTrack;
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -22,6 +23,7 @@ import java.util.Objects;
  * i po każdym jobie wzbogacania.</p>
  */
 @Repository
+@RequiredArgsConstructor
 public class LibraryOverviewRepository {
 
     private static final int TOP_ARTISTS = 10;
@@ -119,13 +121,6 @@ public class LibraryOverviewRepository {
     private final JdbcTemplate jdbcTemplate;
     private final LibraryDistributionsRepository distributionsRepository;
 
-    public LibraryOverviewRepository(JdbcTemplate jdbcTemplate,
-                                     LibraryDistributionsRepository distributionsRepository) {
-
-        this.jdbcTemplate = jdbcTemplate;
-        this.distributionsRepository = distributionsRepository;
-    }
-
     public LibraryOverview load(long metadataMissing, long audioMissing, long aiMissing) {
 
         Map<String, Object> counts = jdbcTemplate.queryForMap(COUNTS);
@@ -157,6 +152,7 @@ public class LibraryOverviewRepository {
 
     /** Średnia z pustego zbioru to brak odpowiedzi, nie zero. */
     private Double average(Object value) {
+
         return Objects.isNull(value) ? null : ((Number) value).doubleValue();
     }
 
@@ -224,14 +220,17 @@ public class LibraryOverviewRepository {
     }
 
     private List<Bucket> dimension(Map<String, List<Bucket>> distributions, String name) {
+
         return distributions.getOrDefault(name, List.of());
     }
 
     private Bucket bucket(ResultSet resultSet, int index) throws SQLException {
+
         return new Bucket(resultSet.getString("label"), resultSet.getLong("total"));
     }
 
     private long number(Object value) {
+
         return ((Number) value).longValue();
     }
 }

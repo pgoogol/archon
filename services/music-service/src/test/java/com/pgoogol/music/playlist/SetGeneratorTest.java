@@ -157,6 +157,7 @@ class SetGeneratorTest {
 
         List<SetCandidate> pool = IntStream.range(0, 30)
             .mapToObj(index -> {
+
                 TrackCatalog track = new TrackCatalog("sp-" + index, "Utwór " + index, "Wyk " + index);
                 track.setBpm(120);
                 track.setGenreFamily(GenreFamily.LATIN);
@@ -293,6 +294,7 @@ class SetGeneratorTest {
     }
 
     private int indexOfFirst(List<DjSlot> slots, DjSlot slot) {
+
         return slots.indexOf(slot);
     }
 
@@ -316,9 +318,11 @@ class SetGeneratorTest {
         long elapsed = 0;
         var lastByArtist = new java.util.HashMap<String, Long>();
         for (SetProposal.ProposedTrack track : tracks) {
+
             String artist = track.track().getArtist();
             Long previous = lastByArtist.put(artist, elapsed);
             if (Objects.nonNull(previous)) {
+
                 gaps.add(Duration.ofMillis(elapsed - previous).toMinutes());
             }
             elapsed += Objects.requireNonNullElse(track.track().getDurationMs(), 0);

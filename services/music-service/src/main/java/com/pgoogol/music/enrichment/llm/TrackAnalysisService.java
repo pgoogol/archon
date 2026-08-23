@@ -1,6 +1,7 @@
 package com.pgoogol.music.enrichment.llm;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.RequiredArgsConstructor;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -30,6 +31,7 @@ import java.util.stream.IntStream;
  * przechodzą korektę half-time. Zapis do katalogu należy do joba (M1.6).
  */
 @Service
+@RequiredArgsConstructor
 public class TrackAnalysisService {
 
     private static final Logger log = LoggerFactory.getLogger(TrackAnalysisService.class);
@@ -40,17 +42,6 @@ public class TrackAnalysisService {
     private final HalfTimeCorrector halfTimeCorrector;
     private final LlmProperties properties;
 
-    public TrackAnalysisService(LlmClient llmClient, TrackAnalysisPrompt prompt,
-                                ObjectMapper objectMapper, HalfTimeCorrector halfTimeCorrector,
-                                LlmProperties properties) {
-
-        this.llmClient = llmClient;
-        this.prompt = prompt;
-        this.objectMapper = objectMapper;
-        this.halfTimeCorrector = halfTimeCorrector;
-        this.properties = properties;
-    }
-
     public TrackAnalysisResult analyze(List<TrackCatalog> tracks, boolean estimateMissingBpm) {
 
         Objects.requireNonNull(tracks, "tracks");
@@ -58,6 +49,7 @@ public class TrackAnalysisService {
         long inputTokens = 0;
         long outputTokens = 0;
         for (List<TrackCatalog> batch : partition(tracks, properties.batchSize())) {
+
             LlmCompletion completion = llmClient.complete(
                 new LlmPrompt(prompt.system(), prompt.user(toInputJson(batch, estimateMissingBpm))));
             analyses.addAll(parseBatch(completion.content(), batch));
@@ -88,8 +80,10 @@ public class TrackAnalysisService {
                 estimateMissingBpm && Objects.isNull(track.getBpm())))
             .toList();
         try {
+
             return objectMapper.writeValueAsString(input);
         } catch (JacksonException ex) {
+
             throw new IllegalStateException("Nie udało się zserializować wejścia dla LLM", ex);
         }
     }
@@ -100,12 +94,14 @@ public class TrackAnalysisService {
             .collect(Collectors.toMap(TrackCatalog::getSpotifyId, Function.identity()));
         JsonNode root = readJson(content);
         if (!root.isArray()) {
+
             throw new ExternalServiceException("LLM_RESPONSE_INVALID",
                 "Odpowiedź LLM nie jest tablicą JSON");
         }
         List<TrackAnalysis> analyses = new ArrayList<>();
         root.forEach(node -> toAnalysis(node, byId).ifPresent(analyses::add));
         if (analyses.size() < batch.size()) {
+
             log.warn("LLM zwrócił {} z {} analiz w batchu — brakujące utwory zostaną ponowione "
                 + "przy kolejnym wzbogacaniu", analyses.size(), batch.size());
         }
@@ -115,8 +111,10 @@ public class TrackAnalysisService {
     private JsonNode readJson(String content) {
 
         try {
+
             return objectMapper.readTree(stripMarkdownFences(content));
         } catch (JacksonException ex) {
+
             throw new ExternalServiceException("LLM_RESPONSE_INVALID",
                 "Odpowiedź LLM nie jest poprawnym JSON-em", ex);
         }
@@ -126,11 +124,13 @@ public class TrackAnalysisService {
 
         String trimmed = content.strip();
         if (!trimmed.startsWith("```")) {
+
             return trimmed;
         }
         int firstLineEnd = trimmed.indexOf('\n');
         int closingFence = trimmed.lastIndexOf("```");
         if (firstLineEnd < 0 || closingFence <= firstLineEnd) {
+
             return trimmed;
         }
         return trimmed.substring(firstLineEnd + 1, closingFence).strip();
@@ -140,6 +140,7 @@ public class TrackAnalysisService {
 
         String spotifyId = node.path("spotify_id").asText(null);
         if (Objects.isNull(spotifyId) || !byId.containsKey(spotifyId)) {
+
             log.warn("LLM zwrócił analizę dla utworu spoza batcha: {}", spotifyId);
             return Optional.empty();
         }
@@ -159,6 +160,7 @@ public class TrackAnalysisService {
 
         JsonNode estimate = node.path("bpm_estimate");
         if (!estimate.isNumber()) {
+
             return null;
         }
         return halfTimeCorrector.correct(genreFamily, estimate.asInt());
@@ -167,12 +169,15 @@ public class TrackAnalysisService {
     private GenreFamily parseGenreFamily(String raw, String spotifyId) {
 
         if (Objects.isNull(raw) || raw.isBlank()) {
+
             log.warn("LLM nie zwrócił genre_family dla {} — przyjmuję OTHER", spotifyId);
             return GenreFamily.OTHER;
         }
         try {
+
             return GenreFamily.valueOf(raw.strip().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException ex) {
+
             log.warn("LLM zwrócił nieznane genre_family '{}' dla {} — przyjmuję OTHER", raw, spotifyId);
             return GenreFamily.OTHER;
         }

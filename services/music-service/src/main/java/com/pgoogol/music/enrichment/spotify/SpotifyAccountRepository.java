@@ -7,6 +7,7 @@ import java.util.Optional;
 public interface SpotifyAccountRepository extends JpaRepository<SpotifyAccount, Short> {
 
     default Optional<SpotifyAccount> findConnected() {
+
         return findById(SpotifyAccount.SINGLE_ROW_ID);
     }
 }

@@ -5,6 +5,7 @@ import com.pgoogol.music.catalog.ManualMetrics;
 import com.pgoogol.music.catalog.TrackCatalog;
 import com.pgoogol.music.enrichment.TempoClassifier;
 import com.pgoogol.music.enrichment.bpm.HalfTimeCorrector;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -28,6 +29,7 @@ import java.util.Optional;
  * a surowa liczba zostaje w {@code manual_metrics} do podglądu.</p>
  */
 @Component
+@RequiredArgsConstructor
 public class ManualMetricsApplier {
 
     static final String LOW = "low";
@@ -39,12 +41,6 @@ public class ManualMetricsApplier {
 
     private final HalfTimeCorrector halfTimeCorrector;
     private final TempoClassifier tempoClassifier;
-
-    public ManualMetricsApplier(HalfTimeCorrector halfTimeCorrector, TempoClassifier tempoClassifier) {
-
-        this.halfTimeCorrector = halfTimeCorrector;
-        this.tempoClassifier = tempoClassifier;
-    }
 
     public void apply(TrackCatalog track, ManualMetrics metrics) {
 
@@ -63,6 +59,7 @@ public class ManualMetricsApplier {
 
         Objects.requireNonNull(energy, "energy");
         if (energy.compareTo(LOW_UPPER) < 0) {
+
             return LOW;
         }
         return energy.compareTo(MEDIUM_UPPER) < 0 ? MEDIUM : HIGH;

@@ -18,6 +18,7 @@ import java.util.Objects;
 public record PlaylistRefreshProperties(boolean enabled, Duration interval, Duration initialDelay) {
 
     public PlaylistRefreshProperties {
+
         Objects.requireNonNull(interval, "interval");
         Objects.requireNonNull(initialDelay, "initialDelay");
     }

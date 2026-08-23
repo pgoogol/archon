@@ -4,6 +4,7 @@ import com.pgoogol.music.common.ValidationException;
 import com.pgoogol.music.enrichment.spotify.SpotifyAccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,25 +19,19 @@ import java.util.Objects;
  * kont aplikacji: logowania do samego music-view nie ma.
  */
 @RestController
-@RequestMapping("/api/auth/spotify")
+@RequestMapping("/music/api/v1/auth/spotify")
 @Tag(name = "Auth Spotify", description = "Połączenie konta właściciela (OAuth PKCE)")
+@RequiredArgsConstructor
 public class SpotifyAuthController {
 
     private final SpotifyAccountService accountService;
     private final SpotifyAccountApiMapper mapper;
 
-    public SpotifyAuthController(SpotifyAccountService accountService,
-                                 SpotifyAccountApiMapper mapper) {
-
-        this.accountService = accountService;
-        this.mapper = mapper;
-    }
-
     @GetMapping("/login")
     @Operation(summary = "Start logowania — przekierowanie na ekran zgody Spotify",
         description = """
             Otwórz ten adres w przeglądarce; po zatwierdzeniu zgód Spotify wróci \
-            na /api/auth/spotify/callback i konto zostanie zapisane.""")
+            na /music/api/v1/auth/spotify/callback i konto zostanie zapisane.""")
     public ResponseEntity<Void> login() {
 
         return ResponseEntity.status(HttpStatus.FOUND)
@@ -51,10 +46,12 @@ public class SpotifyAuthController {
                                            @RequestParam(required = false) String error) {
 
         if (Objects.nonNull(error)) {
+
             throw new ValidationException("SPOTIFY_AUTH_DENIED",
                 "Spotify odrzucił logowanie: %s".formatted(error));
         }
         if (Objects.isNull(code)) {
+
             throw new ValidationException("SPOTIFY_AUTH_CODE_MISSING",
                 "Brak parametru code w powrocie ze Spotify");
         }
@@ -64,6 +61,7 @@ public class SpotifyAuthController {
     @GetMapping("/status")
     @Operation(summary = "Czy konto Spotify jest połączone")
     public SpotifyAccountResponse status() {
+
         return mapper.toResponse(accountService.status());
     }
 }

@@ -6,6 +6,7 @@ package com.pgoogol.music.common;
 public class ConflictException extends AppException {
 
     public ConflictException(String errorCode, String message) {
+
         super(errorCode, message);
     }
 }

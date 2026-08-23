@@ -38,16 +38,19 @@ public class EnrichmentSkipRecorder implements SkipListener<String, String> {
 
     @Override
     public void onSkipInWrite(String spotifyId, Throwable failure) {
+
         record(spotifyId, failure);
     }
 
     @Override
     public void onSkipInProcess(String spotifyId, Throwable failure) {
+
         record(spotifyId, failure);
     }
 
     @Override
     public void onSkipInRead(Throwable failure) {
+
         // czytanie to zapytanie po id-kach; jego awaria nie dotyczy konkretnego utworu
         log.warn("Pominięto wiersz przy czytaniu zakresu wzbogacania", failure);
     }

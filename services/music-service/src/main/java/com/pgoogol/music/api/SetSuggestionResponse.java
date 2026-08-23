@@ -4,7 +4,7 @@ import java.util.List;
 
 /**
  * Kandydaci na jedno miejsce w secie (M4.4) — kontrakt
- * {@code POST /api/sets/{id}/suggest}. Nic nie zostało zapisane; lista
+ * {@code POST /music/api/v1/sets/{id}/suggest}. Nic nie zostało zapisane; lista
  * jest uszeregowana od najlepiej pasującego.
  *
  * @param position miejsce, dla którego dobieraliśmy (rozwinięte „na koniec")

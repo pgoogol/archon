@@ -24,6 +24,7 @@ public class CsvHeaderResolver {
 
         Map<String, Integer> headerMap = csvParser.getHeaderMap();
         if (Objects.isNull(headerMap) || headerMap.isEmpty()) {
+
             throw new ValidationException("CSV_EMPTY", "Plik CSV nie zawiera nagłówka");
         }
         return headerMap.entrySet().stream().collect(Collectors.toMap(

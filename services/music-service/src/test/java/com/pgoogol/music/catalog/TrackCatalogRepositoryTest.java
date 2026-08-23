@@ -35,6 +35,7 @@ class TrackCatalogRepositoryTest {
 
         // then
         assertThat(found).hasValueSatisfying(t -> {
+
             assertThat(t.getTitle()).isEqualTo("Vivir Mi Vida");
             assertThat(t.getIsrc()).isEqualTo("USSD11300483");
             assertThat(t.getYear()).isEqualTo(2013);

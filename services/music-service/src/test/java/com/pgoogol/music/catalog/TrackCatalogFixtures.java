@@ -14,6 +14,7 @@ public final class TrackCatalogFixtures {
 
     /** Szkielet rekordu jak po imporcie CSV (M1.2) — tylko id + tytuł + artysta. */
     public static TrackCatalog skeletonTrack(String spotifyId) {
+
         return new TrackCatalog(spotifyId, "La Vida Es Un Carnaval", "Celia Cruz");
     }
 

@@ -1,8 +1,8 @@
 # Serwer statyków frontu + proxy API (M5.3).
 #
-# Szablon obrazu nginx: entrypoint podstawia ${API_HOST} i ${API_PORT} ze
-# zmiennych środowiskowych. Zmienne samego nginxa ($host, $uri, …) zapisujemy
-# bez klamer, więc podstawianie ich nie rusza.
+# Szablon obrazu nginx: entrypoint podstawia zmienne środowiskowe adresów
+# backendów — każda nosi nazwę serwisu, do którego prowadzi. Zmienne samego
+# nginxa ($host, $uri, …) zapisujemy bez klamer, więc podstawianie ich nie rusza.
 #
 # Bez fallbacku SPA: stan widoku siedzi w hashu (`#/library?…`), więc
 # przeglądarka nigdy nie prosi serwera o /library — wystarczy index.html pod /.
@@ -12,15 +12,29 @@ server {
     listen 80;
     server_name _;
 
-    # adres backendu jest jedyną rzeczą, którą front musi wiedzieć o świecie —
-    # trzymamy ją w konfiguracji proxy, nie w zbudowanym pakiecie JS, więc ten
-    # sam obraz działa lokalnie i na serwerze
-    location /api/ {
-        proxy_pass http://${API_HOST}:${API_PORT};
+    # Adresy backendów są jedyną rzeczą, którą front musi wiedzieć o świecie —
+    # trzymamy je w konfiguracji proxy, nie w zbudowanym pakiecie JS, więc ten
+    # sam obraz działa lokalnie i na serwerze.
+    #
+    # Każdy serwis ma własny prefiks najwyższego poziomu z wersją API w środku.
+    # Prefiksy się nie zawierają, więc nginx nie musi rozstrzygać, który jest
+    # dłuższy — dołożenie serwisu to jeden blok, nie przegląd pozostałych.
+    location /music/api/v1/ {
+        proxy_pass http://${MUSIC_API_HOST}:${MUSIC_API_PORT};
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         # import playlist i wzbogacanie potrafią trwać dłużej niż domyślne 60 s
+        proxy_read_timeout 300s;
+    }
+
+    location /finance/api/v1/ {
+        proxy_pass http://${FINANCE_API_HOST}:${FINANCE_API_PORT};
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        # import wyciągu i synchronizacja kursów za długi zakres dat potrafią
+        # trwać dłużej niż domyślne 60 s
         proxy_read_timeout 300s;
     }
 

@@ -40,11 +40,14 @@ public class SpotifyTrackMapper {
     private Integer releaseYear(String releaseDate) {
 
         if (Objects.isNull(releaseDate) || releaseDate.length() < YEAR_LENGTH) {
+
             return null;
         }
         try {
+
             return Integer.valueOf(releaseDate.substring(0, YEAR_LENGTH));
         } catch (NumberFormatException ex) {
+
             return null;
         }
     }

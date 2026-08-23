@@ -229,6 +229,7 @@ class TrackAnalysisServiceTest {
             "sp-7", GenreFamily.ELECTRONIC, "sp-8", GenreFamily.DISCO, "sp-9", GenreFamily.HIP_HOP);
         assertThat(result.analyses()).hasSize(10);
         assertThat(result.analyses()).allSatisfy(analysis -> {
+
             assertThat(analysis.genreFamily()).isEqualTo(expected.get(analysis.spotifyId()));
             assertThat(analysis.descriptionPl()).isNotBlank();
             assertThat(analysis.lyricsTheme()).isNotBlank();
@@ -238,6 +239,7 @@ class TrackAnalysisServiceTest {
     }
 
     private String firstBatchResponse() {
+
         return """
             [
               {"spotify_id": "sp-0", "style": "salsa", "genre_family": "latin",
@@ -260,6 +262,7 @@ class TrackAnalysisServiceTest {
     }
 
     private String secondBatchResponse() {
+
         return """
             [
               {"spotify_id": "sp-5", "style": "disco polo", "genre_family": "disco_polo",
@@ -282,12 +285,14 @@ class TrackAnalysisServiceTest {
     }
 
     private List<TrackCatalog> tracks(int count) {
+
         return java.util.stream.IntStream.range(0, count)
             .mapToObj(i -> track("sp-" + i, "Utwór " + i, "Wykonawca " + i))
             .toList();
     }
 
     private TrackCatalog track(String spotifyId, String title, String artist) {
+
         return new TrackCatalog(spotifyId, title, artist);
     }
 }

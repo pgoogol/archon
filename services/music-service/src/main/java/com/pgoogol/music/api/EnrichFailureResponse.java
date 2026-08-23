@@ -11,6 +11,7 @@ import java.time.Instant;
 public record EnrichFailureResponse(String spotifyId, String reason, Instant failedAt) {
 
     public static EnrichFailureResponse from(EnrichmentFailure failure) {
+
         return new EnrichFailureResponse(
             failure.spotifyId(), failure.reason(), failure.failedAt());
     }

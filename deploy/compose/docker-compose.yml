@@ -57,13 +57,13 @@ services:
         condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/music
-      SPRING_DATASOURCE_USERNAME: music
-      SPRING_DATASOURCE_PASSWORD: music
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: qwerty
       # sekrety wyłącznie ze środowiska — puste wartości domyślne, żeby
       # zestaw wstawał bez .env i mówił wprost, czego mu brakuje
       SPOTIFY_CLIENT_ID: ${SPOTIFY_CLIENT_ID:-}
       SPOTIFY_CLIENT_SECRET: ${SPOTIFY_CLIENT_SECRET:-}
-      SPOTIFY_REDIRECT_URI: ${SPOTIFY_REDIRECT_URI:-http://127.0.0.1:8080/api/auth/spotify/callback}
+      SPOTIFY_REDIRECT_URI: ${SPOTIFY_REDIRECT_URI:-http://127.0.0.1:8080/music/api/v1/auth/spotify/callback}
       LLM_PROVIDER: ${LLM_PROVIDER:-openai}
       LLM_API_KEY: ${LLM_API_KEY:-}
       LLM_MODEL: ${LLM_MODEL:-}
@@ -81,6 +81,27 @@ services:
       retries: 12
       start_period: 40s
 
+  finance-service:
+    profiles: ["full"]
+    build:
+      context: ../..
+      dockerfile: services/finance-service/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/finance
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: qwerty
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
   web:
     profiles: ["full"]
     build:
@@ -89,10 +110,16 @@ services:
     depends_on:
       music-service:
         condition: service_healthy
+      finance-service:
+        condition: service_healthy
     environment:
-      # front woła adresy względne, a nginx przekazuje /api na serwis
-      API_HOST: music-service
-      API_PORT: "8080"
+      # Front woła adresy względne, a nginx rozdziela je między serwisy po
+      # prefiksie ścieżki: /music/api/v1 idzie do music-service,
+      # /finance/api/v1 do finance-service. Front nie wie o żadnym z tych adresów.
+      MUSIC_API_HOST: music-service
+      MUSIC_API_PORT: "8080"
+      FINANCE_API_HOST: finance-service
+      FINANCE_API_PORT: "8081"
     ports:
       - "5173:80"
 

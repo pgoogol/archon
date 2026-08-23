@@ -41,6 +41,7 @@ public enum SetCurve {
 
         double total = warmup + middle + peak + closing;
         if (Math.abs(total - 1.0) > SHARE_TOLERANCE) {
+
             throw new IllegalStateException(
                 "Udziały faz profilu %s nie sumują się do 1.0: %s".formatted(name(), total));
         }
@@ -52,6 +53,7 @@ public enum SetCurve {
     }
 
     public List<Phase> phases() {
+
         return phases;
     }
 
@@ -59,6 +61,7 @@ public enum SetCurve {
     public static Optional<SetCurve> parse(String value) {
 
         if (Objects.isNull(value) || value.isBlank()) {
+
             return Optional.empty();
         }
         String normalized = value.trim().toUpperCase(Locale.ROOT);

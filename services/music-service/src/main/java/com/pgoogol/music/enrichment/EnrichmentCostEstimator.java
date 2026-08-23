@@ -1,6 +1,7 @@
 package com.pgoogol.music.enrichment;
 
 import com.pgoogol.music.enrichment.llm.LlmProperties;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -19,6 +20,7 @@ import java.util.Optional;
  * więc liczba utworów w zleceniu nie musi równać się liczbie płatnych.</p>
  */
 @Component
+@RequiredArgsConstructor
 public class EnrichmentCostEstimator {
 
     static final int INPUT_TOKENS_PER_TRACK = 140;
@@ -28,15 +30,12 @@ public class EnrichmentCostEstimator {
 
     private final LlmProperties llmProperties;
 
-    public EnrichmentCostEstimator(LlmProperties llmProperties) {
-        this.llmProperties = llmProperties;
-    }
-
     /** Pusto, gdy nie znamy cennika providera — wtedy UI mówi to wprost. */
     public Optional<BigDecimal> estimate(long aiTracks) {
 
         LlmProperties.Cost cost = llmProperties.cost();
         if (!cost.isKnown() || aiTracks <= 0) {
+
             return cost.isKnown() ? Optional.of(BigDecimal.ZERO.setScale(4)) : Optional.empty();
         }
         BigDecimal tracks = BigDecimal.valueOf(aiTracks);

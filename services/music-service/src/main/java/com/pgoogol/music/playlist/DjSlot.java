@@ -32,6 +32,7 @@ public enum DjSlot {
     public static Optional<DjSlot> parse(String value) {
 
         if (Objects.isNull(value) || value.isBlank()) {
+
             return Optional.empty();
         }
         String normalized = value.trim().toUpperCase(Locale.ROOT);

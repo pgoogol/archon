@@ -51,15 +51,19 @@ public class DjSlotCalculator {
 
         String level = normalized(energy);
         if (Objects.isNull(bpm) && Objects.isNull(level)) {
+
             return Optional.empty();
         }
         if (Objects.nonNull(bpm) && bpm < BREAK_MAX_BPM) {
+
             return Optional.of(DjSlot.BREAK);
         }
         if (Objects.equals(level, LOW) || (Objects.nonNull(bpm) && bpm < WARMUP_MAX_BPM)) {
+
             return Optional.of(DjSlot.WARMUP);
         }
         if (Objects.equals(level, HIGH)) {
+
             return Optional.of(isPeak(bpm, genreFamily) ? DjSlot.PEAK : DjSlot.CLOSING);
         }
         return Optional.of(DjSlot.MIDDLE);
@@ -68,6 +72,7 @@ public class DjSlotCalculator {
     private boolean isPeak(@Nullable Integer bpm, @Nullable GenreFamily genreFamily) {
 
         if (Objects.isNull(bpm)) {
+
             return true;
         }
         // Set.of(…).contains(null) rzuca NPE, a utwór z metryk ma energię

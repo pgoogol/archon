@@ -19,6 +19,7 @@ public record EnrichRequest(
     List<String> spotifyIds) {
 
     public List<String> spotifyIdsOrEmpty() {
+
         return Objects.requireNonNullElse(spotifyIds, List.of());
     }
 }

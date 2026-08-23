@@ -1,6 +1,7 @@
 package com.pgoogol.music.ingestion;
 
 import com.pgoogol.music.common.ValidationException;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.springframework.stereotype.Component;
@@ -21,6 +22,7 @@ import java.util.Optional;
  * Wiersze niepoprawne trafiają do {@link RowError}, nie przerywają importu.
  */
 @Component
+@RequiredArgsConstructor
 public class CsvTrackParser {
 
     private static final List<String> URI_COLUMNS =
@@ -32,14 +34,6 @@ public class CsvTrackParser {
     private final CsvReader csvReader;
     private final SpotifyTrackIdParser trackIdParser;
     private final CsvHeaderResolver headerResolver;
-
-    public CsvTrackParser(CsvReader csvReader, SpotifyTrackIdParser trackIdParser,
-                          CsvHeaderResolver headerResolver) {
-
-        this.csvReader = csvReader;
-        this.trackIdParser = trackIdParser;
-        this.headerResolver = headerResolver;
-    }
 
     public CsvParseResult parse(InputStream input) {
 
@@ -58,6 +52,7 @@ public class CsvTrackParser {
                 parseRow(row, uriColumn, titleColumn, artistColumn, albumColumn, tracks, errors));
             return new CsvParseResult(List.copyOf(tracks), List.copyOf(errors));
         } catch (IOException | UncheckedIOException ex) {
+
             throw new ValidationException("CSV_UNREADABLE", "Nie udało się odczytać pliku CSV");
         }
     }
@@ -68,22 +63,26 @@ public class CsvTrackParser {
         long line = row.getRecordNumber();
         int lastRequiredColumn = Math.max(uriColumn, Math.max(titleColumn, artistColumn));
         if (row.size() <= lastRequiredColumn) {
+
             errors.add(new RowError(line, "niekompletny wiersz — za mało kolumn"));
             return;
         }
         Optional<String> spotifyId = trackIdParser.parse(row.get(uriColumn));
         if (spotifyId.isEmpty()) {
+
             errors.add(new RowError(line,
                 "nieprawidłowe Spotify URI: '%s'".formatted(row.get(uriColumn))));
             return;
         }
         String title = row.get(titleColumn);
         if (isBlank(title)) {
+
             errors.add(new RowError(line, "brak tytułu utworu"));
             return;
         }
         String artist = row.get(artistColumn);
         if (isBlank(artist)) {
+
             errors.add(new RowError(line, "brak wykonawcy"));
             return;
         }
@@ -96,6 +95,7 @@ public class CsvTrackParser {
     }
 
     private boolean isBlank(String value) {
+
         return Objects.isNull(value) || value.isBlank();
     }
 }

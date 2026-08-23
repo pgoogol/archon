@@ -71,7 +71,9 @@ public class SpotifyOAuthClient {
     private SpotifyTokens requestTokens(MultiValueMap<String, String> form, String failureMessage) {
 
         TokenResponse response = executor.call("token konta", () -> {
+
             try {
+
                 return authClient.post()
                     .uri("/api/token")
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -79,6 +81,7 @@ public class SpotifyOAuthClient {
                     .retrieve()
                     .body(TokenResponse.class);
             } catch (HttpClientErrorException.BadRequest ex) {
+
                 // 400 z tego endpointu to zawsze wina wejścia (zużyty/zły kod,
                 // cofnięta zgoda) — ponawianie nic nie da
                 throw new ValidationException("SPOTIFY_AUTH_REJECTED", failureMessage);

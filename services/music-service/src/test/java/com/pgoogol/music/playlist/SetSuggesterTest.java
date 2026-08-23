@@ -99,17 +99,20 @@ class SetSuggesterTest {
             suggester.suggest(pool, set, 1, SetSuggester.DEFAULT_LIMIT);
 
         assertThat(suggestions).anySatisfy(suggestion -> {
+
             assertThat(suggestion.track().getSpotifyId()).isEqualTo("sp-zgodny");
             assertThat(suggestion.bpmDelta()).isEqualTo(6);
             assertThat(suggestion.harmonic()).isTrue();
         });
         assertThat(suggestions).anySatisfy(suggestion -> {
+
             assertThat(suggestion.track().getSpotifyId()).isEqualTo("sp-niezgodny");
             assertThat(suggestion.bpmDelta()).isEqualTo(-2);
             assertThat(suggestion.harmonic()).isFalse();
         });
         // brak tonacji albo BPM to brak danych, nie zderzenie
         assertThat(suggestions).anySatisfy(suggestion -> {
+
             assertThat(suggestion.track().getSpotifyId()).isEqualTo("sp-bez-danych");
             assertThat(suggestion.bpmDelta()).isNull();
             assertThat(suggestion.harmonic()).isNull();
@@ -140,6 +143,7 @@ class SetSuggesterTest {
             suggester.suggest(pool, List.of(), 0, SetSuggester.DEFAULT_LIMIT);
 
         assertThat(suggestions).singleElement().satisfies(suggestion -> {
+
             assertThat(suggestion.bpmDelta()).isNull();
             assertThat(suggestion.harmonic()).isNull();
         });

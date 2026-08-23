@@ -76,6 +76,7 @@ public record CamelotKey(int number, boolean minor) {
     public CamelotKey {
 
         if (number < 1 || number > POSITIONS) {
+
             throw new IllegalArgumentException("Numer koła Camelot poza 1..12: " + number);
         }
     }
@@ -87,11 +88,13 @@ public record CamelotKey(int number, boolean minor) {
     public static Optional<CamelotKey> ofMusicalKey(@Nullable String musicalKey) {
 
         if (Objects.isNull(musicalKey) || musicalKey.isBlank()) {
+
             return Optional.empty();
         }
         String normalized = musicalKey.trim().replace('♯', '#').replace('♭', 'b');
         Matcher matcher = MUSICAL_KEY.matcher(normalized);
         if (!matcher.matches()) {
+
             return Optional.empty();
         }
         String root = (matcher.group(1) + Objects.requireNonNullElse(matcher.group(2), ""))
@@ -106,20 +109,24 @@ public record CamelotKey(int number, boolean minor) {
     public static Optional<CamelotKey> ofLabel(@Nullable String label) {
 
         if (Objects.isNull(label) || label.isBlank()) {
+
             return Optional.empty();
         }
         Matcher matcher = LABEL.matcher(label);
         if (!matcher.matches()) {
+
             return Optional.empty();
         }
         int number = Integer.parseInt(matcher.group(1));
         if (number < 1 || number > POSITIONS) {
+
             return Optional.empty();
         }
         return Optional.of(new CamelotKey(number, matcher.group(2).equalsIgnoreCase("A")));
     }
 
     public String label() {
+
         return number + (minor ? "A" : "B");
     }
 
@@ -134,6 +141,7 @@ public record CamelotKey(int number, boolean minor) {
     }
 
     public boolean isCompatibleWith(CamelotKey other) {
+
         return compatible().contains(Objects.requireNonNull(other, "other"));
     }
 

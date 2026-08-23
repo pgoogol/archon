@@ -51,6 +51,7 @@ class ManualMetricsRepositoryTest {
 
         // then
         assertThat(repository.findById("sp-1")).hasValueSatisfying(saved -> {
+
             assertThat(saved.getSpotifyId()).isEqualTo("sp-1");
             assertThat(saved.getBpm()).isEqualByComparingTo("96.00");
             assertThat(saved.getMusicalKey()).isEqualTo("G minor");

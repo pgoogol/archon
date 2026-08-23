@@ -16,6 +16,7 @@ import com.pgoogol.music.enrichment.metrics.ManualMetricsApplier;
 import com.pgoogol.music.enrichment.musicbrainz.MusicBrainzClient;
 import com.pgoogol.music.enrichment.spotify.SpotifyClient;
 import com.pgoogol.music.enrichment.spotify.SpotifyTrackMetadata;
+import lombok.RequiredArgsConstructor;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
  * wywołania Spotify i LLM idą batchem. Mutuje encje; zapis należy do writera.
  */
 @Component
+@RequiredArgsConstructor
 public class TrackEnricher {
 
 
@@ -48,40 +50,25 @@ public class TrackEnricher {
     private final HalfTimeCorrector halfTimeCorrector;
     private final LlmProperties llmProperties;
 
-    public TrackEnricher(SpotifyClient spotifyClient, MusicBrainzClient musicBrainzClient,
-                         AudioFeaturesRepository audioFeaturesRepository,
-                         ManualMetricsRepository manualMetricsRepository,
-                         ManualMetricsApplier manualMetricsApplier, BpmResolver bpmResolver,
-                         TrackAnalysisService trackAnalysisService, TempoClassifier tempoClassifier,
-                         HalfTimeCorrector halfTimeCorrector, LlmProperties llmProperties) {
-
-        this.spotifyClient = spotifyClient;
-        this.musicBrainzClient = musicBrainzClient;
-        this.audioFeaturesRepository = audioFeaturesRepository;
-        this.manualMetricsRepository = manualMetricsRepository;
-        this.manualMetricsApplier = manualMetricsApplier;
-        this.bpmResolver = bpmResolver;
-        this.trackAnalysisService = trackAnalysisService;
-        this.tempoClassifier = tempoClassifier;
-        this.halfTimeCorrector = halfTimeCorrector;
-        this.llmProperties = llmProperties;
-    }
-
     public void enrich(List<TrackCatalog> tracks, Set<FieldGroup> fields) {
 
         Objects.requireNonNull(tracks, "tracks");
         Objects.requireNonNull(fields, "fields");
         if (tracks.isEmpty()) {
+
             return;
         }
         Map<String, ManualMetrics> manualMetrics = manualMetrics(tracks);
         if (fields.contains(FieldGroup.METADATA)) {
+
             applyMetadata(tracks);
         }
         if (fields.contains(FieldGroup.AUDIO)) {
+
             applyAudio(tracks, manualMetrics);
         }
         if (fields.contains(FieldGroup.AI)) {
+
             applyAi(tracks, manualMetrics);
         }
         tracks.stream()
@@ -127,7 +114,9 @@ public class TrackEnricher {
     private void applyAudio(List<TrackCatalog> tracks, Map<String, ManualMetrics> manualMetrics) {
 
         tracks.forEach(track -> {
+
             if (Objects.nonNull(track.getIsrc())) {
+
                 // buduje trwały cache ISRC→MBID pod ETL dumpa AB (docs/AB_ETL.md)
                 musicBrainzClient.lookupMbid(track.getIsrc());
             }
@@ -136,6 +125,7 @@ public class TrackEnricher {
             Optional.ofNullable(manualMetrics.get(track.getSpotifyId()))
                 .ifPresent(metrics -> manualMetricsApplier.apply(track, metrics));
             bpmResolver.resolve(track).ifPresent(resolution -> {
+
                 track.setBpm(resolution.bpm());
                 track.setBpmSource(resolution.source());
             });
@@ -152,9 +142,11 @@ public class TrackEnricher {
     private void applyAudioFeatures(TrackCatalog track, AudioFeatures features) {
 
         if (Objects.nonNull(features.getMusicalKey())) {
+
             track.setMusicalKey(features.getMusicalKey());
         }
         if (Objects.nonNull(features.getDanceability())) {
+
             track.setDanceability(features.getDanceability());
         }
     }
@@ -181,15 +173,18 @@ public class TrackEnricher {
 
         track.setStyle(analysis.style());
         if (!genreFromFile) {
+
             track.setGenreFamily(analysis.genreFamily());
         }
         track.setLyricsTheme(analysis.lyricsTheme());
         track.setDescriptionPl(analysis.descriptionPl());
         if (!measuredEnergy) {
+
             track.setEnergy(analysis.energy());
         }
         track.setConfidence(analysis.confidence());
         if (Objects.isNull(track.getBpm()) && Objects.nonNull(analysis.bpmEstimate())) {
+
             track.setBpm(analysis.bpmEstimate());
             track.setBpmSource(BpmSource.LLM);
         }

@@ -11,6 +11,7 @@ import com.pgoogol.music.library.LibraryEntryRepository;
 import com.pgoogol.music.library.TrackSlotOverride;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
@@ -33,6 +34,7 @@ import java.util.stream.IntStream;
  * (M2.4) czytały to samo.
  */
 @Service
+@RequiredArgsConstructor
 public class PlaylistService {
 
     private static final Logger log = LoggerFactory.getLogger(PlaylistService.class);
@@ -45,23 +47,6 @@ public class PlaylistService {
     private final DjSlotCalculator djSlotCalculator;
     private final EntityManager entityManager;
 
-    public PlaylistService(PlaylistRepository playlistRepository,
-                           PlaylistTrackRepository playlistTrackRepository,
-                           TrackCatalogRepository trackCatalogRepository,
-                           LibraryEntryRepository libraryEntryRepository,
-                           ManualMetricsRepository manualMetricsRepository,
-                           DjSlotCalculator djSlotCalculator,
-                           EntityManager entityManager) {
-
-        this.playlistRepository = playlistRepository;
-        this.playlistTrackRepository = playlistTrackRepository;
-        this.trackCatalogRepository = trackCatalogRepository;
-        this.libraryEntryRepository = libraryEntryRepository;
-        this.manualMetricsRepository = manualMetricsRepository;
-        this.djSlotCalculator = djSlotCalculator;
-        this.entityManager = entityManager;
-    }
-
     @Transactional
     public PlaylistSummary create(String name) {
 
@@ -73,11 +58,13 @@ public class PlaylistService {
 
     @Transactional(readOnly = true)
     public List<PlaylistSummary> list() {
+
         return playlistRepository.findAllSummaries();
     }
 
     @Transactional(readOnly = true)
     public PlaylistPlan get(Long playlistId) {
+
         return plan(requirePlaylist(playlistId));
     }
 
@@ -109,6 +96,7 @@ public class PlaylistService {
                 "Utworu '%s' nie ma w katalogu".formatted(spotifyId)));
         if (playlistTrackRepository.findByPlaylistIdAndTrackSpotifyId(playlistId, spotifyId)
                 .isPresent()) {
+
             throw new ConflictException("PLAYLIST_TRACK_EXISTS",
                 "Utwór '%s' jest już na tej playliście".formatted(spotifyId));
         }
@@ -148,6 +136,7 @@ public class PlaylistService {
             .collect(Collectors.toMap(entry -> entry.getTrack().getSpotifyId(), Function.identity()));
         Set<String> requested = new LinkedHashSet<>(spotifyIds);
         if (requested.size() != spotifyIds.size() || !requested.equals(current.keySet())) {
+
             throw new ValidationException("PLAYLIST_ORDER_MISMATCH",
                 "Nowa kolejność musi zawierać dokładnie te same utwory co playlista (%d szt.)"
                     .formatted(current.size()));
@@ -164,6 +153,7 @@ public class PlaylistService {
      * tego nie zrobi — stąd jawny {@code OPTIMISTIC_FORCE_INCREMENT}.
      */
     private void bumpVersion(Playlist playlist) {
+
         entityManager.lock(playlist, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
     }
 
@@ -174,6 +164,7 @@ public class PlaylistService {
     private void requireCurrentVersion(Playlist playlist, Integer expectedVersion) {
 
         if (Objects.isNull(expectedVersion) || playlist.getVersion() != expectedVersion) {
+
             throw new ConflictException("RESOURCE_MODIFIED",
                 ("""
                     Set zmienił się w innym miejscu (wersja %d, przysłano %s) — \
@@ -232,6 +223,7 @@ public class PlaylistService {
             .map(entry -> entry.getTrack().getSpotifyId())
             .collect(Collectors.toSet());
         if (spotifyIds.isEmpty()) {
+
             return Map.of();
         }
         return libraryEntryRepository.findSlotOverrides(spotifyIds).stream()
@@ -250,6 +242,7 @@ public class PlaylistService {
     private String requireName(String name) {
 
         if (Objects.isNull(name) || name.isBlank()) {
+
             throw new ValidationException("PLAYLIST_NAME_EMPTY", "Nazwa playlisty nie może być pusta");
         }
         return name.trim();

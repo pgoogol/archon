@@ -34,6 +34,7 @@ public final class ApiCallGuard {
     }
 
     public static ApiCallGuard of(String name, int requestsPerSecond) {
+
         return of(name, requestsPerSecond, DEFAULT_MAX_ATTEMPTS, DEFAULT_INITIAL_BACKOFF);
     }
 
@@ -67,6 +68,7 @@ public final class ApiCallGuard {
 
         if (failure instanceof RateLimitedException rateLimited
                 && Objects.nonNull(rateLimited.getRetryAfter())) {
+
             return rateLimited.getRetryAfter().toMillis();
         }
         return initialBackoff.toMillis() * (1L << (attempt - 1));

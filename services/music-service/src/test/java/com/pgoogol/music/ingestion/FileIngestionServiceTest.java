@@ -222,10 +222,12 @@ class FileIngestionServiceTest {
     }
 
     private ParsedTrack track(String spotifyId) {
+
         return new ParsedTrack(spotifyId, "Tytuł", "Artysta", "Album");
     }
 
     private InputStream csv() {
+
         return new ByteArrayInputStream("spotify_id\n".getBytes(StandardCharsets.UTF_8));
     }
 }

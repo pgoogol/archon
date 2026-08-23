@@ -9,6 +9,7 @@ import { MusicWorkspaceProvider } from '@/features/music/state/MusicWorkspace'
 export const musicFeature: FeatureManifest = {
   id: 'music',
   title: 'music-view',
+  subtitle: 'biblioteka ze Spotify, metryki utworów i sety na imprezy',
   basePath: '/music',
   Provider: MusicWorkspaceProvider,
   // każdy ekran przez lazy(): statyczny import wciągnąłby całą domenę

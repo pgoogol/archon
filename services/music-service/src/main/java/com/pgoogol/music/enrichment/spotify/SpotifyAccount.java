@@ -69,38 +69,47 @@ public class SpotifyAccount {
     }
 
     public boolean isExpiredAt(Instant moment) {
+
         return !moment.isBefore(expiresAt);
     }
 
     public Short getId() {
+
         return id;
     }
 
     public String getSpotifyUserId() {
+
         return spotifyUserId;
     }
 
     public String getDisplayName() {
+
         return displayName;
     }
 
     public String getAccessToken() {
+
         return accessToken;
     }
 
     public String getRefreshToken() {
+
         return refreshToken;
     }
 
     public Instant getExpiresAt() {
+
         return expiresAt;
     }
 
     public String getScopes() {
+
         return scopes;
     }
 
     public Instant getConnectedAt() {
+
         return connectedAt;
     }
 }

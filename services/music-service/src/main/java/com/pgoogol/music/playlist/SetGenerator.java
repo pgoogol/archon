@@ -1,5 +1,6 @@
 package com.pgoogol.music.playlist;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -31,18 +32,16 @@ import java.util.Set;
  * set, więc po pierwszym uruchomieniu byłby bezużyteczny.</p>
  */
 @Component
+@RequiredArgsConstructor
 public class SetGenerator {
 
     static final int SHORTLIST = 5;
 
     private final SetRules rules;
 
-    public SetGenerator(SetRules rules) {
-        this.rules = rules;
-    }
-
     public SetProposal generate(List<SetCandidate> candidates, Duration target, SetCurve curve,
                                 @Nullable Long seed) {
+
         return extend(candidates, List.of(), target, curve, seed);
     }
 
@@ -70,15 +69,18 @@ public class SetGenerator {
         State state = new State(prefix, rules);
         List<String> notes = new ArrayList<>();
         if (state.elapsed >= targetMs && !prefix.isEmpty()) {
+
             notes.add("Set ma już %d min, czyli co najmniej tyle, ile zamówiono (%d min)"
                 .formatted(minutes(state.elapsed), minutes(targetMs)));
         }
         long phaseStart = 0;
         for (SetCurve.Phase phase : curve.phases()) {
+
             phaseStart += Math.round(targetMs * phase.share());
             fillPhase(candidates, state, phase.slot(), phaseStart, random, notes);
         }
         if (state.elapsed < targetMs) {
+
             notes.add("Set jest krótszy od zamówionego (%d z %d min) — pula kandydatów się skończyła"
                 .formatted(minutes(state.elapsed), minutes(targetMs)));
         }
@@ -90,8 +92,10 @@ public class SetGenerator {
 
         int addedInPhase = 0;
         while (state.elapsed < phaseEnd) {
+
             Optional<SetCandidate> picked = pick(candidates, state, slot, random);
             if (picked.isEmpty()) {
+
                 notes.add("Faza %s: zabrakło pasujących utworów (dodano %d)"
                     .formatted(slot, addedInPhase));
                 return;
@@ -117,6 +121,7 @@ public class SetGenerator {
     }
 
     private long minutes(long millis) {
+
         return Duration.ofMillis(millis).toMinutes();
     }
 
@@ -141,10 +146,12 @@ public class SetGenerator {
         private boolean isAllowed(SetCandidate candidate) {
 
             if (usedIds.contains(candidate.spotifyId())) {
+
                 return false;
             }
             String artist = candidate.artistKey();
             if (artist.isEmpty()) {
+
                 return true;
             }
             Long lastPlayed = lastPlayedByArtist.get(artist);
@@ -163,6 +170,7 @@ public class SetGenerator {
 
             usedIds.add(candidate.spotifyId());
             if (!candidate.artistKey().isEmpty()) {
+
                 lastPlayedByArtist.put(candidate.artistKey(), elapsed);
             }
             elapsed += rules.durationMs(candidate);
@@ -171,6 +179,7 @@ public class SetGenerator {
 
         @Nullable
         private SetCandidate last() {
+
             return last;
         }
     }

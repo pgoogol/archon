@@ -7,6 +7,7 @@ import com.pgoogol.music.catalog.ManualMetrics;
 import com.pgoogol.music.catalog.ManualMetricsRepository;
 import com.pgoogol.music.catalog.TrackCatalog;
 import com.pgoogol.music.enrichment.deezer.DeezerClient;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -26,22 +27,13 @@ import java.util.stream.Collectors;
  * do bazy — persystencja należy do writera joba wzbogacania (M1.6).
  */
 @Component
+@RequiredArgsConstructor
 public class BpmResolver {
 
     private final ManualMetricsRepository manualMetricsRepository;
     private final AudioFeaturesRepository audioFeaturesRepository;
     private final DeezerClient deezerClient;
     private final HalfTimeCorrector halfTimeCorrector;
-
-    public BpmResolver(ManualMetricsRepository manualMetricsRepository,
-                       AudioFeaturesRepository audioFeaturesRepository, DeezerClient deezerClient,
-                       HalfTimeCorrector halfTimeCorrector) {
-
-        this.manualMetricsRepository = manualMetricsRepository;
-        this.audioFeaturesRepository = audioFeaturesRepository;
-        this.deezerClient = deezerClient;
-        this.halfTimeCorrector = halfTimeCorrector;
-    }
 
     public Optional<BpmResolution> resolve(TrackCatalog track) {
 
@@ -93,6 +85,7 @@ public class BpmResolver {
     private Optional<BigDecimal> searchFallback(TrackCatalog track) {
 
         if (Objects.isNull(track.getArtist()) || Objects.isNull(track.getTitle())) {
+
             return Optional.empty();
         }
         return deezerClient.findBpmByArtistTitle(track.getArtist(), track.getTitle());
@@ -107,6 +100,7 @@ public class BpmResolver {
     }
 
     private int round(BigDecimal bpm) {
+
         return bpm.setScale(0, RoundingMode.HALF_UP).intValueExact();
     }
 }

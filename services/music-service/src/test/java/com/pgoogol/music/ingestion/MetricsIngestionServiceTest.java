@@ -307,6 +307,7 @@ class MetricsIngestionServiceTest {
     }
 
     private InputStream csv() {
+
         return new ByteArrayInputStream("spotify_id\n".getBytes(StandardCharsets.UTF_8));
     }
 }

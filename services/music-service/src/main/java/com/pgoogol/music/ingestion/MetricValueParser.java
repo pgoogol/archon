@@ -73,6 +73,7 @@ public class MetricValueParser {
     public Optional<String> camelot(@Nullable String raw) {
 
         if (isBlank(raw)) {
+
             return Optional.empty();
         }
         Matcher matcher = CAMELOT.matcher(raw.trim());
@@ -89,6 +90,7 @@ public class MetricValueParser {
     public Optional<String> musicalKey(@Nullable String raw) {
 
         if (isBlank(raw)) {
+
             return Optional.empty();
         }
         String normalized = WHITESPACE.matcher(raw.trim().replace('♯', '#').replace('♭', 'b'))
@@ -112,6 +114,7 @@ public class MetricValueParser {
     private Optional<BigDecimal> number(@Nullable String raw) {
 
         if (isBlank(raw)) {
+
             return Optional.empty();
         }
         String cleaned = NUMBER_NOISE.matcher(raw.trim()).replaceAll("").replace(',', '.');
@@ -121,6 +124,7 @@ public class MetricValueParser {
     }
 
     private boolean isBlank(@Nullable String value) {
+
         return Objects.isNull(value) || value.isBlank();
     }
 }

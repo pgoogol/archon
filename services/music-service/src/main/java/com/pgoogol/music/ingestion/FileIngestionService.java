@@ -5,6 +5,7 @@ import com.pgoogol.music.catalog.TrackCatalogRepository;
 import com.pgoogol.music.library.LibraryEntry;
 import com.pgoogol.music.library.LibraryEntryRepository;
 import com.pgoogol.music.library.LibrarySource;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
  * resztę uzupełnia wzbogacanie) + wpis {@code library_entry} z source=FILE.
  */
 @Service
+@RequiredArgsConstructor
 public class FileIngestionService {
 
     private static final Logger log = LoggerFactory.getLogger(FileIngestionService.class);
@@ -32,15 +34,6 @@ public class FileIngestionService {
     private final CsvTrackParser parser;
     private final TrackCatalogRepository trackCatalogRepository;
     private final LibraryEntryRepository libraryEntryRepository;
-
-    public FileIngestionService(CsvTrackParser parser,
-                                TrackCatalogRepository trackCatalogRepository,
-                                LibraryEntryRepository libraryEntryRepository) {
-
-        this.parser = parser;
-        this.trackCatalogRepository = trackCatalogRepository;
-        this.libraryEntryRepository = libraryEntryRepository;
-    }
 
     @Transactional
     public IngestReport ingestFile(InputStream csv) {

@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Pełny stos HTTP dla POST /api/ingest/metrics na realnym Postgresie:
+ * Pełny stos HTTP dla POST /music/api/v1/ingest/metrics na realnym Postgresie:
  * dopasowanie po spotify_id i po ISRC, utwór spoza katalogu, wiersze odrzucone
  * oraz projekcja metryk na katalog (BPM z korektą half-time).
  *
@@ -79,7 +79,7 @@ class IngestMetricsIntegrationTest {
     void ingestMetrics_whenSampleFileUploaded_appliesMetricsAndReportsRest() throws Exception {
 
         // when + then
-        mockMvc.perform(multipart("/api/ingest/metrics").file(sampleCsv()))
+        mockMvc.perform(multipart("/music/api/v1/ingest/metrics").file(sampleCsv()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.applied").value(2))
             .andExpect(jsonPath("$.matchedByIsrc").value(1))
@@ -97,11 +97,12 @@ class IngestMetricsIntegrationTest {
     void ingestMetrics_whenTrackIsLatin_projectsBpmWithHalfTimeCorrection() throws Exception {
 
         // when
-        mockMvc.perform(multipart("/api/ingest/metrics").file(sampleCsv()))
+        mockMvc.perform(multipart("/music/api/v1/ingest/metrics").file(sampleCsv()))
             .andExpect(status().isOk());
 
         // then — 96 z pliku to half-time salsy; katalog dostaje realne 192
         assertThat(trackCatalogRepository.findById(LAMPARA)).hasValueSatisfying(track -> {
+
             assertThat(track.getBpm()).isEqualTo(192);
             assertThat(track.getBpmSource()).isEqualTo(BpmSource.MANUAL);
             assertThat(track.getTempoClass()).isEqualTo(TempoClass.VERY_FAST);
@@ -115,11 +116,12 @@ class IngestMetricsIntegrationTest {
     void ingestMetrics_whenRowHasOnlyIsrc_matchesRecordingInCatalog() throws Exception {
 
         // when
-        mockMvc.perform(multipart("/api/ingest/metrics").file(sampleCsv()))
+        mockMvc.perform(multipart("/music/api/v1/ingest/metrics").file(sampleCsv()))
             .andExpect(status().isOk());
 
         // then
         assertThat(trackCatalogRepository.findById(CARNAVAL)).hasValueSatisfying(track -> {
+
             assertThat(track.getBpm()).isEqualTo(104);
             assertThat(track.getBpmSource()).isEqualTo(BpmSource.MANUAL);
             assertThat(track.getMusicalKey()).isEqualTo("C minor");
@@ -130,7 +132,7 @@ class IngestMetricsIntegrationTest {
     void ingestMetrics_whenTrackHasNoGenreYet_fillsFamilyFromGenreColumns() throws Exception {
 
         // when
-        mockMvc.perform(multipart("/api/ingest/metrics").file(sampleCsv()))
+        mockMvc.perform(multipart("/music/api/v1/ingest/metrics").file(sampleCsv()))
             .andExpect(status().isOk());
 
         // then — bez gatunku nie ma slotu wieczoru ani korekty half-time
@@ -151,12 +153,13 @@ class IngestMetricsIntegrationTest {
             """.getBytes(java.nio.charset.StandardCharsets.UTF_8));
 
         // when
-        mockMvc.perform(multipart("/api/ingest/metrics").file(csv))
+        mockMvc.perform(multipart("/music/api/v1/ingest/metrics").file(csv))
             .andExpect(status().isOk());
 
         // then — gatunek z pliku, a przez to również korekta half-time dla latino
         assertThat(trackCatalogRepository.findById("5aaaaaaaaaaaaaaaaaaaaa"))
             .hasValueSatisfying(track -> {
+
                 assertThat(track.getGenreFamily()).isEqualTo(GenreFamily.LATIN);
                 assertThat(track.getBpm()).isEqualTo(192);
             });
@@ -166,7 +169,7 @@ class IngestMetricsIntegrationTest {
     void ingestMetrics_whenGenreComesFromFile_isStoredNextToMetrics() throws Exception {
 
         // when
-        mockMvc.perform(multipart("/api/ingest/metrics").file(sampleCsv()))
+        mockMvc.perform(multipart("/music/api/v1/ingest/metrics").file(sampleCsv()))
             .andExpect(status().isOk());
 
         // then — bez zapisu obok metryk nie dałoby się odróżnić pliku od estymaty
@@ -179,11 +182,11 @@ class IngestMetricsIntegrationTest {
     void ingestMetrics_whenSameFileUploadedTwice_updatesInsteadOfDuplicating() throws Exception {
 
         // given
-        mockMvc.perform(multipart("/api/ingest/metrics").file(sampleCsv()))
+        mockMvc.perform(multipart("/music/api/v1/ingest/metrics").file(sampleCsv()))
             .andExpect(status().isOk());
 
         // when + then
-        mockMvc.perform(multipart("/api/ingest/metrics").file(sampleCsv()))
+        mockMvc.perform(multipart("/music/api/v1/ingest/metrics").file(sampleCsv()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.applied").value(2));
 
@@ -204,7 +207,7 @@ class IngestMetricsIntegrationTest {
             """.formatted(CARNAVAL));
 
         // when + then
-        mockMvc.perform(multipart("/api/ingest/metrics").file(lampara).file(carnaval))
+        mockMvc.perform(multipart("/music/api/v1/ingest/metrics").file(lampara).file(carnaval))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.applied").value(2))
             .andExpect(jsonPath("$.files.length()").value(2))
@@ -230,7 +233,7 @@ class IngestMetricsIntegrationTest {
             """.formatted(LAMPARA));
 
         // when + then
-        mockMvc.perform(multipart("/api/ingest/metrics").file(broken).file(good))
+        mockMvc.perform(multipart("/music/api/v1/ingest/metrics").file(broken).file(good))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.applied").value(1))
             .andExpect(jsonPath("$.files[0].file").value("bez-id.csv"))
@@ -248,7 +251,7 @@ class IngestMetricsIntegrationTest {
         MockMultipartFile file = new MockMultipartFile("file", "empty.csv", "text/csv", new byte[0]);
 
         // when + then
-        mockMvc.perform(multipart("/api/ingest/metrics").file(file))
+        mockMvc.perform(multipart("/music/api/v1/ingest/metrics").file(file))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.errorCode").value("FILE_EMPTY"));
     }
@@ -257,11 +260,11 @@ class IngestMetricsIntegrationTest {
     void getTrackMetrics_whenMetricsImported_returnsRawValuesFromFile() throws Exception {
 
         // given
-        mockMvc.perform(multipart("/api/ingest/metrics").file(sampleCsv()))
+        mockMvc.perform(multipart("/music/api/v1/ingest/metrics").file(sampleCsv()))
             .andExpect(status().isOk());
 
         // when + then — w katalogu BPM jest po korekcie, tutaj surowe 96 z pliku
-        mockMvc.perform(get("/api/catalog/tracks/{id}/metrics", LAMPARA))
+        mockMvc.perform(get("/music/api/v1/catalog/tracks/{id}/metrics", LAMPARA))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.bpm").value(96.00))
             .andExpect(jsonPath("$.camelot").value("6A"))
@@ -274,7 +277,7 @@ class IngestMetricsIntegrationTest {
     void getTrackMetrics_whenTrackHasNoMetrics_returnsNoContent() throws Exception {
 
         // when + then
-        mockMvc.perform(get("/api/catalog/tracks/{id}/metrics", LAMPARA))
+        mockMvc.perform(get("/music/api/v1/catalog/tracks/{id}/metrics", LAMPARA))
             .andExpect(status().isNoContent());
     }
 

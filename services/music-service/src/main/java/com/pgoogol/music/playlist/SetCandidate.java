@@ -16,23 +16,28 @@ import java.util.Optional;
 public record SetCandidate(TrackCatalog track, @Nullable DjSlot slot, @Nullable Integer rating) {
 
     public SetCandidate {
+
         Objects.requireNonNull(track, "track");
     }
 
     public String spotifyId() {
+
         return track.getSpotifyId();
     }
 
     public Optional<CamelotKey> key() {
+
         return CamelotKey.ofMusicalKey(track.getMusicalKey());
     }
 
     public Optional<Integer> bpm() {
+
         return Optional.ofNullable(track.getBpm());
     }
 
     /** Wykonawca w postaci porównywalnej — odstęp między utworami liczy się po nim. */
     public String artistKey() {
+
         return Objects.toString(track.getArtist(), "").trim().toLowerCase(java.util.Locale.ROOT);
     }
 }

@@ -78,6 +78,7 @@ class IngestControllerTest {
 
         @Bean
         PlaylistRefreshProperties playlistRefreshProperties() {
+
             return new PlaylistRefreshProperties(true, Duration.ofMinutes(5), Duration.ofSeconds(10));
         }
     }
@@ -91,7 +92,7 @@ class IngestControllerTest {
             imported("salsa.csv", 2, 0)));
 
         // when
-        mockMvc.perform(multipart("/api/ingest/metrics")
+        mockMvc.perform(multipart("/music/api/v1/ingest/metrics")
                 .file(csv("wesela.csv"))
                 .file(csv("salsa.csv")))
             .andExpect(status().isOk())
@@ -115,7 +116,7 @@ class IngestControllerTest {
             imported("salsa.csv", 2, 0)));
 
         // when + then
-        mockMvc.perform(multipart("/api/ingest/metrics")
+        mockMvc.perform(multipart("/music/api/v1/ingest/metrics")
                 .file(csv("bez-id.csv"))
                 .file(csv("salsa.csv")))
             .andExpect(status().isOk())
@@ -129,7 +130,7 @@ class IngestControllerTest {
     void ingestMetrics_whenAllFilesEmpty_returnsBadRequest() throws Exception {
 
         // when + then
-        mockMvc.perform(multipart("/api/ingest/metrics")
+        mockMvc.perform(multipart("/music/api/v1/ingest/metrics")
                 .file(new MockMultipartFile("file", "pusty.csv", "text/csv", new byte[0])))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.errorCode").value("FILE_EMPTY"));
@@ -147,7 +148,7 @@ class IngestControllerTest {
                 List.of(new RowError(7, "brak takiego utworu w katalogu")), List.of()))));
 
         // when + then
-        mockMvc.perform(multipart("/api/ingest/metrics").file(csv("wesela.csv")).file(csv("salsa.csv")))
+        mockMvc.perform(multipart("/music/api/v1/ingest/metrics").file(csv("wesela.csv")).file(csv("salsa.csv")))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.skippedRows").value(2))
             .andExpect(jsonPath("$.failedRows").value(1))
@@ -165,7 +166,7 @@ class IngestControllerTest {
                 "Spotify nie odpowiedziało"))));
 
         // when + then
-        mockMvc.perform(post("/api/ingest/my-playlists"))
+        mockMvc.perform(post("/music/api/v1/ingest/my-playlists"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.imported.length()").value(1))
             .andExpect(jsonPath("$.imported[0].name").value("Wesela 2026"))
@@ -182,7 +183,7 @@ class IngestControllerTest {
             .willThrow(new ValidationException("SPOTIFY_NOT_CONNECTED", "Konto nie jest połączone"));
 
         // when + then
-        mockMvc.perform(post("/api/ingest/my-playlists"))
+        mockMvc.perform(post("/music/api/v1/ingest/my-playlists"))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.errorCode").value("SPOTIFY_NOT_CONNECTED"));
     }
@@ -207,7 +208,7 @@ class IngestControllerTest {
             PlaylistRefreshStatus.refreshed(Instant.parse("2026-08-11T20:15:00Z"), 12, 1));
 
         // when + then
-        mockMvc.perform(get("/api/ingest/my-playlists/refresh-status"))
+        mockMvc.perform(get("/music/api/v1/ingest/my-playlists/refresh-status"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.outcome").value("REFRESHED"))
             .andExpect(jsonPath("$.refreshedPlaylists").value(12))
@@ -223,7 +224,7 @@ class IngestControllerTest {
             .willReturn(PlaylistRefreshStatus.skipped(Instant.parse("2026-08-11T20:15:00Z")));
 
         // when + then
-        mockMvc.perform(get("/api/ingest/my-playlists/refresh-status"))
+        mockMvc.perform(get("/music/api/v1/ingest/my-playlists/refresh-status"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.outcome").value("SKIPPED_NOT_CONNECTED"));
     }

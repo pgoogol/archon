@@ -29,6 +29,7 @@ public class TrackAnalysisPrompt {
         String raw = loadResource("llm/track-analysis-%s.txt".formatted(version));
         String[] parts = raw.split(SEPARATOR, 2);
         if (parts.length != 2) {
+
             throw new IllegalStateException(
                 "Prompt %s nie zawiera separatora %s".formatted(version, SEPARATOR));
         }
@@ -37,26 +38,32 @@ public class TrackAnalysisPrompt {
     }
 
     public String system() {
+
         return system;
     }
 
     public String user(String tracksJson) {
+
         return userTemplate.replace(TRACKS_PLACEHOLDER, tracksJson);
     }
 
     public String version() {
+
         return version;
     }
 
     private String loadResource(String path) {
 
         try (InputStream input = getClass().getClassLoader().getResourceAsStream(path)) {
+
             if (Objects.isNull(input)) {
+
                 throw new IllegalStateException(
                     "Brak pliku promptu '%s' — sprawdź llm.prompt-version".formatted(path));
             }
             return new String(input.readAllBytes(), StandardCharsets.UTF_8);
         } catch (IOException ex) {
+
             throw new IllegalStateException("Nie udało się wczytać promptu: " + path, ex);
         }
     }

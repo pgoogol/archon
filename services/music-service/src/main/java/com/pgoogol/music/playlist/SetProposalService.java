@@ -8,6 +8,7 @@ import com.pgoogol.music.catalog.TrackCatalog;
 import com.pgoogol.music.common.ValidationException;
 import com.pgoogol.music.library.LibraryEntryRepository;
 import com.pgoogol.music.library.TrackDjData;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
  * a skład setu zmienia DJ istniejącą drogą.
  */
 @Service
+@RequiredArgsConstructor
 public class SetProposalService {
 
     /** Sufit puli: biblioteka jednego DJ-a ma rząd 2500 utworów. */
@@ -46,23 +48,6 @@ public class SetProposalService {
     private final SetSuggester setSuggester;
     private final SetRules setRules;
     private final PlaylistService playlistService;
-
-    public SetProposalService(CatalogService catalogService,
-                              LibraryEntryRepository libraryEntryRepository,
-                              DjSlotCalculator djSlotCalculator,
-                              SetGenerator setGenerator,
-                              SetSuggester setSuggester,
-                              SetRules setRules,
-                              PlaylistService playlistService) {
-
-        this.catalogService = catalogService;
-        this.libraryEntryRepository = libraryEntryRepository;
-        this.djSlotCalculator = djSlotCalculator;
-        this.setGenerator = setGenerator;
-        this.setSuggester = setSuggester;
-        this.setRules = setRules;
-        this.playlistService = playlistService;
-    }
 
     @Transactional(readOnly = true)
     public SetProposal propose(CatalogSearchCriteria criteria, int targetMinutes, SetCurve curve,
@@ -131,6 +116,7 @@ public class SetProposalService {
     }
 
     private long durationMs(List<SetCandidate> tracks) {
+
         return tracks.stream().mapToLong(setRules::durationMs).sum();
     }
 
@@ -138,6 +124,7 @@ public class SetProposalService {
 
         List<SetCandidate> candidates = candidates(criteria);
         if (candidates.isEmpty()) {
+
             throw new ValidationException("SET_NO_CANDIDATES",
                 "Żaden utwór nie przeszedł filtrów — poluzuj kryteria puli");
         }
@@ -148,6 +135,7 @@ public class SetProposalService {
 
         int gap = Optional.ofNullable(position).orElse(setSize);
         if (gap < 0 || gap > setSize) {
+
             throw new ValidationException("SET_POSITION_OUT_OF_RANGE",
                 "Pozycja %d jest poza setem (dozwolone 0–%d)".formatted(gap, setSize));
         }
@@ -180,6 +168,7 @@ public class SetProposalService {
     private Map<String, TrackDjData> djData(List<TrackCatalog> tracks) {
 
         if (tracks.isEmpty()) {
+
             return Map.of();
         }
         List<String> spotifyIds = tracks.stream().map(TrackCatalog::getSpotifyId).toList();
@@ -190,6 +179,7 @@ public class SetProposalService {
     private void validateTarget(int targetMinutes) {
 
         if (targetMinutes < MIN_TARGET_MINUTES || targetMinutes > MAX_TARGET_MINUTES) {
+
             throw new ValidationException("SET_TARGET_OUT_OF_RANGE",
                 "Długość setu musi mieścić się w %d–%d minutach"
                     .formatted(MIN_TARGET_MINUTES, MAX_TARGET_MINUTES));

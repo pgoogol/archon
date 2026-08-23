@@ -31,7 +31,7 @@ let refreshStatus: PlaylistRefreshStatusResponse = {
 let fetchMock: ReturnType<typeof vi.fn>
 
 function listCalls() {
-  return fetchMock.mock.calls.filter((call) => String(call[0]).endsWith('/api/playlists'))
+  return fetchMock.mock.calls.filter((call) => String(call[0]).endsWith('/music/api/v1/playlists'))
 }
 
 beforeEach(() => {
@@ -47,7 +47,7 @@ beforeEach(() => {
   fetchMock = vi.fn().mockImplementation((url: string) => {
     const target = String(url)
     if (target.includes('/refresh-status')) return Promise.resolve(jsonResponse(refreshStatus))
-    return Promise.resolve(jsonResponse(/\/api\/playlists\/\d+$/.test(target) ? detail : summaries))
+    return Promise.resolve(jsonResponse(/\/music\/api\/v1\/playlists\/\d+$/.test(target) ? detail : summaries))
   })
   globalThis.fetch = fetchMock as unknown as typeof fetch
 })

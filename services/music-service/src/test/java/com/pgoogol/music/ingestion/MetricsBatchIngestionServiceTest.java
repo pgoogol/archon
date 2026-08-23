@@ -52,6 +52,7 @@ class MetricsBatchIngestionServiceTest {
         assertThat(reports.get(0)).isInstanceOfSatisfying(MetricsFileReport.Imported.class,
             imported -> assertThat(imported.report().applied()).isEqualTo(3));
         assertThat(reports.get(1)).isInstanceOfSatisfying(MetricsFileReport.Failed.class, failed -> {
+
             assertThat(failed.errorCode()).isEqualTo("CSV_MISSING_COLUMNS");
             assertThat(failed.reason()).contains("identyfikującej utwór");
         });
@@ -84,6 +85,7 @@ class MetricsBatchIngestionServiceTest {
     private NamedCsv unreadable(String name) {
 
         return new NamedCsv(name, () -> {
+
             throw new IOException("upload przerwany");
         });
     }

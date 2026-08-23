@@ -3,5 +3,6 @@
 
 import type { FeatureManifest } from '@/shared/featureManifest'
 import { musicFeature } from '@/features/music'
+import { financeFeature } from '@/features/finance'
 
-export const features: FeatureManifest[] = [musicFeature]
+export const features: FeatureManifest[] = [musicFeature, financeFeature]

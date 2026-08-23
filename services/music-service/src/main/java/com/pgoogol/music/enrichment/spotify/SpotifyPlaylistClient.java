@@ -141,6 +141,7 @@ public class SpotifyPlaylistClient {
     private void sendUris(String playlistId, List<String> uris, boolean replace) {
 
         executor.call("playlista " + playlistId, () -> {
+
             RestClient.RequestBodySpec request = replace
                 ? apiClient.put().uri("/v1/playlists/{id}/tracks", playlistId)
                 : apiClient.post().uri("/v1/playlists/{id}/tracks", playlistId);
@@ -177,14 +178,17 @@ public class SpotifyPlaylistClient {
 
         SpotifyTrackNode track = Objects.isNull(item) ? null : item.track();
         if (Objects.isNull(track)) {
+
             return new SpotifyPlaylistItem.Unavailable(position,
                 "pozycja bez utworu — usunięty ze Spotify lub niedostępny w regionie");
         }
         if (Boolean.TRUE.equals(track.isLocal()) || Objects.isNull(track.id())) {
+
             return new SpotifyPlaylistItem.Unavailable(position,
                 "plik lokalny — brak odpowiednika w katalogu Spotify");
         }
         if (Objects.nonNull(track.type()) && !TRACK_TYPE.equals(track.type())) {
+
             return new SpotifyPlaylistItem.Unavailable(position,
                 "pozycja typu '%s' — nie jest utworem".formatted(track.type()));
         }

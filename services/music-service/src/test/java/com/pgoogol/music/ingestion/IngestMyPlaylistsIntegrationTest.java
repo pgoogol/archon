@@ -96,7 +96,7 @@ class IngestMyPlaylistsIntegrationTest {
     void ingestMyPlaylists_whenAccountConnected_importsOnlyOwnPlaylists() throws Exception {
 
         // when + then
-        mockMvc.perform(post("/api/ingest/my-playlists"))
+        mockMvc.perform(post("/music/api/v1/ingest/my-playlists"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.imported.length()").value(1))
             .andExpect(jsonPath("$.imported[0].name").value("Wesela 2026"))
@@ -116,7 +116,7 @@ class IngestMyPlaylistsIntegrationTest {
         accountRepository.deleteAll();
 
         // when + then
-        mockMvc.perform(post("/api/ingest/my-playlists"))
+        mockMvc.perform(post("/music/api/v1/ingest/my-playlists"))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.errorCode").value("SPOTIFY_NOT_CONNECTED"));
     }
@@ -133,7 +133,7 @@ class IngestMyPlaylistsIntegrationTest {
             new ExternalServiceException("SPOTIFY_UNAVAILABLE", "Spotify nie odpowiedziało"));
 
         // when + then
-        mockMvc.perform(post("/api/ingest/my-playlists"))
+        mockMvc.perform(post("/music/api/v1/ingest/my-playlists"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.imported.length()").value(1))
             .andExpect(jsonPath("$.imported[0].name").value("Wesela 2026"))

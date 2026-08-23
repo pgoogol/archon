@@ -3,7 +3,7 @@ package com.pgoogol.music.api;
 import java.time.Instant;
 
 /**
- * Stan połączenia z kontem Spotify — kontrakt {@code /api/auth/spotify/*}.
+ * Stan połączenia z kontem Spotify — kontrakt {@code /music/api/v1/auth/spotify/*}.
  * Świadomie bez tokenów: te nie opuszczają serwera (docs/rules/security.md).
  */
 public record SpotifyAccountResponse(

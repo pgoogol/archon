@@ -21,7 +21,9 @@ class ApiCallGuardTest {
 
         // when
         String result = guard.execute(() -> {
+
             if (attempts.incrementAndGet() < 3) {
+
                 throw new ExternalServiceException("TEST_UNAVAILABLE", "chwilowa awaria");
             }
             return "ok";
@@ -41,6 +43,7 @@ class ApiCallGuardTest {
 
         // when
         Throwable thrown = catchThrowable(() -> guard.execute(() -> {
+
             attempts.incrementAndGet();
             throw new ExternalServiceException("TEST_UNAVAILABLE", "trwała awaria");
         }));
@@ -59,6 +62,7 @@ class ApiCallGuardTest {
 
         // when
         Throwable thrown = catchThrowable(() -> guard.execute(() -> {
+
             attempts.incrementAndGet();
             throw new ValidationException("TEST_BAD_REQUEST", "błąd 4xx");
         }));

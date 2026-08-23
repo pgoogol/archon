@@ -17,12 +17,15 @@ public class TempoClassifier {
     public TempoClass classify(int bpm) {
 
         if (bpm < SLOW_UPPER) {
+
             return TempoClass.SLOW;
         }
         if (bpm < MEDIUM_UPPER) {
+
             return TempoClass.MEDIUM;
         }
         if (bpm <= FAST_UPPER) {
+
             return TempoClass.FAST;
         }
         return TempoClass.VERY_FAST;

@@ -1,6 +1,7 @@
 package com.pgoogol.music.catalog;
 
 import com.pgoogol.music.common.NotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.lang.Nullable;
@@ -14,19 +15,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class CatalogService {
 
     private static final int MAX_DURATION_SEC = 24 * 60 * 60;
 
     private final TrackCatalogRepository trackCatalogRepository;
     private final ManualMetricsRepository manualMetricsRepository;
-
-    public CatalogService(TrackCatalogRepository trackCatalogRepository,
-                          ManualMetricsRepository manualMetricsRepository) {
-
-        this.trackCatalogRepository = trackCatalogRepository;
-        this.manualMetricsRepository = manualMetricsRepository;
-    }
 
     /** Metryki wgrane ręcznie — pusto, gdy utworu nie ma albo nie dostał metryk. */
     @Transactional(readOnly = true)
@@ -105,6 +100,7 @@ public class CatalogService {
 
     @Nullable
     private String name(@Nullable Enum<?> value) {
+
         return Optional.ofNullable(value).map(Enum::name).orElse(null);
     }
 
@@ -130,6 +126,7 @@ public class CatalogService {
     private String musicalKeys(@Nullable CatalogSearchCriteria.HarmonicFilter harmonic) {
 
         if (Objects.isNull(harmonic)) {
+
             return null;
         }
         Set<CamelotKey> keys = harmonic.compatible()

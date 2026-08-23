@@ -62,6 +62,7 @@ class LlmSmokeTest {
 
         assertThat(result.analyses()).hasSizeGreaterThanOrEqualTo(8);
         assertThat(result.analyses()).allSatisfy(analysis -> {
+
             assertThat(analysis.genreFamily()).isNotNull();
             assertThat(analysis.descriptionPl()).isNotBlank();
         });
@@ -74,11 +75,13 @@ class LlmSmokeTest {
         Optional<Double> inputRate = rate("LLM_COST_INPUT_PER_1M");
         Optional<Double> outputRate = rate("LLM_COST_OUTPUT_PER_1M");
         if (inputRate.isPresent() && outputRate.isPresent()) {
+
             double cost = result.inputTokens() / 1_000_000.0 * inputRate.get()
                 + result.outputTokens() / 1_000_000.0 * outputRate.get();
             System.out.printf("Koszt: $%.6f łącznie, $%.6f / utwór → wpisz do PLAN.md (ryzyka)%n",
                 cost, cost / trackCount);
         } else {
+
             System.out.println("""
                 Podaj LLM_COST_INPUT_PER_1M i LLM_COST_OUTPUT_PER_1M, \
                 aby wyliczyć koszt na utwór.""");
@@ -86,10 +89,12 @@ class LlmSmokeTest {
     }
 
     private Optional<Double> rate(String name) {
+
         return Optional.ofNullable(System.getenv(name)).map(Double::valueOf);
     }
 
     private String env(String name, String fallback) {
+
         return Objects.requireNonNullElse(System.getenv(name), fallback);
     }
 

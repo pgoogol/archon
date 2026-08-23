@@ -88,7 +88,7 @@ class LibraryOverviewIntegrationTest {
     @DisplayName("podaje liczby katalogu, biblioteki i pokrycia metrykami")
     void overview_reportsHeadlineCounts() throws Exception {
 
-        mockMvc.perform(get("/api/library/overview"))
+        mockMvc.perform(get("/music/api/v1/library/overview"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.scale.catalogTracks").value(4))
             .andExpect(jsonPath("$.scale.libraryTracks").value(3))
@@ -99,7 +99,7 @@ class LibraryOverviewIntegrationTest {
     @DisplayName("liczy czas, wykonawców i średnie tempo po bibliotece, nie po katalogu")
     void overview_reportsLibraryScale() throws Exception {
 
-        String body = mockMvc.perform(get("/api/library/overview"))
+        String body = mockMvc.perform(get("/music/api/v1/library/overview"))
             .andExpect(status().isOk())
             // 240 + 195 + 300 tysięcy ms; utwór spoza biblioteki nie wchodzi
             .andExpect(jsonPath("$.scale.libraryDurationMs").value(735_000))
@@ -122,7 +122,7 @@ class LibraryOverviewIntegrationTest {
     @DisplayName("udział źródeł BPM pokazuje, ile biblioteki to fakt, a ile estymata")
     void overview_reportsBpmSourceShare() throws Exception {
 
-        mockMvc.perform(get("/api/library/overview"))
+        mockMvc.perform(get("/music/api/v1/library/overview"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.quality.bpmSources[*].label").value(hasItem("MANUAL")))
             .andExpect(jsonPath("$.quality.bpmSources[*].label").value(hasItem("LLM")))
@@ -133,7 +133,7 @@ class LibraryOverviewIntegrationTest {
     @DisplayName("rozkład gatunków liczy też utwory bez gatunku")
     void overview_countsTracksWithoutGenreAsOwnBucket() throws Exception {
 
-        mockMvc.perform(get("/api/library/overview"))
+        mockMvc.perform(get("/music/api/v1/library/overview"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.sound.genres[?(@.label == 'LATIN')].count").value(hasItem(2)))
             .andExpect(jsonPath("$.sound.genres[?(@.label == 'BEZ GATUNKU')].count").value(hasItem(1)));
@@ -143,7 +143,7 @@ class LibraryOverviewIntegrationTest {
     @DisplayName("histogram BPM grupuje po dziesiątkach i pomija utwory bez BPM")
     void overview_bucketsBpmByTens() throws Exception {
 
-        mockMvc.perform(get("/api/library/overview"))
+        mockMvc.perform(get("/music/api/v1/library/overview"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.sound.bpmHistogram[*].label").value(hasItem("180–189")))
             .andExpect(jsonPath("$.sound.bpmHistogram[*].label").value(hasItem("90–99")))
@@ -154,7 +154,7 @@ class LibraryOverviewIntegrationTest {
     @DisplayName("koło Camelot skleja enharmoniczne zapisy tej samej tonacji")
     void overview_mergesEnharmonicSpellingsIntoOneWheelPosition() throws Exception {
 
-        mockMvc.perform(get("/api/library/overview"))
+        mockMvc.perform(get("/music/api/v1/library/overview"))
             .andExpect(status().isOk())
             // „Eb minor" i „D# minor" to ta sama pozycja koła, więc jeden koszyk z dwoma utworami
             .andExpect(jsonPath("$.sound.camelotKeys[?(@.label == '2A')].count").value(hasItem(2)))
@@ -166,7 +166,7 @@ class LibraryOverviewIntegrationTest {
     @DisplayName("macierz tempo × energia opisuje obie osi naraz")
     void overview_crossesTempoWithEnergy() throws Exception {
 
-        mockMvc.perform(get("/api/library/overview"))
+        mockMvc.perform(get("/music/api/v1/library/overview"))
             .andExpect(status().isOk())
             .andExpect(jsonPath(
                 "$.sound.tempoEnergy[?(@.tempoClass == 'VERY_FAST' && @.energy == 'HIGH')].count")
@@ -180,7 +180,7 @@ class LibraryOverviewIntegrationTest {
     @DisplayName("profil brzmienia uśrednia metryki ręczne")
     void overview_averagesManualMetrics() throws Exception {
 
-        mockMvc.perform(get("/api/library/overview"))
+        mockMvc.perform(get("/music/api/v1/library/overview"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.sound.audioProfile[?(@.label == 'energy')].value")
                 .value(hasItem(0.8)))
@@ -192,7 +192,7 @@ class LibraryOverviewIntegrationTest {
     @DisplayName("dekady i długości utworów wracają uporządkowane rosnąco")
     void overview_ordersDecadesAndDurations() throws Exception {
 
-        mockMvc.perform(get("/api/library/overview"))
+        mockMvc.perform(get("/music/api/v1/library/overview"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.timeline.decades[0].label").value("1990s"))
             .andExpect(jsonPath("$.timeline.decades[*].label").value(hasItem("2010s")))
@@ -205,10 +205,10 @@ class LibraryOverviewIntegrationTest {
     @DisplayName("braki per grupa pól zgadzają się z zakładką Wzbogacanie")
     void overview_matchesMissingCountEndpoint() throws Exception {
 
-        String overview = mockMvc.perform(get("/api/library/overview"))
+        String overview = mockMvc.perform(get("/music/api/v1/library/overview"))
             .andExpect(status().isOk())
             .andReturn().getResponse().getContentAsString();
-        String missing = mockMvc.perform(get("/api/enrich/missing-count"))
+        String missing = mockMvc.perform(get("/music/api/v1/enrich/missing-count"))
             .andExpect(status().isOk())
             .andReturn().getResponse().getContentAsString();
 
@@ -226,7 +226,7 @@ class LibraryOverviewIntegrationTest {
     @DisplayName("najczęstsi wykonawcy liczą się po bibliotece, nie po katalogu")
     void overview_topArtistsComeFromLibrary() throws Exception {
 
-        mockMvc.perform(get("/api/library/overview"))
+        mockMvc.perform(get("/music/api/v1/library/overview"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.taste.topArtists[0].label").value("Wykonawca"))
             .andExpect(jsonPath("$.taste.topArtists[0].count").value(3));
@@ -236,7 +236,7 @@ class LibraryOverviewIntegrationTest {
     @DisplayName("przegląd opisuje utwory, nie playlisty — najczęstsze albumy zamiast źródeł wpisów")
     void overview_ranksAlbumsAndKeepsPlaylistsOut() throws Exception {
 
-        mockMvc.perform(get("/api/library/overview"))
+        mockMvc.perform(get("/music/api/v1/library/overview"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.taste.topAlbums[0].label").value("Contra La Corriente"))
             .andExpect(jsonPath("$.taste.topAlbums[0].count").value(2))
@@ -250,7 +250,7 @@ class LibraryOverviewIntegrationTest {
     @DisplayName("najczęstsze tagi rozwijają tablicę i pomijają wpisy bez tagów")
     void overview_topTagsUnnestCustomTags() throws Exception {
 
-        mockMvc.perform(get("/api/library/overview"))
+        mockMvc.perform(get("/music/api/v1/library/overview"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.taste.topTags[0].label").value("parkiet"))
             .andExpect(jsonPath("$.taste.topTags[0].count").value(2))
@@ -261,7 +261,7 @@ class LibraryOverviewIntegrationTest {
     @DisplayName("przyrost biblioteki jedzie od najstarszego miesiąca")
     void overview_growthIsOldestFirst() throws Exception {
 
-        mockMvc.perform(get("/api/library/overview"))
+        mockMvc.perform(get("/music/api/v1/library/overview"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.timeline.monthlyGrowth.length()").value(1))
             .andExpect(jsonPath("$.timeline.monthlyGrowth[0].count").value(3));
@@ -271,7 +271,7 @@ class LibraryOverviewIntegrationTest {
     @DisplayName("rozkład ocen wydziela wpisy bez oceny")
     void overview_separatesUnratedEntries() throws Exception {
 
-        mockMvc.perform(get("/api/library/overview"))
+        mockMvc.perform(get("/music/api/v1/library/overview"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.taste.ratings[?(@.label == 'bez oceny')].count").value(hasItem(1)));
     }
@@ -280,7 +280,7 @@ class LibraryOverviewIntegrationTest {
     @DisplayName("ostatnio dodane wracają od najnowszego, z okładką i wykonawcą")
     void overview_recentlyAddedIsNewestFirst() throws Exception {
 
-        mockMvc.perform(get("/api/library/overview"))
+        mockMvc.perform(get("/music/api/v1/library/overview"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.recentlyAdded.length()").value(3))
             .andExpect(jsonPath("$.recentlyAdded[0].artist").value("Wykonawca"))
@@ -323,6 +323,7 @@ class LibraryOverviewIntegrationTest {
     private void withMetrics(String spotifyId) {
 
         new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+
             ManualMetrics metrics = new ManualMetrics(
                 trackCatalogRepository.findById(spotifyId).orElseThrow());
             metrics.setEnergy(new BigDecimal("0.800"));

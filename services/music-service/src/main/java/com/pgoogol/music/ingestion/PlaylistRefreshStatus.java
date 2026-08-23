@@ -38,23 +38,28 @@ public record PlaylistRefreshStatus(
     }
 
     public static PlaylistRefreshStatus neverRun() {
+
         return new PlaylistRefreshStatus(Outcome.NEVER_RUN, null, 0, 0, null);
     }
 
     public static PlaylistRefreshStatus disabled() {
+
         return new PlaylistRefreshStatus(Outcome.DISABLED, null, 0, 0, null);
     }
 
     public static PlaylistRefreshStatus skipped(Instant at) {
+
         return new PlaylistRefreshStatus(Outcome.SKIPPED_NOT_CONNECTED, at, 0, 0,
             "Konto Spotify nie jest połączone");
     }
 
     public static PlaylistRefreshStatus refreshed(Instant at, int refreshed, int failed) {
+
         return new PlaylistRefreshStatus(Outcome.REFRESHED, at, refreshed, failed, null);
     }
 
     public static PlaylistRefreshStatus failed(Instant at, String message) {
+
         return new PlaylistRefreshStatus(Outcome.FAILED, at, 0, 0, message);
     }
 }

@@ -319,6 +319,7 @@ class SetProposalServiceTest {
     }
 
     private SetProposal proposal() {
+
         return new SetProposal(List.of(), 0L, 0L, 1L, List.of());
     }
 }

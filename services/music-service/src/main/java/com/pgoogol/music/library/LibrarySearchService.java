@@ -4,6 +4,7 @@ import com.pgoogol.music.catalog.CatalogSearchCriteria;
 import com.pgoogol.music.catalog.CatalogService;
 import com.pgoogol.music.catalog.CatalogSortOrder;
 import com.pgoogol.music.catalog.TrackCatalog;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -27,17 +28,11 @@ import java.util.stream.Collectors;
  * katalogu — dokładnie to, czego {@code select t.*} pozwala uniknąć.</p>
  */
 @Service
+@RequiredArgsConstructor
 public class LibrarySearchService {
 
     private final CatalogService catalogService;
     private final LibraryEntryRepository libraryEntryRepository;
-
-    public LibrarySearchService(CatalogService catalogService,
-                                LibraryEntryRepository libraryEntryRepository) {
-
-        this.catalogService = catalogService;
-        this.libraryEntryRepository = libraryEntryRepository;
-    }
 
     @Transactional(readOnly = true)
     public Page<LibraryRow> search(CatalogSearchCriteria criteria,
@@ -53,6 +48,7 @@ public class LibrarySearchService {
     private Map<String, LibraryEntry> entriesByTrackId(List<TrackCatalog> tracks) {
 
         if (tracks.isEmpty()) {
+
             return Map.of();
         }
         List<String> spotifyIds = tracks.stream().map(TrackCatalog::getSpotifyId).toList();

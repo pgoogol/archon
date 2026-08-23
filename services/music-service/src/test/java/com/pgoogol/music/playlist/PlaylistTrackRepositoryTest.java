@@ -43,6 +43,7 @@ class PlaylistTrackRepositoryTest {
 
         // then
         assertThat(found).hasValueSatisfying(p -> {
+
             assertThat(p.getName()).isEqualTo("Sobota — wesele");
             assertThat(p.getCreatedAt()).isNotNull();
             assertThat(p.getSpotifyPlaylistId()).isNull();

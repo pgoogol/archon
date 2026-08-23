@@ -1,0 +1,29 @@
+package com.pgoogol.finance.common;
+
+import java.util.Objects;
+
+/**
+ * Bazowy wyjątek domenowy — zawsze z maszynowym {@code errorCode}; kod biznesowy
+ * nie rzuca surowych RuntimeException.
+ */
+public abstract class AppException extends RuntimeException {
+
+    private final String errorCode;
+
+    protected AppException(String errorCode, String message) {
+
+        super(message);
+        this.errorCode = Objects.requireNonNull(errorCode, "errorCode");
+    }
+
+    protected AppException(String errorCode, String message, Throwable cause) {
+
+        super(message, cause);
+        this.errorCode = Objects.requireNonNull(errorCode, "errorCode");
+    }
+
+    public String getErrorCode() {
+
+        return errorCode;
+    }
+}

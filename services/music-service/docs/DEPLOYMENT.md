@@ -42,9 +42,10 @@ docker exec music-view-postgres pg_dump -U musicview musicview > backup.sql
    (adres publiczny!), `LLM_PROVIDER`, `LLM_API_KEY`, `LLM_MODEL`, `MB_USER_AGENT`.
 3. **Front — Vercel** (albo dowolny hosting statyków; obraz `frontend/Dockerfile`
    robi to samo nginksem). Katalog `frontend/`, build `npm run build`, katalog
-   wyjściowy `dist`. Front woła względne `/api`, więc dodaj rewrite na backend
-   (`vercel.json` → `rewrites: [{ "source": "/api/:path*", "destination":
-   "https://<backend>/api/:path*" }]`) — inaczej trzeba by wprowadzać CORS.
+   wyjściowy `dist`. Front woła względne `/music/api/v1`, więc dodaj rewrite na
+   backend (`vercel.json` → `rewrites: [{ "source": "/music/api/v1/:path*",
+   "destination": "https://<backend>/music/api/v1/:path*" }]`) — inaczej trzeba
+   by wprowadzać CORS.
    Rozdział na dwie aplikacje (D30) jest właśnie po to, żeby ten wariant
    pozostał możliwy: front da się wystawić na statycznym hostingu niezależnie
    od backendu.
@@ -62,4 +63,4 @@ docker exec music-view-postgres pg_dump -U musicview musicview > backup.sql
   klucz, który gdzieś wyciekł, traktuj jak spalony i zrotuj.
 - Job wzbogacania jest restartowalny (D10), ale długi — platformy z usypianiem
   instancji potrafią go przerwać. Po restarcie dokończ przez
-  `POST /api/enrich/jobs/{id}/restart`.
+  `POST /music/api/v1/enrich/jobs/{id}/restart`.

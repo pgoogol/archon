@@ -33,6 +33,7 @@ class MusicBrainzIsrcCacheRepositoryTest {
 
         // then
         assertThat(found).hasValueSatisfying(cache -> {
+
             assertThat(cache.getMbid()).isEqualTo("9d444787-3f25-4c16-9261-597b9ab021cc");
             assertThat(cache.getResolvedAt()).isNotNull();
         });

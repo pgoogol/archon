@@ -78,7 +78,7 @@ class CatalogApiIntegrationTest {
     @Test
     void getTrack_whenTrackExists_returnsFullRecord() throws Exception {
 
-        mockMvc.perform(get("/api/catalog/tracks/sp-vivir"))
+        mockMvc.perform(get("/music/api/v1/catalog/tracks/sp-vivir"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.title").value("Vivir Mi Vida"))
             .andExpect(jsonPath("$.genreFamily").value("LATIN"))
@@ -90,7 +90,7 @@ class CatalogApiIntegrationTest {
     @Test
     void getTrack_whenTrackMissing_returns404WithErrorCode() throws Exception {
 
-        mockMvc.perform(get("/api/catalog/tracks/sp-nieistnieje"))
+        mockMvc.perform(get("/music/api/v1/catalog/tracks/sp-nieistnieje"))
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.errorCode").value("TRACK_NOT_FOUND"));
     }
@@ -98,7 +98,7 @@ class CatalogApiIntegrationTest {
     @Test
     void searchTracks_whenFullTextQuery_returnsMatchingTracksOnly() throws Exception {
 
-        mockMvc.perform(get("/api/catalog/tracks").param("search", "vida"))
+        mockMvc.perform(get("/music/api/v1/catalog/tracks").param("search", "vida"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.totalElements").value(2))
             .andExpect(jsonPath("$.content[*].track.spotifyId").value(
@@ -108,7 +108,7 @@ class CatalogApiIntegrationTest {
     @Test
     void searchTracks_whenGenreAndBpmRangeFilters_combinesThem() throws Exception {
 
-        mockMvc.perform(get("/api/catalog/tracks")
+        mockMvc.perform(get("/music/api/v1/catalog/tracks")
                 .param("genreFamily", "LATIN")
                 .param("bpmMin", "100")
                 .param("bpmMax", "200"))
@@ -120,7 +120,7 @@ class CatalogApiIntegrationTest {
     @Test
     void searchTracks_whenTempoClassAndEnergyFilters_matchRockTrack() throws Exception {
 
-        mockMvc.perform(get("/api/catalog/tracks")
+        mockMvc.perform(get("/music/api/v1/catalog/tracks")
                 .param("tempoClass", "SLOW")
                 .param("energy", "MEDIUM"))
             .andExpect(status().isOk())
@@ -131,7 +131,7 @@ class CatalogApiIntegrationTest {
     @Test
     void searchTracks_whenPageSizeAboveLimit_capsAtMaximum() throws Exception {
 
-        mockMvc.perform(get("/api/catalog/tracks").param("size", "5000"))
+        mockMvc.perform(get("/music/api/v1/catalog/tracks").param("size", "5000"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.size").value(500))
             .andExpect(jsonPath("$.totalElements").value(3));
@@ -140,7 +140,7 @@ class CatalogApiIntegrationTest {
     @Test
     void searchTracks_whenLargePageRequested_returnsItWithoutCapping() throws Exception {
 
-        mockMvc.perform(get("/api/catalog/tracks").param("size", "200"))
+        mockMvc.perform(get("/music/api/v1/catalog/tracks").param("size", "200"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.size").value(200));
     }
@@ -148,7 +148,7 @@ class CatalogApiIntegrationTest {
     @Test
     void searchTracks_whenSortedByBpmDescending_ordersAcrossWholeResult() throws Exception {
 
-        mockMvc.perform(get("/api/catalog/tracks")
+        mockMvc.perform(get("/music/api/v1/catalog/tracks")
                 .param("sort", "BPM")
                 .param("direction", "DESC"))
             .andExpect(status().isOk())
@@ -160,7 +160,7 @@ class CatalogApiIntegrationTest {
     @Test
     void searchTracks_whenSortedByTitleAscending_ordersAlphabetically() throws Exception {
 
-        mockMvc.perform(get("/api/catalog/tracks")
+        mockMvc.perform(get("/music/api/v1/catalog/tracks")
                 .param("sort", "TITLE")
                 .param("direction", "ASC"))
             .andExpect(status().isOk())
@@ -174,7 +174,7 @@ class CatalogApiIntegrationTest {
 
         trackCatalogRepository.save(new TrackCatalog("sp-szkielet", "Szkielet", "Nieznany"));
 
-        mockMvc.perform(get("/api/catalog/tracks")
+        mockMvc.perform(get("/music/api/v1/catalog/tracks")
                 .param("sort", "BPM")
                 .param("direction", "ASC"))
             .andExpect(status().isOk())
@@ -186,7 +186,7 @@ class CatalogApiIntegrationTest {
     @Test
     void searchTracks_whenSortedByEnergy_ordersLowMediumHigh() throws Exception {
 
-        mockMvc.perform(get("/api/catalog/tracks")
+        mockMvc.perform(get("/music/api/v1/catalog/tracks")
                 .param("sort", "ENERGY")
                 .param("direction", "ASC"))
             .andExpect(status().isOk())
@@ -198,7 +198,7 @@ class CatalogApiIntegrationTest {
     @Test
     void searchTracks_whenSortIsNotOnWhitelist_returns400WithErrorCode() throws Exception {
 
-        mockMvc.perform(get("/api/catalog/tracks").param("sort", "DROP TABLE"))
+        mockMvc.perform(get("/music/api/v1/catalog/tracks").param("sort", "DROP TABLE"))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.errorCode").value("INVALID_PARAMETER"));
     }
@@ -206,7 +206,7 @@ class CatalogApiIntegrationTest {
     @Test
     void searchTracks_whenNoSortRequested_keepsRelevanceOrderFromM17() throws Exception {
 
-        mockMvc.perform(get("/api/catalog/tracks").param("search", "carnaval"))
+        mockMvc.perform(get("/music/api/v1/catalog/tracks").param("search", "carnaval"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-carnaval"));
     }
@@ -216,7 +216,7 @@ class CatalogApiIntegrationTest {
 
         addToLibrary("sp-vivir", 5, "wesele");
 
-        mockMvc.perform(get("/api/catalog/tracks").param("inLibrary", "true"))
+        mockMvc.perform(get("/music/api/v1/catalog/tracks").param("inLibrary", "true"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.totalElements").value(1))
             .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-vivir"));
@@ -227,7 +227,7 @@ class CatalogApiIntegrationTest {
 
         addToLibrary("sp-vivir", 5, "wesele");
 
-        mockMvc.perform(get("/api/catalog/tracks").param("inLibrary", "false"))
+        mockMvc.perform(get("/music/api/v1/catalog/tracks").param("inLibrary", "false"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.totalElements").value(2))
             .andExpect(jsonPath("$.content[*].track.spotifyId").value(
@@ -241,7 +241,7 @@ class CatalogApiIntegrationTest {
         addToLibrary("sp-carnaval", 2, "wesele");
         addToLibrary("sp-bohemian", null, null);
 
-        mockMvc.perform(get("/api/catalog/tracks").param("ratingMin", "4"))
+        mockMvc.perform(get("/music/api/v1/catalog/tracks").param("ratingMin", "4"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.totalElements").value(1))
             .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-vivir"));
@@ -253,7 +253,7 @@ class CatalogApiIntegrationTest {
         addToLibrary("sp-vivir", 5, "wesele");
         addToLibrary("sp-carnaval", 3, "chill");
 
-        mockMvc.perform(get("/api/catalog/tracks").param("tag", "chill"))
+        mockMvc.perform(get("/music/api/v1/catalog/tracks").param("tag", "chill"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.totalElements").value(1))
             .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-carnaval"));
@@ -265,7 +265,7 @@ class CatalogApiIntegrationTest {
         addToLibrary("sp-vivir", 5, "wesele");
         addToLibrary("sp-bohemian", 5, "wesele");
 
-        mockMvc.perform(get("/api/catalog/tracks")
+        mockMvc.perform(get("/music/api/v1/catalog/tracks")
                 .param("inLibrary", "true")
                 .param("genreFamily", "LATIN"))
             .andExpect(status().isOk())
@@ -279,7 +279,7 @@ class CatalogApiIntegrationTest {
         addToLibrary("sp-vivir", 5, null);
         addToLibrary("sp-carnaval", 3, null);
 
-        mockMvc.perform(get("/api/catalog/tracks")
+        mockMvc.perform(get("/music/api/v1/catalog/tracks")
                 .param("inLibrary", "true")
                 .param("sort", "BPM")
                 .param("direction", "DESC"))
@@ -292,7 +292,7 @@ class CatalogApiIntegrationTest {
     @Test
     void getTrack_computesCamelotFromMusicalKey() throws Exception {
 
-        mockMvc.perform(get("/api/catalog/tracks/sp-vivir"))
+        mockMvc.perform(get("/music/api/v1/catalog/tracks/sp-vivir"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.musicalKey").value("A minor"))
             .andExpect(jsonPath("$.camelot").value("8A"));
@@ -303,7 +303,7 @@ class CatalogApiIntegrationTest {
 
         trackCatalogRepository.save(new TrackCatalog("sp-szkielet", "Szkielet", "Nieznany"));
 
-        mockMvc.perform(get("/api/catalog/tracks/sp-szkielet"))
+        mockMvc.perform(get("/music/api/v1/catalog/tracks/sp-szkielet"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.camelot").doesNotExist());
     }
@@ -313,7 +313,7 @@ class CatalogApiIntegrationTest {
 
         saveTrackWithKey("sp-daleki", "Daleki", "Eb minor");
 
-        mockMvc.perform(get("/api/catalog/tracks").param("camelot", "8A"))
+        mockMvc.perform(get("/music/api/v1/catalog/tracks").param("camelot", "8A"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.totalElements").value(3))
             .andExpect(jsonPath("$.content[*].track.spotifyId").value(
@@ -323,7 +323,7 @@ class CatalogApiIntegrationTest {
     @Test
     void searchTracks_whenCamelotExact_returnsOnlyThatPosition() throws Exception {
 
-        mockMvc.perform(get("/api/catalog/tracks")
+        mockMvc.perform(get("/music/api/v1/catalog/tracks")
                 .param("camelot", "8A")
                 .param("camelotCompatible", "false"))
             .andExpect(status().isOk())
@@ -336,7 +336,7 @@ class CatalogApiIntegrationTest {
 
         saveTrackWithKey("sp-bemol", "Bemol", "Eb minor");
 
-        mockMvc.perform(get("/api/catalog/tracks")
+        mockMvc.perform(get("/music/api/v1/catalog/tracks")
                 .param("camelot", "2A")
                 .param("camelotCompatible", "false"))
             .andExpect(status().isOk())
@@ -348,7 +348,7 @@ class CatalogApiIntegrationTest {
     @Test
     void searchTracks_whenCamelotOutsideWheel_returns400WithErrorCode() throws Exception {
 
-        mockMvc.perform(get("/api/catalog/tracks").param("camelot", "13Z"))
+        mockMvc.perform(get("/music/api/v1/catalog/tracks").param("camelot", "13Z"))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.errorCode").value("INVALID_CAMELOT"));
     }
@@ -359,7 +359,7 @@ class CatalogApiIntegrationTest {
         saveMetrics("sp-vivir", "0.80", "0.05", "0.10");
         saveMetrics("sp-carnaval", "0.20", "0.90", "0.10");
 
-        mockMvc.perform(get("/api/catalog/tracks").param("valenceMin", "0.5"))
+        mockMvc.perform(get("/music/api/v1/catalog/tracks").param("valenceMin", "0.5"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.totalElements").value(1))
             .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-vivir"));
@@ -370,7 +370,7 @@ class CatalogApiIntegrationTest {
 
         saveMetrics("sp-vivir", "0.80", "0.95", "0.10");
 
-        mockMvc.perform(get("/api/catalog/tracks").param("instrumentalMin", "0.5"))
+        mockMvc.perform(get("/music/api/v1/catalog/tracks").param("instrumentalMin", "0.5"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.totalElements").value(1))
             .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-vivir"));
@@ -382,7 +382,7 @@ class CatalogApiIntegrationTest {
         saveMetrics("sp-vivir", "0.80", "0.05", "0.90");
         saveMetrics("sp-carnaval", "0.80", "0.05", "0.10");
 
-        mockMvc.perform(get("/api/catalog/tracks").param("livenessMax", "0.5"))
+        mockMvc.perform(get("/music/api/v1/catalog/tracks").param("livenessMax", "0.5"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.totalElements").value(1))
             .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-carnaval"));
@@ -393,7 +393,7 @@ class CatalogApiIntegrationTest {
 
         saveMetrics("sp-vivir", "0.80", "0.05", "0.10");
 
-        mockMvc.perform(get("/api/catalog/metrics-coverage"))
+        mockMvc.perform(get("/music/api/v1/catalog/metrics-coverage"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.withMetrics").value(1))
             .andExpect(jsonPath("$.total").value(3));
@@ -404,7 +404,7 @@ class CatalogApiIntegrationTest {
 
         addToLibrary("sp-vivir", 5, "wesele");
 
-        mockMvc.perform(get("/api/catalog/tracks").param("search", "vivir"))
+        mockMvc.perform(get("/music/api/v1/catalog/tracks").param("search", "vivir"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-vivir"))
             .andExpect(jsonPath("$.content[0].library.rating").value(5))
@@ -415,7 +415,7 @@ class CatalogApiIntegrationTest {
     @Test
     void searchTracks_whenTrackOutsideLibrary_leavesDjDataEmpty() throws Exception {
 
-        mockMvc.perform(get("/api/catalog/tracks").param("search", "vivir"))
+        mockMvc.perform(get("/music/api/v1/catalog/tracks").param("search", "vivir"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-vivir"))
             .andExpect(jsonPath("$.content[0].library").doesNotExist());
@@ -427,7 +427,7 @@ class CatalogApiIntegrationTest {
         addToLibrary("sp-carnaval", 3, null);
         addToLibrary("sp-vivir", 5, null);
 
-        mockMvc.perform(get("/api/catalog/tracks")
+        mockMvc.perform(get("/music/api/v1/catalog/tracks")
                 .param("sort", "RATING")
                 .param("direction", "DESC"))
             .andExpect(status().isOk())
@@ -442,7 +442,7 @@ class CatalogApiIntegrationTest {
         saveTrackWithYear("sp-lata90", "Lata 90", 1994);
         saveTrackWithYear("sp-wspolczesny", "Współczesny", 2020);
 
-        mockMvc.perform(get("/api/catalog/tracks")
+        mockMvc.perform(get("/music/api/v1/catalog/tracks")
                 .param("yearMin", "1990")
                 .param("yearMax", "1999"))
             .andExpect(status().isOk())
@@ -456,7 +456,7 @@ class CatalogApiIntegrationTest {
         saveTrackWithDuration("sp-krotki", "Krótki", 180_000);
         saveTrackWithDuration("sp-epopeja", "Epopeja", 420_000);
 
-        mockMvc.perform(get("/api/catalog/tracks")
+        mockMvc.perform(get("/music/api/v1/catalog/tracks")
                 .param("durationMinSec", "60")
                 .param("durationMaxSec", "300"))
             .andExpect(status().isOk())
@@ -470,7 +470,7 @@ class CatalogApiIntegrationTest {
         savePopularTrack("sp-hit", "Hit", 80, false);
         savePopularTrack("sp-wulgarny", "Wulgarny", 90, true);
 
-        mockMvc.perform(get("/api/catalog/tracks")
+        mockMvc.perform(get("/music/api/v1/catalog/tracks")
                 .param("popularityMin", "70")
                 .param("explicit", "false"))
             .andExpect(status().isOk())
@@ -486,7 +486,7 @@ class CatalogApiIntegrationTest {
         estimated.setBpmSource(BpmSource.LLM);
         trackCatalogRepository.save(estimated);
 
-        mockMvc.perform(get("/api/catalog/tracks").param("bpmSource", "LLM"))
+        mockMvc.perform(get("/music/api/v1/catalog/tracks").param("bpmSource", "LLM"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.totalElements").value(1))
             .andExpect(jsonPath("$.content[0].track.spotifyId").value("sp-estymata"));
@@ -495,7 +495,7 @@ class CatalogApiIntegrationTest {
     @Test
     void searchTracks_whenMissingAny_returnsTracksMarkedForEnrichment() throws Exception {
 
-        mockMvc.perform(get("/api/catalog/tracks").param("missing", "ANY"))
+        mockMvc.perform(get("/music/api/v1/catalog/tracks").param("missing", "ANY"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.totalElements").value(3));
     }
@@ -510,7 +510,7 @@ class CatalogApiIntegrationTest {
         complete.setTempoClass(TempoClass.MEDIUM);
         trackCatalogRepository.save(complete);
 
-        mockMvc.perform(get("/api/catalog/tracks").param("missing", "AUDIO"))
+        mockMvc.perform(get("/music/api/v1/catalog/tracks").param("missing", "AUDIO"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.totalElements").value(3))
             .andExpect(jsonPath("$.content[*].track.spotifyId").value(
@@ -555,6 +555,7 @@ class CatalogApiIntegrationTest {
                              String liveness) {
 
         new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+
             ManualMetrics metrics = new ManualMetrics(
                 trackCatalogRepository.findById(spotifyId).orElseThrow());
             metrics.setValence(new BigDecimal(valence));
@@ -571,6 +572,7 @@ class CatalogApiIntegrationTest {
             trackCatalogRepository.findById(spotifyId).orElseThrow(), LibrarySource.FILE);
         entry.setRating(rating);
         if (tag != null) {
+
             entry.setCustomTags(List.of(tag));
         }
         libraryEntryRepository.save(entry);

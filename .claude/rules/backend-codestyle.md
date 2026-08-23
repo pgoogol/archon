@@ -50,6 +50,25 @@ paths:
 | Config class | suffix `Config` | `EnrichmentJobConfig` |
 | Entity | plain noun, no suffix | `TrackCatalog`, `Playlist` |
 
+**Identifiers are English — always.** Class, method, field, variable, parameter and
+constant names, in production code and in tests alike. A codebase that mixes
+`biezaceKonto` with `currentAccount` makes every name a guess about which language
+it was written in, and a rename in an IDE stops finding half the occurrences.
+
+**Comments and Javadoc stay Polish**, and so does display text: exception messages,
+`@DisplayName`, log messages, and string literals carrying domain data (a bank's
+Polish column headers are data, not identifiers).
+
+```java
+// WRONG
+long biezace = createAccount("Bieżące", "PLN");
+JsonNode raport = objectMapper.readTree(body);
+
+// CORRECT — kod po angielsku, komentarz i dane po polsku
+long currentAccount = createAccount("Bieżące", "PLN");
+JsonNode report = objectMapper.readTree(body);
+```
+
 ## Code structure
 
 - Maximum method length: **30 lines** — extract if longer.
@@ -61,8 +80,33 @@ paths:
   the decision says: not "criterion (D19)" but "criterion: measured or estimated".
   The one exception is an applied Flyway migration — its checksum covers comments
   too, so editing one breaks validation on every existing database.
-- No static utility classes — use Spring beans. Exception: test fixtures
-  (Object Mother).
+- No static utility classes — use Spring beans. Exceptions: test fixtures
+  (Object Mother) and a constants holder with no behaviour, such as
+  `ExceptionMessageConstants` or `ErrorCodes`. Mark such a holder with Lombok's
+  **`@UtilityClass`** — it makes the class final, makes every member static and
+  generates the private constructor, so none of that is left to remember.
+- **Never use the ternary operator.** Write `if` with an early return instead —
+  a conditional buried inside an expression is read twice, and a nested one is
+  read three times.
+  ```java
+  // WRONG
+  return Objects.isNull(parentId) ? null : get(parentId);
+  // CORRECT
+  if (Objects.isNull(parentId)) {
+      return null;
+  }
+  return get(parentId);
+  ```
+- **Never pass the result of a call as an argument to another call.** Give it a
+  named local first — the name says what the value is, and a stack trace points
+  at one line instead of a nest.
+  ```java
+  // WRONG
+  return mapper.toResponses(accountService.list(includeArchived));
+  // CORRECT
+  List<Account> accounts = accountService.list(includeArchived);
+  return mapper.toResponses(accounts);
+  ```
 - Prefer `List.of()`, `Map.of()`, `Set.of()` for immutable collections.
 - Annotate `@NonNull` / `@Nullable` (`org.springframework.lang`) on parameters and
   return types of public methods.
@@ -74,6 +118,20 @@ paths:
   in time or complexity — then write in a comment why.
 - Avoid chained calls like `a().b().c()`. Exception: Builder, `Optional`, `Stream`
   and the Mockito API.
+- **A lambda body longer than 3 lines goes into its own method.** `forEach` and
+  `map` with a block inside stop reading as a pipeline and start hiding logic that
+  nothing can test on its own.
+  ```java
+  // WRONG
+  flat.forEach(category -> {
+      CategoryNode node = node(category, childrenByParent);
+      Long parentId = category.getParentId();
+      if (Objects.isNull(parentId)) { roots.add(node); }
+      else { childrenByParent.get(parentId).add(node); }
+  });
+  // CORRECT
+  flat.forEach(category -> attach(category, loaded, childrenByParent, roots));
+  ```
 
 ## Comparisons and null checks
 
@@ -124,13 +182,37 @@ boolean hasRole = CollectionUtils.containsAny(roles, allowed);
 
 - 4-space indentation, never tabs.
 - Opening brace on the same line.
-- Leave one blank line after the opening brace of a class or method body.
+- **Leave one blank line after every opening brace** — not only a class or method
+  body, but `if`, `else`, `for`, `while`, `do`, `try`, `catch`, `finally`,
+  `switch` and a block-bodied lambda too. Two exceptions: an empty block (`{`
+  immediately followed by `}`) gets nothing, and `{` opening an array
+  initializer in an annotation (`@CsvSource({`) is not a block.
+  ```java
+  // WRONG
+  if (Objects.isNull(value)) {
+      return null;
+  }
+  // CORRECT
+  if (Objects.isNull(value)) {
+
+      return null;
+  }
+  ```
+  Spotless does not enforce this — it is on review.
 - Do not hand-format what a tool should format — Spotless (`./mvnw spotless:check`).
 
 ## Spring
 
 - Inject through the constructor. Never `@Autowired` on a field. Never put
   `@Autowired` on the only constructor — Spring injects it anyway.
+- Generate that constructor with Lombok's **`@RequiredArgsConstructor`** — a
+  hand-written constructor that only assigns `final` fields is a place to forget
+  a field, and adding a dependency means editing three lines instead of one.
+  Write the constructor by hand only when it does something beyond assignment
+  (building a `RestClient`, deriving a value from properties). Lombok stops at
+  that annotation: no `@Data`, no `@Builder`, no `@Getter`/`@Setter` on entities —
+  a JPA entity's accessors stay visible in the source, because that is where
+  lazy loading and `equals` go wrong.
 - Keep `@RestController` thin: input validation and delegation to a service,
   no business logic.
 - Put `@Transactional` on the class only when ALL methods need it. Otherwise

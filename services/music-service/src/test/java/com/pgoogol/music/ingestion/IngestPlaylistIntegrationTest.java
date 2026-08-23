@@ -33,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Pełny stos HTTP dla POST /api/ingest/playlist na realnym Postgresie (DoD M2.1);
+ * Pełny stos HTTP dla POST /music/api/v1/ingest/playlist na realnym Postgresie (DoD M2.1);
  * klient Spotify zamockowany — jego kontrakt pokrywa SpotifyPlaylistClientTest
  * na nagranych odpowiedziach.
  */
@@ -91,7 +91,7 @@ class IngestPlaylistIntegrationTest {
     void ingestPlaylist_whenPlaylistImported_savesCatalogLibraryAndOrder() throws Exception {
 
         // when + then
-        mockMvc.perform(post("/api/ingest/playlist")
+        mockMvc.perform(post("/music/api/v1/ingest/playlist")
                 .contentType(MediaType.APPLICATION_JSON).content(IMPORT_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.name").value("Sabor Latino"))
@@ -103,6 +103,7 @@ class IngestPlaylistIntegrationTest {
             .andExpect(jsonPath("$.skipped[0].position").value(2));
 
         assertThat(trackCatalogRepository.findById("sp-vivir")).hasValueSatisfying(track -> {
+
             assertThat(track.getTitle()).isEqualTo("Vivir Mi Vida");
             assertThat(track.getIsrc()).isEqualTo("ISRC-sp-vivir");
             assertThat(track.getYear()).isEqualTo(2013);
@@ -119,7 +120,7 @@ class IngestPlaylistIntegrationTest {
             throws Exception {
 
         // given
-        mockMvc.perform(post("/api/ingest/playlist")
+        mockMvc.perform(post("/music/api/v1/ingest/playlist")
                 .contentType(MediaType.APPLICATION_JSON).content(IMPORT_JSON))
             .andExpect(status().isOk());
         given(playlistClient.getPlaylistItems(PLAYLIST_ID)).willReturn(List.of(
@@ -127,7 +128,7 @@ class IngestPlaylistIntegrationTest {
             track(1, "sp-vivir", "Vivir Mi Vida", "Marc Anthony")));
 
         // when + then
-        mockMvc.perform(post("/api/ingest/playlist")
+        mockMvc.perform(post("/music/api/v1/ingest/playlist")
                 .contentType(MediaType.APPLICATION_JSON).content(IMPORT_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.imported").value(0))
@@ -147,13 +148,14 @@ class IngestPlaylistIntegrationTest {
         trackCatalogRepository.save(skeleton);
 
         // when
-        mockMvc.perform(post("/api/ingest/playlist")
+        mockMvc.perform(post("/music/api/v1/ingest/playlist")
                 .contentType(MediaType.APPLICATION_JSON).content(IMPORT_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.imported").value(2));
 
         // then — tytuł zostaje, puste pola uzupełnione z playlisty
         assertThat(trackCatalogRepository.findById("sp-vivir")).hasValueSatisfying(track -> {
+
             assertThat(track.getTitle()).isEqualTo("Vivir Mi Vida (CSV)");
             assertThat(track.getIsrc()).isEqualTo("ISRC-sp-vivir");
             assertThat(track.getDurationMs()).isEqualTo(252306);
@@ -164,7 +166,7 @@ class IngestPlaylistIntegrationTest {
     void ingestPlaylist_whenUrlIsNotAPlaylist_returns400() throws Exception {
 
         // when + then
-        mockMvc.perform(post("/api/ingest/playlist")
+        mockMvc.perform(post("/music/api/v1/ingest/playlist")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"url\": \"https://example.com/\"}"))
             .andExpect(status().isBadRequest())
@@ -175,7 +177,7 @@ class IngestPlaylistIntegrationTest {
     void ingestPlaylist_whenUrlBlank_returns400WithValidationError() throws Exception {
 
         // when + then
-        mockMvc.perform(post("/api/ingest/playlist")
+        mockMvc.perform(post("/music/api/v1/ingest/playlist")
                 .contentType(MediaType.APPLICATION_JSON).content("{\"url\": \"  \"}"))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.errorCode").value("VALIDATION_FAILED"));

@@ -64,6 +64,7 @@ class RealApiSmokeTest {
         // when + then — oceniamy pokrycie ręcznie, test wymaga min. 1 trafienia per źródło
         long deezerHits = TRACKS.keySet().stream()
             .map(isrc -> {
+
                 Optional<BigDecimal> bpm = deezer.findBpmByIsrc(isrc);
                 System.out.printf("Deezer  %s (%s) → bpm=%s%n", isrc, TRACKS.get(isrc), bpm);
                 return bpm;
@@ -72,6 +73,7 @@ class RealApiSmokeTest {
             .count();
         long mbHits = TRACKS.keySet().stream()
             .map(isrc -> {
+
                 Optional<String> mbid = musicBrainz.lookupMbid(isrc);
                 System.out.printf("MB      %s (%s) → mbid=%s%n", isrc, TRACKS.get(isrc), mbid);
                 return mbid;
@@ -92,7 +94,7 @@ class RealApiSmokeTest {
         SpotifyProperties properties = new SpotifyProperties(
             "https://api.spotify.com", "https://accounts.spotify.com",
             System.getenv("SPOTIFY_CLIENT_ID"), System.getenv("SPOTIFY_CLIENT_SECRET"), 5,
-            "http://127.0.0.1:8080/api/auth/spotify/callback", "playlist-read-private");
+            "http://127.0.0.1:8080/music/api/v1/auth/spotify/callback", "playlist-read-private");
         SpotifyClient spotify = new SpotifyClient(RestClient.builder(), properties,
             new SpotifyAppTokenProvider(RestClient.builder(), properties),
             new SpotifyTrackMapper(), new SpotifyApiExecutor(properties));

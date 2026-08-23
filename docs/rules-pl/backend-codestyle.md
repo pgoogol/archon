@@ -50,6 +50,25 @@ paths:
 | Klasa konfiguracji | sufiks `Config` | `EnrichmentJobConfig` |
 | Encja | goły rzeczownik, bez sufiksu | `TrackCatalog`, `Playlist` |
 
+**Identyfikatory są po angielsku — zawsze.** Nazwy klas, metod, pól, zmiennych,
+parametrów i stałych, tak samo w kodzie produkcyjnym jak w testach. Kod mieszający
+`biezaceKonto` z `currentAccount` zamienia każdą nazwę w zgadywankę, w którym
+języku została napisana, a zmiana nazwy w IDE przestaje znajdować połowę wystąpień.
+
+**Komentarze i Javadoc zostają po polsku**, podobnie jak teksty dla człowieka:
+komunikaty wyjątków, `@DisplayName`, wpisy do logu i literały niosące dane domenowe
+(polskie nagłówki kolumn z wyciągu bankowego to dane, nie identyfikatory).
+
+```java
+// ŹLE
+long biezace = createAccount("Bieżące", "PLN");
+JsonNode raport = objectMapper.readTree(body);
+
+// DOBRZE — kod po angielsku, komentarz i dane po polsku
+long currentAccount = createAccount("Bieżące", "PLN");
+JsonNode report = objectMapper.readTree(body);
+```
+
 ## Struktura kodu
 
 - Maksymalna długość metody: **30 linii** — dłuższą wydziel.
@@ -61,8 +80,33 @@ paths:
   to, co decyzja mówi: nie „kryterium (D19)", tylko „kryterium: pomiar czy
   estymata". Jedyny wyjątek to zastosowana migracja Flyway — jej suma kontrolna
   obejmuje także komentarze, więc edycja wywala walidację na istniejących bazach.
-- Żadnych statycznych klas narzędziowych — używaj beanów Springa. Wyjątek:
-  fixtures testowe (Object Mother).
+- Żadnych statycznych klas narzędziowych — używaj beanów Springa. Wyjątki:
+  fixtures testowe (Object Mother) oraz klasa ze stałymi bez żadnego zachowania,
+  jak `ExceptionMessageConstants` albo `ErrorCodes`. Taką klasę oznacz Lombokowym
+  **`@UtilityClass`** — robi klasę finalną, każdy składnik statycznym i generuje
+  prywatny konstruktor, więc nie zostaje to do zapamiętania.
+- **Nigdy nie używaj operatora warunkowego (ternary).** Zamiast tego `if`
+  z wczesnym wyjściem — warunek schowany w wyrażeniu czyta się dwa razy,
+  a zagnieżdżony trzy.
+  ```java
+  // ŹLE
+  return Objects.isNull(parentId) ? null : get(parentId);
+  // DOBRZE
+  if (Objects.isNull(parentId)) {
+      return null;
+  }
+  return get(parentId);
+  ```
+- **Nigdy nie przekazuj wyniku wywołania jako argumentu innego wywołania.**
+  Najpierw nazwana zmienna lokalna — nazwa mówi, czym jest wartość, a stack trace
+  wskazuje jedną linię zamiast gniazda wywołań.
+  ```java
+  // ŹLE
+  return mapper.toResponses(accountService.list(includeArchived));
+  // DOBRZE
+  List<Account> accounts = accountService.list(includeArchived);
+  return mapper.toResponses(accounts);
+  ```
 - Preferuj `List.of()`, `Map.of()`, `Set.of()` dla kolekcji niemodyfikowalnych.
 - Oznaczaj `@NonNull` / `@Nullable` (`org.springframework.lang`) na parametrach
   i typach zwracanych metod publicznych.
@@ -74,6 +118,20 @@ paths:
   tańsza czasowo lub prostsza — wtedy napisz w komentarzu dlaczego.
 - Unikaj łańcuchów `a().b().c()`. Wyjątek: Builder, `Optional`, `Stream` i API
   Mockito.
+- **Ciało lambdy dłuższe niż 3 linie wydziel do osobnej metody.** `forEach`
+  i `map` z blokiem w środku przestają się czytać jak potok, a zaczynają ukrywać
+  logikę, której nic nie przetestuje osobno.
+  ```java
+  // ŹLE
+  flat.forEach(category -> {
+      CategoryNode node = node(category, childrenByParent);
+      Long parentId = category.getParentId();
+      if (Objects.isNull(parentId)) { roots.add(node); }
+      else { childrenByParent.get(parentId).add(node); }
+  });
+  // DOBRZE
+  flat.forEach(category -> attach(category, loaded, childrenByParent, roots));
+  ```
 
 ## Porównania i sprawdzanie null
 
@@ -125,7 +183,23 @@ boolean maRole = CollectionUtils.containsAny(role, dozwolone);
 
 - Wcięcie 4 spacje, nigdy tabulatory.
 - Klamra otwierająca w tej samej linii.
-- Zostaw jedną pustą linię po klamrze otwierającej ciało klasy lub metody.
+- **Zostaw jedną pustą linię po każdej klamrze otwierającej** — nie tylko po
+  ciele klasy czy metody, ale też po `if`, `else`, `for`, `while`, `do`, `try`,
+  `catch`, `finally`, `switch` i po lambdzie z blokiem. Dwa wyjątki: pusty blok
+  (`{` i zaraz `}`) nie dostaje nic, a `{` otwierające inicjalizator tablicy
+  w adnotacji (`@CsvSource({`) nie jest blokiem.
+  ```java
+  // ŹLE
+  if (Objects.isNull(value)) {
+      return null;
+  }
+  // DOBRZE
+  if (Objects.isNull(value)) {
+
+      return null;
+  }
+  ```
+  Spotless tego nie wymusza — pilnuje tego przegląd.
 - Nie formatuj ręcznie tego, co ma formatować narzędzie — Spotless
   (`./mvnw spotless:check`).
 
@@ -133,6 +207,14 @@ boolean maRole = CollectionUtils.containsAny(role, dozwolone);
 
 - Wstrzykuj przez konstruktor. Nigdy `@Autowired` na polu. Nigdy nie stawiaj
   `@Autowired` na jedynym konstruktorze — Spring i tak wstrzyknie.
+- Ten konstruktor generuj Lombokiem, adnotacją **`@RequiredArgsConstructor`** —
+  ręcznie pisany konstruktor, który wyłącznie przepisuje pola `final`, to miejsce
+  na zapomniane pole, a dołożenie zależności oznacza poprawkę w trzech linijkach
+  zamiast w jednej. Konstruktor piszemy ręcznie tylko wtedy, gdy robi coś ponad
+  przypisanie (buduje `RestClient`, wylicza wartość z konfiguracji). Na tej
+  adnotacji Lombok się kończy: żadnego `@Data`, `@Builder` ani `@Getter`/`@Setter`
+  na encjach — akcesory encji JPA zostają widoczne w kodzie, bo to w nich psuje
+  się leniwe ładowanie i `equals`.
 - Trzymaj `@RestController` cienki: walidacja wejścia i delegacja do serwisu,
   zero logiki biznesowej.
 - Stawiaj `@Transactional` na klasie tylko wtedy, gdy WSZYSTKIE metody go

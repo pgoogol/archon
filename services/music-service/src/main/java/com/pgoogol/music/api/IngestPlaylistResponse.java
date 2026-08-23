@@ -3,8 +3,8 @@ package com.pgoogol.music.api;
 import java.util.List;
 
 /**
- * Raport z importu playlisty — kontrakt {@code POST /api/ingest/playlist}
- * i {@code POST /api/ingest/my-playlists}.
+ * Raport z importu playlisty — kontrakt {@code POST /music/api/v1/ingest/playlist}
+ * i {@code POST /music/api/v1/ingest/my-playlists}.
  */
 public record IngestPlaylistResponse(
     Long playlistId,

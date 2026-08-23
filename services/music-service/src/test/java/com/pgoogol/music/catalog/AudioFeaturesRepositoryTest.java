@@ -44,6 +44,7 @@ class AudioFeaturesRepositoryTest {
 
         // then
         assertThat(found).hasValueSatisfying(f -> {
+
             assertThat(f.getMbid()).isEqualTo("f6d0c9a2-1111-2222-3333-444455556666");
             assertThat(f.getBpm()).isEqualByComparingTo(new BigDecimal("92.00"));
             assertThat(f.getMusicalKey()).isEqualTo("A minor");

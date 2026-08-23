@@ -6,6 +6,7 @@ import com.pgoogol.music.enrichment.MissingFieldsCount;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,15 +21,12 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/enrich")
+@RequestMapping("/music/api/v1/enrich")
 @Tag(name = "Enrichment", description = "Joby wzbogacania Spring Batch")
+@RequiredArgsConstructor
 public class EnrichController {
 
     private final EnrichmentService enrichmentService;
-
-    public EnrichController(EnrichmentService enrichmentService) {
-        this.enrichmentService = enrichmentService;
-    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.ACCEPTED)
@@ -37,7 +35,7 @@ public class EnrichController {
             scope: SINGLE/SELECTED (z spotifyIds, max 100), MISSING (wg braków) \
             albo OUTDATED (utwory opisane starszym modelem/promptem — wyłącznie grupa AI); \
             fields: podzbiór METADATA/AUDIO/AI. Zlecenie ponad llm.max-tracks-per-job \
-            kończy się 400 ENRICH_TOO_MANY_TRACKS — sprawdź wcześniej /api/enrich/estimate.""")
+            kończy się 400 ENRICH_TOO_MANY_TRACKS — sprawdź wcześniej /music/api/v1/enrich/estimate.""")
     public Map<String, Long> startEnrichment(@Valid @RequestBody EnrichRequest request) {
 
         long executionId = enrichmentService.start(
@@ -72,6 +70,7 @@ public class EnrichController {
     @GetMapping("/jobs/{executionId}")
     @Operation(summary = "Status i postęp wykonania joba")
     public EnrichJobResponse jobStatus(@PathVariable long executionId) {
+
         return EnrichJobResponse.from(enrichmentService.status(executionId));
     }
 
@@ -92,12 +91,14 @@ public class EnrichController {
     @ResponseStatus(HttpStatus.ACCEPTED)
     @Operation(summary = "Restart nieudanego wykonania — dokańcza od checkpointu")
     public Map<String, Long> restartJob(@PathVariable long executionId) {
+
         return Map.of("executionId", enrichmentService.restart(executionId));
     }
 
     @GetMapping("/missing-count")
     @Operation(summary = "Liczba utworów z brakami per grupa pól")
     public MissingFieldsCount missingCount() {
+
         return enrichmentService.missingCount();
     }
 }
