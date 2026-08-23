@@ -1,0 +1,8 @@
+# Nakładka: music-service na hoście. Opis i komendy: URUCHAMIANIE.md
+
+services:
+
+  web:
+    environment:
+      MUSIC_API_HOST: host.docker.internal
+      MUSIC_API_PORT: "8080"

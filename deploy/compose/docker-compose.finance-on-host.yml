@@ -1,0 +1,8 @@
+# Nakładka: finance-service na hoście. Opis i komendy: URUCHAMIANIE.md
+
+services:
+
+  web:
+    environment:
+      FINANCE_API_HOST: host.docker.internal
+      FINANCE_API_PORT: "8081"
