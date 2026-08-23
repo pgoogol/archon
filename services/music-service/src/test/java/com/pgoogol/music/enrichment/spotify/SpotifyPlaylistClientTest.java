@@ -3,6 +3,7 @@ package com.pgoogol.music.enrichment.spotify;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.pgoogol.music.WireMockRestClients;
+import com.pgoogol.music.common.ForbiddenException;
 import com.pgoogol.music.common.NotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,10 +11,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.forbidden;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
@@ -150,6 +153,45 @@ class SpotifyPlaylistClientTest {
             .containsExactly(1, 2, 3);
         assertThat(items.get(3)).isInstanceOfSatisfying(SpotifyPlaylistItem.Unavailable.class,
             item -> assertThat(item.reason()).contains("episode"));
+    }
+
+    @Test
+    void getPlaylistItems_whenAccountConnected_usesUserTokenToReachPrivatePlaylist(
+            WireMockRuntimeInfo wireMock) {
+
+        // given — playlisty prywatne (np. „Moje utwory z Shazam") token aplikacyjny
+        // dostaje z 403, więc przy połączonym koncie czytamy tokenem właściciela
+        given(accountService.userAccessTokenIfConnected()).willReturn(Optional.of("user-token"));
+        String tracksPath = "/v1/playlists/%s/tracks".formatted(PLAYLIST_ID);
+        stubFor(get(urlPathEqualTo(tracksPath)).atPriority(1)
+            .withHeader("Authorization", equalTo("Bearer user-token"))
+            .willReturn(okJson(ITEMS_JSON)));
+        stubFor(get(urlPathEqualTo(tracksPath)).atPriority(5).willReturn(forbidden()));
+
+        // when
+        List<SpotifyPlaylistItem> items = playlistClient(wireMock).getPlaylistItems(PLAYLIST_ID);
+
+        // then
+        assertThat(items).hasSize(4);
+        verify(getRequestedFor(urlPathEqualTo(tracksPath))
+            .withHeader("Authorization", equalTo("Bearer user-token")));
+    }
+
+    @Test
+    void getPlaylistItems_whenSpotifyDeniesAccess_throwsForbiddenWithoutRetry(
+            WireMockRuntimeInfo wireMock) {
+
+        // given — konto niepołączone, playlista prywatna: token aplikacyjny dostaje 403
+        stubFor(post(urlPathEqualTo("/api/token")).willReturn(okJson(TOKEN_JSON)));
+        String tracksPath = "/v1/playlists/%s/tracks".formatted(PLAYLIST_ID);
+        stubFor(get(urlPathEqualTo(tracksPath)).willReturn(forbidden()));
+        SpotifyPlaylistClient client = playlistClient(wireMock);
+
+        // when + then
+        assertThatThrownBy(() -> client.getPlaylistItems(PLAYLIST_ID))
+            .isInstanceOf(ForbiddenException.class)
+            .hasFieldOrPropertyWithValue("errorCode", "SPOTIFY_FORBIDDEN");
+        verify(1, getRequestedFor(urlPathEqualTo(tracksPath)));
     }
 
     @Test

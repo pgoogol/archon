@@ -2,6 +2,7 @@ package com.pgoogol.music.api;
 
 import com.pgoogol.music.common.ConflictException;
 import com.pgoogol.music.common.ExternalServiceException;
+import com.pgoogol.music.common.ForbiddenException;
 import com.pgoogol.music.common.NotFoundException;
 import com.pgoogol.music.common.ValidationException;
 import org.slf4j.Logger;
@@ -83,6 +84,14 @@ public class GlobalExceptionHandler {
     public ErrorResponse handleNotFound(NotFoundException ex) {
 
         log.warn("Resource not found: {}", ex.getErrorCode());
+        return ErrorResponse.of(ex.getErrorCode(), ex.getMessage());
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handleForbidden(ForbiddenException ex) {
+
+        log.warn("Access denied: {} — {}", ex.getErrorCode(), ex.getMessage());
         return ErrorResponse.of(ex.getErrorCode(), ex.getMessage());
     }
 
