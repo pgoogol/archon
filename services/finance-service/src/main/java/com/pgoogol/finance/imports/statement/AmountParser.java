@@ -5,7 +5,9 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.Objects;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Kwota z wyciągu jako liczba całkowita w jednostkach podrzędnych.
@@ -59,8 +61,10 @@ public class AmountParser {
 
     private String clean(String raw) {
 
-        String withoutSpaces = WHITESPACE.matcher(raw).replaceAll("");
-        return TRAILING_CURRENCY.matcher(withoutSpaces).replaceAll("");
+        Matcher spaces = WHITESPACE.matcher(raw);
+        String withoutSpaces = spaces.replaceAll(StringUtils.EMPTY);
+        Matcher currency = TRAILING_CURRENCY.matcher(withoutSpaces);
+        return currency.replaceAll(StringUtils.EMPTY);
     }
 
     /**
@@ -72,7 +76,8 @@ public class AmountParser {
         String normalized = cleaned;
         if (normalized.indexOf(',') >= 0) {
 
-            normalized = normalized.replace(".", "").replace(',', '.');
+            String withoutGrouping = normalized.replace(".", StringUtils.EMPTY);
+            normalized = withoutGrouping.replace(',', '.');
         }
         if (normalized.startsWith("+")) {
 

@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -179,12 +180,24 @@ public class PekaoCsvStatementParser implements StatementParser {
 
     private boolean isMetadataRow(CSVRecord record) {
 
-        if (record.size() == 0) {
-
-            return false;
-        }
-        String first = record.get(0);
+        String first = firstCell(record);
         return first.startsWith("#") && !isHeaderRow(record);
+    }
+
+    /**
+     * Pierwsza komórka wiersza. {@code CSVRecord} nie jest listą — nie ma
+     * {@code getFirst()} — ale wystawia {@code toList()}, więc czytamy przez
+     * listę zamiast przez indeks. Wiersz bez komórek daje pusty tekst: przed
+     * tabelą i za nią bank potrafi wstawić linię zupełnie pustą.
+     */
+    private String firstCell(CSVRecord record) {
+
+        List<String> cells = record.toList();
+        if (cells.isEmpty()) {
+
+            return StringUtils.EMPTY;
+        }
+        return cells.getFirst();
     }
 
     private Map<String, Integer> findColumns(List<CSVRecord> records) {
@@ -239,13 +252,20 @@ public class PekaoCsvStatementParser implements StatementParser {
     private CSVRecord findLabelled(List<CSVRecord> metadataRows, List<String> labels) {
 
         List<CSVRecord> matching = metadataRows.stream()
-            .filter(record -> labels.contains(normalize(record.get(0))))
+            .filter(record -> isLabelled(record, labels))
             .toList();
         if (matching.isEmpty()) {
 
             return null;
         }
         return matching.getFirst();
+    }
+
+    private boolean isLabelled(CSVRecord record, List<String> labels) {
+
+        String first = firstCell(record);
+        String normalized = normalize(first);
+        return labels.contains(normalized);
     }
 
     private LocalDate dateFrom(CSVRecord record, int index) {
@@ -397,7 +417,7 @@ public class PekaoCsvStatementParser implements StatementParser {
 
         if (Objects.isNull(cell)) {
 
-            return "";
+            return StringUtils.EMPTY;
         }
         String withoutHash = cell.trim();
         if (withoutHash.startsWith("#")) {

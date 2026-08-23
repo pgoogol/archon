@@ -11,6 +11,7 @@ import com.pgoogol.finance.common.ErrorCodes;
 import com.pgoogol.finance.common.ExceptionMessageConstants;
 import com.pgoogol.finance.common.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -85,11 +86,11 @@ public class CategorizationService {
     public Optional<CategoryRule> rememberCorrection(String pattern, MatchField matchField,
                                                      long categoryId, int priority) {
 
-        String trimmed = Objects.requireNonNullElse(pattern, "").trim();
-        if (trimmed.isEmpty()) {
+        if (StringUtils.isBlank(pattern)) {
 
             return Optional.empty();
         }
+        String trimmed = pattern.trim();
         boolean known =
             categoryRuleRepository.existsByPatternIgnoreCaseAndCategoryId(trimmed, categoryId);
         if (known) {
