@@ -127,6 +127,6 @@ class PlaylistRefreshSchedulerTest {
             .mapToObj(index -> new FailedPlaylist(
                 "sp-fail-%d".formatted(index), "Padła " + index, "SPOTIFY_ERROR", "powód"))
             .toList();
-        return new MyPlaylistsIngestReport(importedReports, failedReports);
+        return new MyPlaylistsIngestReport(importedReports, failedReports, List.of(), List.of());
     }
 }

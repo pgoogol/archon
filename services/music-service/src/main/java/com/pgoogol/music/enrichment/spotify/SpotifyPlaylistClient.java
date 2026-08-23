@@ -29,6 +29,22 @@ public class SpotifyPlaylistClient {
     private static final String TRACK_TYPE = "track";
     private static final String TRACK_URI_PREFIX = "spotify:track:";
 
+    /**
+     * Bez {@code fields} Spotify dokłada do każdej pozycji komplet rynków,
+     * linków i obrazków w trzech rozmiarach — kilkaset kilobajtów na stronę,
+     * z czego czytamy garść pól. Lista jest wprost tym, co mapuje
+     * {@link SpotifyTrackMapper}.
+     */
+    private static final String ITEM_FIELDS = """
+        total,items(track(id,name,type,is_local,duration_ms,explicit,popularity,\
+        artists(name),album(name,release_date,images),external_ids(isrc)))""";
+
+    /** Sam nagłówek: bez tego Spotify dokłada do playlisty pierwsze sto utworów. */
+    private static final String PLAYLIST_FIELDS =
+        "id,name,snapshot_id,owner(id,display_name),tracks(total)";
+
+    private static final String MY_PLAYLISTS_FIELDS = "total,items(%s)".formatted(PLAYLIST_FIELDS);
+
     private final RestClient apiClient;
     private final SpotifyAppTokenProvider tokenProvider;
     private final SpotifyAccountService accountService;
@@ -69,6 +85,7 @@ public class SpotifyPlaylistClient {
             .uri(uriBuilder -> uriBuilder.path("/v1/me/playlists")
                 .queryParam("limit", MY_PLAYLISTS_PAGE_SIZE)
                 .queryParam("offset", offset)
+                .queryParam("fields", MY_PLAYLISTS_FIELDS)
                 .build())
             .headers(headers -> headers.setBearerAuth(accountService.userAccessToken()))
             .retrieve()
@@ -87,7 +104,9 @@ public class SpotifyPlaylistClient {
 
         Objects.requireNonNull(playlistId, "playlistId");
         PlaylistResponse response = executor.call("playlista " + playlistId, () -> apiClient.get()
-            .uri("/v1/playlists/{id}", playlistId)
+            .uri(uriBuilder -> uriBuilder.path("/v1/playlists/{id}")
+                .queryParam("fields", PLAYLIST_FIELDS)
+                .build(playlistId))
             .headers(headers -> headers.setBearerAuth(readToken()))
             .retrieve()
             .body(PlaylistResponse.class));
@@ -161,6 +180,7 @@ public class SpotifyPlaylistClient {
             .uri(uriBuilder -> uriBuilder.path("/v1/playlists/{id}/tracks")
                 .queryParam("limit", PAGE_SIZE)
                 .queryParam("offset", offset)
+                .queryParam("fields", ITEM_FIELDS)
                 .build(playlistId))
             .headers(headers -> headers.setBearerAuth(readToken()))
             .retrieve()
@@ -217,11 +237,12 @@ public class SpotifyPlaylistClient {
             ? 0
             : Objects.requireNonNullElse(response.tracks().total(), 0);
         return new SpotifyPlaylist(response.id(), response.name(),
-            owner.id(), owner.displayName(), trackCount);
+            owner.id(), owner.displayName(), trackCount, response.snapshotId());
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private record PlaylistResponse(String id, String name, OwnerNode owner, TracksNode tracks) {
+    private record PlaylistResponse(String id, String name, OwnerNode owner, TracksNode tracks,
+                                    @JsonProperty("snapshot_id") String snapshotId) {
 
     }
 

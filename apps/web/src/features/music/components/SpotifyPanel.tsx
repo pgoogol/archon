@@ -49,6 +49,8 @@ export default function SpotifyPanel({ onImported }: Props) {
 
   const imported = reports?.imported ?? []
   const failed = reports?.failed ?? []
+  const unchanged = reports?.unchanged ?? []
+  const notAttempted = reports?.notAttempted ?? []
   const totalTracks = imported.reduce((sum, report) => sum + report.imported, 0)
   const totalSkipped = imported.reduce((sum, report) => sum + report.skipped.length, 0)
 
@@ -97,7 +99,7 @@ export default function SpotifyPanel({ onImported }: Props) {
 
       {reports && (
         <Modal title="Import playlist zakończony" onClose={closeReport} testId="my-playlists-modal">
-          {imported.length === 0 && failed.length === 0 ? (
+          {imported.length === 0 && failed.length === 0 && unchanged.length === 0 ? (
             <p className="muted">Konto nie ma playlist do zaimportowania.</p>
           ) : (
             <>
@@ -109,7 +111,21 @@ export default function SpotifyPanel({ onImported }: Props) {
                     , pominiętych pozycji: <strong>{totalSkipped}</strong>
                   </>
                 )}
+                {unchanged.length > 0 && (
+                  <>
+                    , bez zmian: <strong>{unchanged.length}</strong>
+                  </>
+                )}
               </p>
+              {notAttempted.length > 0 && (
+                // Spotify przerwał przebieg wyczerpaną kwotą — te playlisty czekają
+                // nietknięte, więc powtórzony import dociągnie właśnie je
+                <p className="muted" data-testid="my-playlists-not-attempted">
+                  Spotify wstrzymał ruch — nie sprawdzono jeszcze{' '}
+                  <strong>{notAttempted.length}</strong> playlist. Powtórz import później,
+                  pobiorą się tylko te brakujące.
+                </p>
+              )}
               <ul className="modal-list" data-testid="my-playlists-report">
                 {imported.map((report) => (
                   <li key={report.spotifyPlaylistId}>

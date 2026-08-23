@@ -30,6 +30,8 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -75,8 +77,8 @@ class IngestMyPlaylistsIntegrationTest {
         accountRepository.save(new SpotifyAccount(OWNER_ID, "DJ pgoogol", "access", "refresh",
             Instant.now().plus(1, ChronoUnit.HOURS), "playlist-read-private"));
         given(playlistClient.getMyPlaylists()).willReturn(List.of(
-            new SpotifyPlaylist("pl-wesela", "Wesela 2026", OWNER_ID, "DJ pgoogol", 2),
-            new SpotifyPlaylist("pl-obserwowana", "Cudza salsa", "ktos-inny", "Ktoś", 1)));
+            new SpotifyPlaylist("pl-wesela", "Wesela 2026", OWNER_ID, "DJ pgoogol", 2, "snap-wesela"),
+            new SpotifyPlaylist("pl-obserwowana", "Cudza salsa", "ktos-inny", "Ktoś", 1, "snap-cudza")));
         given(playlistClient.getPlaylistItems("pl-wesela")).willReturn(List.of(
             track(0, "sp-vivir", "Vivir Mi Vida", "Marc Anthony"),
             track(1, "sp-bailando", "Bailando", "Enrique Iglesias")));
@@ -110,6 +112,40 @@ class IngestMyPlaylistsIntegrationTest {
     }
 
     @Test
+    void ingestMyPlaylists_whenRunAgainWithoutChanges_skipsFetchingTracks() throws Exception {
+
+        // given — pierwszy przebieg domyka import i zapisuje snapshot playlisty
+        mockMvc.perform(post("/music/api/v1/ingest/my-playlists")).andExpect(status().isOk());
+
+        // when — Spotify podaje ten sam snapshot, więc nie ma czego pobierać
+        mockMvc.perform(post("/music/api/v1/ingest/my-playlists"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.imported.length()").value(0))
+            .andExpect(jsonPath("$.unchanged.length()").value(1))
+            .andExpect(jsonPath("$.unchanged[0].spotifyPlaylistId").value("pl-wesela"));
+
+        // then — utwory poszły po Spotify raz, mimo dwóch przebiegów
+        verify(playlistClient, times(1)).getPlaylistItems("pl-wesela");
+    }
+
+    @Test
+    void ingestMyPlaylists_whenSnapshotChanged_fetchesPlaylistAgain() throws Exception {
+
+        // given — pierwszy przebieg, po nim playlista zmienia się na Spotify
+        mockMvc.perform(post("/music/api/v1/ingest/my-playlists")).andExpect(status().isOk());
+        given(playlistClient.getMyPlaylists()).willReturn(List.of(
+            new SpotifyPlaylist("pl-wesela", "Wesela 2026", OWNER_ID, "DJ pgoogol", 2, "snap-nowy")));
+
+        // when + then
+        mockMvc.perform(post("/music/api/v1/ingest/my-playlists"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.imported.length()").value(1))
+            .andExpect(jsonPath("$.unchanged.length()").value(0));
+
+        verify(playlistClient, times(2)).getPlaylistItems("pl-wesela");
+    }
+
+    @Test
     void ingestMyPlaylists_whenAccountNotConnected_returns400WithGuidance() throws Exception {
 
         // given
@@ -127,8 +163,8 @@ class IngestMyPlaylistsIntegrationTest {
 
         // given — druga własna playlista pada na pobraniu utworów
         given(playlistClient.getMyPlaylists()).willReturn(List.of(
-            new SpotifyPlaylist("pl-wesela", "Wesela 2026", OWNER_ID, "DJ pgoogol", 2),
-            new SpotifyPlaylist("pl-bachata", "Bachata", OWNER_ID, "DJ pgoogol", 1)));
+            new SpotifyPlaylist("pl-wesela", "Wesela 2026", OWNER_ID, "DJ pgoogol", 2, "snap-wesela"),
+            new SpotifyPlaylist("pl-bachata", "Bachata", OWNER_ID, "DJ pgoogol", 1, "snap-bachata")));
         given(playlistClient.getPlaylistItems("pl-bachata")).willThrow(
             new ExternalServiceException("SPOTIFY_UNAVAILABLE", "Spotify nie odpowiedziało"));
 

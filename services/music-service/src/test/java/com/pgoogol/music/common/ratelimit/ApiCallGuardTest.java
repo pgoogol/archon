@@ -1,6 +1,7 @@
 package com.pgoogol.music.common.ratelimit;
 
 import com.pgoogol.music.common.ExternalServiceException;
+import com.pgoogol.music.common.RateLimitedException;
 import com.pgoogol.music.common.ValidationException;
 import org.junit.jupiter.api.Test;
 
@@ -70,6 +71,51 @@ class ApiCallGuardTest {
         // then
         assertThat(thrown).isInstanceOf(ValidationException.class);
         assertThat(attempts.get()).isEqualTo(1);
+    }
+
+    @Test
+    void execute_whenRetryAfterFitsInLimit_retriesHonoringIt() {
+
+        // given
+        ApiCallGuard guard = ApiCallGuard.of("test-429-krotkie", 100, 3, Duration.ofMillis(10));
+        AtomicInteger attempts = new AtomicInteger();
+
+        // when
+        String result = guard.execute(() -> {
+
+            if (attempts.incrementAndGet() < 2) {
+
+                throw new RateLimitedException("TEST_RATE_LIMITED", "chwilowy limit",
+                    Duration.ofMillis(20));
+            }
+            return "ok";
+        });
+
+        // then
+        assertThat(result).isEqualTo("ok");
+        assertThat(attempts.get()).isEqualTo(2);
+    }
+
+    @Test
+    void execute_whenRetryAfterLongerThanLimit_failsFastInsteadOfWaiting() {
+
+        // given — wyczerpana kwota dobowa wraca z „ponów za 22 godziny"
+        ApiCallGuard guard = ApiCallGuard.of("test-429-kwota", 100, 3, Duration.ofMillis(10));
+        AtomicInteger attempts = new AtomicInteger();
+        long start = System.nanoTime();
+
+        // when
+        Throwable thrown = catchThrowable(() -> guard.execute(() -> {
+
+            attempts.incrementAndGet();
+            throw new RateLimitedException("TEST_QUOTA", "kwota wyczerpana", Duration.ofHours(22));
+        }));
+        long elapsedMillis = Duration.ofNanos(System.nanoTime() - start).toMillis();
+
+        // then — ani jednego ponowienia i żadnego czekania
+        assertThat(thrown).isInstanceOf(RateLimitedException.class);
+        assertThat(attempts.get()).isEqualTo(1);
+        assertThat(elapsedMillis).isLessThan(1_000);
     }
 
     @Test

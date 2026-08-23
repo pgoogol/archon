@@ -1061,6 +1061,14 @@ export interface components {
         IngestMyPlaylistsResponse: {
             imported: components["schemas"]["IngestPlaylistResponse"][];
             failed: components["schemas"]["FailedPlaylistResponse"][];
+            /** @description Playlisty bez zmian od ostatniego importu — celowo niepobierane */
+            unchanged: components["schemas"]["SkippedPlaylistResponse"][];
+            /** @description Playlisty, do których przebieg nie doszedł, bo Spotify wstrzymał ruch (wyczerpana kwota). Wystarczy powtórzyć import. */
+            notAttempted: components["schemas"]["SkippedPlaylistResponse"][];
+        };
+        SkippedPlaylistResponse: {
+            spotifyPlaylistId: string;
+            name: string | null;
         };
         PlaylistRefreshStatusResponse: {
             outcome: components["schemas"]["RefreshOutcome"];

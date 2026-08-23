@@ -1,17 +1,21 @@
 package com.pgoogol.music.ingestion;
 
 import com.pgoogol.music.common.ExternalServiceException;
+import com.pgoogol.music.common.RateLimitedException;
 import com.pgoogol.music.common.ValidationException;
 import com.pgoogol.music.enrichment.spotify.SpotifyAccountService;
 import com.pgoogol.music.enrichment.spotify.SpotifyPlaylist;
 import com.pgoogol.music.enrichment.spotify.SpotifyPlaylistClient;
 import com.pgoogol.music.library.LibrarySource;
+import com.pgoogol.music.playlist.PlaylistRepository;
+import com.pgoogol.music.playlist.PlaylistSnapshot;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,12 +23,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 /**
  * Import własnych playlist (tryb C) — awaria pojedynczej playlisty nie może
- * przerwać przebiegu, bo przy kilkudziesięciu playlistach powtarzanie całości
- * kosztuje kwadranse.
+ * przerwać przebiegu, a playlisty bez zmian nie mogą kosztować kwoty Spotify.
  */
 @ExtendWith(MockitoExtension.class)
 class MyPlaylistsIngestionServiceTest {
@@ -40,6 +44,9 @@ class MyPlaylistsIngestionServiceTest {
     @Mock
     private PlaylistIngestionService playlistIngestionService;
 
+    @Mock
+    private PlaylistRepository playlistRepository;
+
     @InjectMocks
     private MyPlaylistsIngestionService service;
 
@@ -52,6 +59,7 @@ class MyPlaylistsIngestionServiceTest {
         SpotifyPlaylist salsa = playlist("pl-salsa", "Salsa nocą");
         given(accountService.connectedUserId()).willReturn(Optional.of(OWNER_ID));
         given(playlistClient.getMyPlaylists()).willReturn(List.of(wesela, bachata, salsa));
+        given(playlistRepository.findSnapshots(any())).willReturn(List.of());
         given(playlistIngestionService.ingest(wesela, LibrarySource.PLAYLIST))
             .willReturn(report("pl-wesela", "Wesela 2026"));
         given(playlistIngestionService.ingest(bachata, LibrarySource.PLAYLIST))
@@ -81,6 +89,7 @@ class MyPlaylistsIngestionServiceTest {
         SpotifyPlaylist wesela = playlist("pl-wesela", "Wesela 2026");
         given(accountService.connectedUserId()).willReturn(Optional.of(OWNER_ID));
         given(playlistClient.getMyPlaylists()).willReturn(List.of(wesela));
+        given(playlistRepository.findSnapshots(any())).willReturn(List.of());
         given(playlistIngestionService.ingest(wesela, LibrarySource.PLAYLIST))
             .willThrow(new IllegalStateException("ERROR: relation \"playlist\" does not exist"));
 
@@ -100,7 +109,8 @@ class MyPlaylistsIngestionServiceTest {
     void ingestMyPlaylists_whenPlaylistIsForeign_skipsItWithoutImporting() {
 
         // given
-        SpotifyPlaylist foreign = new SpotifyPlaylist("pl-cudza", "Cudza salsa", "ktos-inny", "Ktoś", 1);
+        SpotifyPlaylist foreign =
+            new SpotifyPlaylist("pl-cudza", "Cudza salsa", "ktos-inny", "Ktoś", 1, "snap-cudza");
         given(accountService.connectedUserId()).willReturn(Optional.of(OWNER_ID));
         given(playlistClient.getMyPlaylists()).willReturn(List.of(foreign));
 
@@ -110,7 +120,80 @@ class MyPlaylistsIngestionServiceTest {
         // then
         assertThat(result.imported()).isEmpty();
         assertThat(result.failed()).isEmpty();
-        verify(playlistIngestionService, org.mockito.Mockito.never()).ingest(any(), any());
+        verify(playlistIngestionService, never()).ingest(any(), any());
+    }
+
+    @Test
+    void ingestMyPlaylists_whenSnapshotUnchanged_skipsPlaylistWithoutSpendingQuota() {
+
+        // given — „Wesela" bez zmian od ostatniego importu, „Bachata" ze starszym snapshotem
+        SpotifyPlaylist wesela = playlist("pl-wesela", "Wesela 2026");
+        SpotifyPlaylist bachata = playlist("pl-bachata", "Bachata");
+        given(accountService.connectedUserId()).willReturn(Optional.of(OWNER_ID));
+        given(playlistClient.getMyPlaylists()).willReturn(List.of(wesela, bachata));
+        given(playlistRepository.findSnapshots(any())).willReturn(List.of(
+            new PlaylistSnapshot("pl-wesela", "snap-pl-wesela"),
+            new PlaylistSnapshot("pl-bachata", "snap-stary")));
+        given(playlistIngestionService.ingest(bachata, LibrarySource.PLAYLIST))
+            .willReturn(report("pl-bachata", "Bachata"));
+
+        // when
+        MyPlaylistsIngestReport result = service.ingestMyPlaylists();
+
+        // then
+        assertThat(result.unchanged()).singleElement()
+            .isEqualTo(new SkippedPlaylist("pl-wesela", "Wesela 2026"));
+        assertThat(result.imported()).extracting(PlaylistIngestReport::name)
+            .containsExactly("Bachata");
+        verify(playlistIngestionService, never()).ingest(wesela, LibrarySource.PLAYLIST);
+    }
+
+    @Test
+    void ingestMyPlaylists_whenPreviousImportNeverFinished_fetchesPlaylistAgain() {
+
+        // given — wiersz playlisty jest, ale snapshot pusty: import się nie domknął
+        SpotifyPlaylist wesela = playlist("pl-wesela", "Wesela 2026");
+        given(accountService.connectedUserId()).willReturn(Optional.of(OWNER_ID));
+        given(playlistClient.getMyPlaylists()).willReturn(List.of(wesela));
+        given(playlistRepository.findSnapshots(any()))
+            .willReturn(List.of(new PlaylistSnapshot("pl-wesela", null)));
+        given(playlistIngestionService.ingest(wesela, LibrarySource.PLAYLIST))
+            .willReturn(report("pl-wesela", "Wesela 2026"));
+
+        // when
+        MyPlaylistsIngestReport result = service.ingestMyPlaylists();
+
+        // then
+        assertThat(result.unchanged()).isEmpty();
+        assertThat(result.imported()).hasSize(1);
+    }
+
+    @Test
+    void ingestMyPlaylists_whenQuotaExhausted_stopsRunAndReportsRestAsNotAttempted() {
+
+        // given — po wyczerpaniu kwoty każde kolejne wywołanie to pewne odrzucenie
+        SpotifyPlaylist wesela = playlist("pl-wesela", "Wesela 2026");
+        SpotifyPlaylist bachata = playlist("pl-bachata", "Bachata");
+        SpotifyPlaylist salsa = playlist("pl-salsa", "Salsa nocą");
+        given(accountService.connectedUserId()).willReturn(Optional.of(OWNER_ID));
+        given(playlistClient.getMyPlaylists()).willReturn(List.of(wesela, bachata, salsa));
+        given(playlistRepository.findSnapshots(any())).willReturn(List.of());
+        given(playlistIngestionService.ingest(wesela, LibrarySource.PLAYLIST))
+            .willReturn(report("pl-wesela", "Wesela 2026"));
+        given(playlistIngestionService.ingest(bachata, LibrarySource.PLAYLIST))
+            .willThrow(new RateLimitedException("SPOTIFY_QUOTA_EXCEEDED",
+                "Kwota Spotify wyczerpana", Duration.ofHours(22)));
+
+        // when
+        MyPlaylistsIngestReport result = service.ingestMyPlaylists();
+
+        // then — zaimportowane zostaje, reszta czeka na powtórzenie
+        assertThat(result.imported()).extracting(PlaylistIngestReport::name)
+            .containsExactly("Wesela 2026");
+        assertThat(result.notAttempted()).extracting(SkippedPlaylist::spotifyPlaylistId)
+            .containsExactly("pl-bachata", "pl-salsa");
+        assertThat(result.failed()).isEmpty();
+        verify(playlistIngestionService, never()).ingest(salsa, LibrarySource.PLAYLIST);
     }
 
     @Test
@@ -127,7 +210,8 @@ class MyPlaylistsIngestionServiceTest {
 
     private SpotifyPlaylist playlist(String spotifyPlaylistId, String name) {
 
-        return new SpotifyPlaylist(spotifyPlaylistId, name, OWNER_ID, "DJ pgoogol", 10);
+        return new SpotifyPlaylist(spotifyPlaylistId, name, OWNER_ID, "DJ pgoogol", 10,
+            "snap-%s".formatted(spotifyPlaylistId));
     }
 
     private PlaylistIngestReport report(String spotifyPlaylistId, String name) {

@@ -46,6 +46,8 @@ const myPlaylists: IngestMyPlaylistsResponse = {
     }),
   ],
   failed: [],
+  unchanged: [],
+  notAttempted: [],
 }
 
 let metricsResponse: IngestMetricsResponse = metricsReport
@@ -144,6 +146,28 @@ describe('ImportRoute', () => {
     // reszta i tak weszła — po to raport
     expect(within(screen.getByTestId('my-playlists-report')).getByText(/Wesela 2026/))
       .toBeInTheDocument()
+  })
+
+  it('modal mówi, ile playlist czeka, gdy Spotify przerwał import kwotą', async () => {
+
+    myPlaylistsResponse = {
+      ...myPlaylists,
+      unchanged: [{ spotifyPlaylistId: 'sp-4', name: 'Kizomba' }],
+      notAttempted: [
+        { spotifyPlaylistId: 'sp-5', name: 'Zouk' },
+        { spotifyPlaylistId: 'sp-6', name: 'Bachata sensual' },
+      ],
+    }
+    const user = userEvent.setup()
+    renderRoute(<ImportRoute />, { refresh: vi.fn() })
+    await waitFor(() => expect(screen.getByTestId('import-my-playlists')).toBeEnabled())
+
+    await user.click(screen.getByTestId('import-my-playlists'))
+
+    const notAttempted = await screen.findByTestId('my-playlists-not-attempted')
+    expect(within(notAttempted).getByText('2')).toBeInTheDocument()
+    // playlisty bez zmian to nie awaria — mają się nie pokazywać jako nieudane
+    expect(screen.queryByTestId('my-playlists-failed')).not.toBeInTheDocument()
   })
 
   it('wgranie kilku plików pokazuje raport osobno dla każdego', async () => {

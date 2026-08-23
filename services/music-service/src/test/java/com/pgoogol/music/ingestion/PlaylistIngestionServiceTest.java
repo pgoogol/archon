@@ -268,9 +268,45 @@ class PlaylistIngestionServiceTest {
         verify(playlistRepository).save(existing);
     }
 
+    @Test
+    @DisplayName("pusta playlista nie kosztuje wywołania o utwory")
+    void ingest_whenPlaylistHasNoTracks_doesNotAskSpotifyForItems() {
+
+        // given — nagłówek podaje liczbę utworów, więc pytanie o nie nic by nie wniosło
+        SpotifyPlaylist empty =
+            new SpotifyPlaylist(PLAYLIST_ID, "Pusta", OWNER_ID, "DJ pgoogol", 0, "snap-1");
+        given(playlistRepository.save(any())).willAnswer(call -> call.getArgument(0));
+
+        // when
+        PlaylistIngestReport report = service.ingest(empty, LibrarySource.PLAYLIST);
+
+        // then
+        assertThat(report.tracks()).isZero();
+        verify(playlistClient, org.mockito.Mockito.never()).getPlaylistItems(any());
+    }
+
+    @Test
+    @DisplayName("domknięty import zapisuje snapshot, po którym następny przebieg pomija playlistę")
+    void ingest_whenImportFinishes_storesSnapshotOnPlaylist() {
+
+        // given
+        Playlist existing = playlistEntity("Wesele 2026");
+        givenPlaylistWithItems(OWNER_ID, trackItem(0, FIRST));
+        givenEmptyCatalogAndLibraryWithoutPlaylist();
+        given(playlistRepository.findBySpotifyPlaylistId(PLAYLIST_ID))
+            .willReturn(Optional.of(existing));
+        given(playlistRepository.save(any())).willAnswer(call -> call.getArgument(0));
+
+        // when
+        service.ingest(playlist(OWNER_ID), LibrarySource.PLAYLIST);
+
+        // then
+        assertThat(existing.getSpotifySnapshotId()).isEqualTo("snap-1");
+    }
+
     private SpotifyPlaylist playlist(String ownerId) {
 
-        return new SpotifyPlaylist(PLAYLIST_ID, "Wesele 2026", ownerId, "DJ pgoogol", 1);
+        return new SpotifyPlaylist(PLAYLIST_ID, "Wesele 2026", ownerId, "DJ pgoogol", 1, "snap-1");
     }
 
     private Playlist playlistEntity(String name) {
