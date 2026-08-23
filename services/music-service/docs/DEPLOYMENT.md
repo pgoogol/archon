@@ -14,6 +14,11 @@ Dwie aplikacje w kontenerach, jedną komendą (M5.3/D30):
 docker compose --profile full up -d --build   # front :5173, API :8080, baza :5432
 ```
 
+Front otwieraj pod `http://127.0.0.1:5173`, nie `http://localhost:5173`.
+Kontenery mówią czystym HTTP, a HSTS zapamiętany przez przeglądarkę dla hosta
+`localhost` — choćby z zupełnie innego projektu, bo obejmuje wszystkie porty —
+wymusi TLS i nginx odpowie 400 na ClientHello (`"\x16\x03\x01…"` w logu).
+
 Albo w trybie pracy nad kodem — sama baza w Dockerze, reszta z konsoli:
 
 ```bash

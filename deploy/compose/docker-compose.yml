@@ -8,7 +8,17 @@
 #
 # Pełny zestaw w kontenerach:
 #   docker compose -f deploy/compose/docker-compose.yml --profile full up -d --build
-#   front http://localhost:5173 · API http://localhost:8080
+#   front http://127.0.0.1:5173 · API http://127.0.0.1:8080
+#
+# Adresy podane po IP, nie przez `localhost`, świadomie. Kontenery mówią czystym
+# HTTP, a przeglądarka trzyma HSTS per host bez rozbicia na porty: jeden nagłówek
+# Strict-Transport-Security z dowolnego innego projektu na dowolnym porcie
+# `localhost` wystarczy, żeby od tej pory podmieniała każdy `http://localhost:…`
+# na HTTPS. Do nginxa trafia wtedy ClientHello zamiast linii żądania i front
+# odpowiada 400, a w logu widać `"\x16\x03\x01…"` z SNI `localhost`.
+# `127.0.0.1` jest osobnym wpisem w tej pamięci i HSTS-a z `localhost` nie
+# dziedziczy. Trwałe czyszczenie: chrome://net-internals/#hsts → „Delete domain
+# security policies" → `localhost` (Firefox: „Zapomnij o tej witrynie" w historii).
 #
 # UWAGA: Spotify wymaga zgodności redirect URI znak w znak i nie przyjmie
 # adresu w sieci lokalnej po HTTP, więc konto łączy się raz z laptopa po

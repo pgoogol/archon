@@ -9,6 +9,13 @@
 # Rezygnacja z routera z M3.1 opłaca się tu drugi raz.
 
 server {
+    # Wyłącznie czyste HTTP — TLS kończy się dopiero przed tym kontenerem
+    # (lokalnie: nigdzie). Gdy przeglądarka mimo to zestawia tu TLS, nginx
+    # dostaje ClientHello zamiast linii żądania i odpowiada 400, a w logu
+    # zostaje `"\x16\x03\x01…"`. Sygnał jest jednoznaczny: to nie problem
+    # tej konfiguracji, tylko wymuszony HTTPS po stronie klienta — najczęściej
+    # HSTS zapamiętany dla całego hosta `localhost`. Wejdź po `127.0.0.1`,
+    # opis w nagłówku deploy/compose/docker-compose.yml.
     listen 80;
     server_name _;
 
