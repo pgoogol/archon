@@ -67,8 +67,9 @@ public class ReportService {
     public List<AccountBalanceRow> balances(ReportRange range) {
 
         requireValidRange(range);
+        String datePart = datePartOf(range);
         return jdbcClient.sql(ReportSql.BALANCES)
-            .param("granularity", range.granularity().datePart())
+            .param("granularity", datePart)
             .param("from", range.from())
             .param("to", range.to())
             .param("allAccounts", range.allAccounts())
@@ -89,8 +90,9 @@ public class ReportService {
 
             directionName = direction.name();
         }
+        String datePart = datePartOf(range);
         return jdbcClient.sql(sql)
-            .param("granularity", range.granularity().datePart())
+            .param("granularity", datePart)
             .param("from", range.from())
             .param("to", range.to())
             .param("allAccounts", range.allAccounts())
@@ -98,6 +100,13 @@ public class ReportService {
             .param("allCategories", range.allCategories())
             .param("categoryIds", categoryIds(range))
             .param("direction", directionName);
+    }
+
+    /** Jednostka osi czasu dla SQL-owego {@code date_trunc}. */
+    private String datePartOf(ReportRange range) {
+
+        Granularity granularity = range.granularity();
+        return granularity.datePart();
     }
 
     private List<Long> accountIds(ReportRange range) {

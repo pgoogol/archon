@@ -77,6 +77,7 @@ public class CurrencyService {
     private String normalize(String code) {
 
         Objects.requireNonNull(code, "code");
-        return code.trim().toUpperCase(Locale.ROOT);
+        String trimmed = code.trim();
+        return trimmed.toUpperCase(Locale.ROOT);
     }
 }

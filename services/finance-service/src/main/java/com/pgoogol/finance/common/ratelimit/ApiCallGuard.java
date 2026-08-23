@@ -76,7 +76,8 @@ public final class ApiCallGuard {
         if (failure instanceof RateLimitedException rateLimited
                 && Objects.nonNull(rateLimited.getRetryAfter())) {
 
-            return rateLimited.getRetryAfter().toMillis();
+            Duration retryAfter = rateLimited.getRetryAfter();
+            return retryAfter.toMillis();
         }
         return initialBackoff.toMillis() * (1L << (attempt - 1));
     }

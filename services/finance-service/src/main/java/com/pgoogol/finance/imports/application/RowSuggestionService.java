@@ -80,7 +80,8 @@ public class RowSuggestionService {
             row.suggestOccurrence(null);
             return;
         }
-        long occurrenceId = match.get().occurrenceId();
+        ScheduleCandidate candidate = match.get();
+        long occurrenceId = candidate.occurrenceId();
         row.suggestOccurrence(occurrencesById.get(occurrenceId));
     }
 

@@ -51,14 +51,18 @@ public class OccurrenceSchedule {
         // z góry znanego zakresu — Stream.iterate z warunkiem czytałby się gorzej
         // niż to, co robi
         YearMonth month = anchor;
-        while (!month.atDay(1).isAfter(horizon)) {
+        LocalDate monthStart = month.atDay(1);
+        while (!monthStart.isAfter(horizon)) {
 
             LocalDate due = dayIn(month, dayOfMonth);
+            // monthStart przeliczamy na końcu pętli razem z month — inaczej
+            // warunek badałby wciąż pierwszy miesiąc i pętla by nie wyszła
             if (!due.isBefore(startsOn) && !due.isBefore(from) && !due.isAfter(horizon)) {
 
                 dates.add(due);
             }
             month = month.plusMonths(step);
+            monthStart = month.atDay(1);
         }
         return List.copyOf(dates);
     }

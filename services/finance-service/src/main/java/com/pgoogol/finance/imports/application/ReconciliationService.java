@@ -1,5 +1,6 @@
 package com.pgoogol.finance.imports.application;
 
+import com.pgoogol.finance.account.domain.Account;
 import com.pgoogol.finance.account.infrastructure.AccountRepository;
 import com.pgoogol.finance.imports.domain.ImportBatch;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +36,8 @@ public class ReconciliationService {
             // się uzgodnić — to nie jest rozjazd, to brak danych
             return Reconciliation.notAvailable();
         }
-        long accountId = batch.getAccount().getId();
+        Account account = batch.getAccount();
+        long accountId = account.getId();
         Optional<Long> found = accountRepository.findBalanceMinorAsOf(accountId, periodTo);
         long computed = found.orElse(0L);
         return Reconciliation.of(statementClosing, computed);

@@ -39,7 +39,8 @@ public class Currency {
 
         this.code = Objects.requireNonNull(code, "code");
         this.name = Objects.requireNonNull(name, "name");
-        this.minorUnit = (short) new MinorUnits(minorUnit).scale();
+        MinorUnits units = new MinorUnits(minorUnit);
+        this.minorUnit = (short) units.scale();
     }
 
     public String getCode() {

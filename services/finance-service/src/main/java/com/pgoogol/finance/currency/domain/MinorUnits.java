@@ -2,6 +2,7 @@ package com.pgoogol.finance.currency.domain;
 
 import com.pgoogol.finance.common.ExceptionMessageConstants;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.RoundingMode;
 
 /**
@@ -36,6 +37,8 @@ public record MinorUnits(int scale) {
      */
     public long toMinor(BigDecimal amount) {
 
-        return amount.setScale(scale, RoundingMode.HALF_UP).unscaledValue().longValueExact();
+        BigDecimal scaled = amount.setScale(scale, RoundingMode.HALF_UP);
+        BigInteger unscaled = scaled.unscaledValue();
+        return unscaled.longValueExact();
     }
 }

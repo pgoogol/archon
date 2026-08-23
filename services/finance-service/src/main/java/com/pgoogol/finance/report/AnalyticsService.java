@@ -88,8 +88,9 @@ public class AnalyticsService {
     public List<FixedVsVariableRow> fixedVsVariable(ReportRange range) {
 
         requireValidRange(range);
+        String datePart = datePartOf(range);
         return jdbcClient.sql(AnalyticsSql.FIXED_VS_VARIABLE)
-            .param("granularity", range.granularity().datePart())
+            .param("granularity", datePart)
             .param("from", range.from())
             .param("to", range.to())
             .param("allAccounts", range.allAccounts())
@@ -186,10 +187,12 @@ public class AnalyticsService {
      */
     private ComparisonWindows windowsFor(ReportRange range) {
 
-        long lengthInDays = ChronoUnit.DAYS.between(range.from(), range.to()) + 1;
-        LocalDate previousTo = range.from().minusDays(1);
+        LocalDate from = range.from();
+        LocalDate to = range.to();
+        long lengthInDays = ChronoUnit.DAYS.between(from, to) + 1;
+        LocalDate previousTo = from.minusDays(1);
         LocalDate previousFrom = previousTo.minusDays(lengthInDays - 1);
-        YearMonth startMonth = YearMonth.from(range.from());
+        YearMonth startMonth = YearMonth.from(from);
         YearMonth averageLastMonth = startMonth.minusMonths(1);
         YearMonth averageFirstMonth = averageLastMonth.minusMonths(MONTHS_IN_AVERAGE - 1L);
         LocalDate averageFrom = averageFirstMonth.atDay(1);
@@ -205,6 +208,13 @@ public class AnalyticsService {
             return first;
         }
         return second;
+    }
+
+    /** Jednostka osi czasu dla SQL-owego {@code date_trunc}. */
+    private String datePartOf(ReportRange range) {
+
+        Granularity granularity = range.granularity();
+        return granularity.datePart();
     }
 
     private int cappedLimit(int limit) {
@@ -292,10 +302,12 @@ public class AnalyticsService {
     private void requireValidRange(ReportRange range) {
 
         Objects.requireNonNull(range, "range");
-        if (range.from().isAfter(range.to())) {
+        LocalDate from = range.from();
+        LocalDate to = range.to();
+        if (from.isAfter(to)) {
 
             throw new ValidationException(ErrorCodes.INVALID_DATE_RANGE,
-                ExceptionMessageConstants.INVALID_DATE_RANGE.formatted(range.from(), range.to()));
+                ExceptionMessageConstants.INVALID_DATE_RANGE.formatted(from, to));
         }
     }
 

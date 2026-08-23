@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -144,8 +145,9 @@ public class OutlookService {
         }
         FxRate known = rate.get();
         MinorUnits baseUnits = currencyService.baseMinorUnits();
-        long baseValue = moneyConverter.convert(balanceMinor, units, known.rate(), baseUnits);
-        String plainRate = known.rate().toPlainString();
+        BigDecimal rateValue = known.rate();
+        long baseValue = moneyConverter.convert(balanceMinor, units, rateValue, baseUnits);
+        String plainRate = rateValue.toPlainString();
         return new CurrencyExposureRow(currency, units.scale(), balanceMinor, baseValue,
             plainRate, known.rateDate());
     }
@@ -189,11 +191,12 @@ public class OutlookService {
      */
     private LocalDate dayOf(UpcomingItem item, LocalDate today) {
 
-        if (item.dueDate().isBefore(today)) {
+        LocalDate dueDate = item.dueDate();
+        if (dueDate.isBefore(today)) {
 
             return today;
         }
-        return item.dueDate();
+        return dueDate;
     }
 
     private long signedBase(UpcomingItem item) {

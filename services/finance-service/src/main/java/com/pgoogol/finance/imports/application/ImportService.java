@@ -123,7 +123,8 @@ public class ImportService {
         ParsedStatement statement = parse(parser, file, minorUnits);
 
         ImportBatch batch = new ImportBatch(account, file.name(), fileHash);
-        int rowCount = statement.rows().size();
+        List<RawRow> rawRows = statement.rows();
+        int rowCount = rawRows.size();
         batch.describeStatement(statement.periodFrom(), statement.periodTo(),
             statement.openingBalanceMinor(), statement.closingBalanceMinor(), rowCount);
         ImportBatch saved = importBatchRepository.save(batch);
@@ -197,6 +198,8 @@ public class ImportService {
 
     private TransactionCommand toCommand(ImportRow row, ImportBatch batch, Long categoryId) {
 
+        Account account = batch.getAccount();
+        Long accountId = account.getId();
         return new TransactionCommand(
             typeOf(row),
             row.getBookedOn(),
@@ -204,7 +207,7 @@ public class ImportService {
             row.getCurrency(),
             row.getOriginalAmountMinor(),
             row.getOriginalCurrency(),
-            batch.getAccount().getId(),
+            accountId,
             null,
             null,
             categoryId,

@@ -2,6 +2,7 @@ package com.pgoogol.finance.recurring.application;
 
 import com.pgoogol.finance.account.application.AccountService;
 import com.pgoogol.finance.account.domain.Account;
+import com.pgoogol.finance.category.domain.Category;
 import com.pgoogol.finance.common.ConflictException;
 import com.pgoogol.finance.common.ErrorCodes;
 import com.pgoogol.finance.common.ExceptionMessageConstants;
@@ -105,7 +106,8 @@ public class OccurrenceService {
                                               Account account, LocalDate paidOn,
                                               long paidAmountMinor) {
 
-        Long categoryId = rule.getCategory().getId();
+        Category category = rule.getCategory();
+        Long categoryId = category.getId();
         Long accountId = account.getId();
         String currency = account.getCurrency();
         String description = rule.getName();

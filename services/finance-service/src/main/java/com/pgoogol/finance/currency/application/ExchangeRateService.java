@@ -86,8 +86,10 @@ public class ExchangeRateService {
     public List<ExchangeRate> list(String code, LocalDate from, LocalDate to) {
 
         Currency currency = currencyService.get(code);
-        LocalDate start = Objects.requireNonNullElse(from, LocalDate.now().minusMonths(1));
-        LocalDate end = Objects.requireNonNullElse(to, LocalDate.now());
+        LocalDate today = LocalDate.now();
+        LocalDate monthAgo = today.minusMonths(1);
+        LocalDate start = Objects.requireNonNullElse(from, monthAgo);
+        LocalDate end = Objects.requireNonNullElse(to, today);
         requireOrderedRange(start, end);
         return exchangeRateRepository.findByIdCodeAndIdRateDateBetweenOrderByIdRateDateAsc(
             currency.getCode(), start, end);
@@ -140,10 +142,17 @@ public class ExchangeRateService {
                 .toList();
         }
         return codes.stream()
-            .map(code -> currencyService.get(code).getCode())
+            .map(this::knownCodeOf)
             .filter(code -> !currencyService.isBase(code))
             .distinct()
             .toList();
+    }
+
+    /** Kod przepuszczony przez słownik walut — nieznany kończy się wyjątkiem. */
+    private String knownCodeOf(String code) {
+
+        Currency currency = currencyService.get(code);
+        return currency.getCode();
     }
 
     private ExchangeRate upsert(String code, FxRate rate, RateSource source) {
