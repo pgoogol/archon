@@ -1455,3 +1455,37 @@ td .stars-static { font-size: 12px; letter-spacing: -1px; }
   font-size: 13px;
 }
 .estimate strong { font-family: var(--font-mono); color: var(--accent-2); }
+
+/* ── listy i paski domeny finansowej ─────────────────────────────────────
+   Wyłącznie układ; wszystkie kolory, odstępy i promienie pochodzą z tokenów
+   wyżej w tym pliku. Domena nie definiuje własnych wartości. */
+.finance-list { list-style: none; margin: var(--space-2) 0; padding: 0; }
+.finance-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--border-soft);
+}
+.finance-list li:first-child { border-top: 0; }
+.finance-list-main { flex: 1 1 200px; display: flex; align-items: baseline; gap: var(--space-2); }
+.finance-list-value { font-family: var(--font-mono); }
+
+.finance-bars { list-style: none; margin: var(--space-2) 0; padding: 0; }
+.finance-bars li {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(80px, 2fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-1) 0;
+}
+.finance-bar-label { color: var(--text); }
+.finance-bar-track {
+  height: var(--space-3);
+  background: var(--panel-2);
+  border-radius: var(--pill);
+  overflow: hidden;
+}
+.finance-bar-fill { display: block; height: 100%; background: var(--accent); }
+.finance-bar-value { font-family: var(--font-mono); color: var(--muted); }

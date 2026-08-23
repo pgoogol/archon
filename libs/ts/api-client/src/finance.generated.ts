@@ -1296,6 +1296,8 @@ export interface components {
             /** Format: int64 */
             expectedAmountMinor: number;
             currency: string;
+            /** @description Kierunek zobowiązania. Prognoza bez niego nie wie, czy kwotę odjąć, czy dodać */
+            type: components["schemas"]["TransactionType"];
             overdue: boolean;
         };
         ForecastReportResponse: {

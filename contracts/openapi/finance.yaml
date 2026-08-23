@@ -1859,6 +1859,11 @@ components:
         dueDate: { type: string, format: date }
         expectedAmountMinor: { type: integer, format: int64 }
         currency: { type: string, minLength: 3, maxLength: 3 }
+        type:
+          $ref: '#/components/schemas/TransactionType'
+          description: >-
+            Kierunek zobowiązania. Prognoza bez niego nie wie, czy kwotę odjąć,
+            czy dodać
         overdue: { type: boolean }
       required:
         - occurrenceId
@@ -1869,6 +1874,7 @@ components:
         - dueDate
         - expectedAmountMinor
         - currency
+        - type
         - overdue
 
     ForecastReportResponse:
