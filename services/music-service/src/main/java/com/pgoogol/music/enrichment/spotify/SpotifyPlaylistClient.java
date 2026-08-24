@@ -149,9 +149,7 @@ public class SpotifyPlaylistClient {
 
         executor.call("playlista " + playlistId, () -> {
 
-            RestClient.RequestBodySpec request = replace
-                ? apiClient.put().uri("/v1/playlists/{id}/items", playlistId)
-                : apiClient.post().uri("/v1/playlists/{id}/items", playlistId);
+            RestClient.RequestBodySpec request = itemsRequest(playlistId, replace);
             return request
                 .headers(headers -> headers.setBearerAuth(accountService.userAccessToken()))
                 .contentType(MediaType.APPLICATION_JSON)
@@ -159,6 +157,16 @@ public class SpotifyPlaylistClient {
                 .retrieve()
                 .toBodilessEntity();
         });
+    }
+
+    /** PUT zastępuje całą zawartość playlisty, POST dokłada kolejną partię. */
+    private RestClient.RequestBodySpec itemsRequest(String playlistId, boolean replace) {
+
+        if (replace) {
+
+            return apiClient.put().uri("/v1/playlists/{id}/items", playlistId);
+        }
+        return apiClient.post().uri("/v1/playlists/{id}/items", playlistId);
     }
 
     private PlaylistItemsResponse fetchItemsPage(String playlistId, int offset) {
@@ -197,12 +205,12 @@ public class SpotifyPlaylistClient {
 
     private SpotifyPlaylistItem toItem(ItemNode item, int position) {
 
-        SpotifyTrackNode track = Objects.isNull(item) ? null : item.item();
-        if (Objects.isNull(track)) {
+        if (Objects.isNull(item) || Objects.isNull(item.item())) {
 
             return new SpotifyPlaylistItem.Unavailable(position,
                 "pozycja bez utworu — usunięty ze Spotify lub niedostępny w regionie");
         }
+        SpotifyTrackNode track = item.item();
         if (Boolean.TRUE.equals(track.isLocal()) || Objects.isNull(track.id())) {
 
             return new SpotifyPlaylistItem.Unavailable(position,
