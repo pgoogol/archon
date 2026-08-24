@@ -269,27 +269,11 @@ class PlaylistIngestionServiceTest {
     }
 
     @Test
-    @DisplayName("pusta playlista nie kosztuje wywołania o utwory")
-    void ingest_whenPlaylistHasNoTracks_doesNotAskSpotifyForItems() {
+    @DisplayName("import zawsze pobiera zawartość playlisty, także gdy nagłówek milczy o utworach")
+    void ingest_always_fetchesItemsFromSpotify() {
 
-        // given — nagłówek podaje liczbę utworów, więc pytanie o nie nic by nie wniosło
-        SpotifyPlaylist empty =
-            new SpotifyPlaylist(PLAYLIST_ID, "Pusta", OWNER_ID, "DJ pgoogol", 0, "snap-1");
-        given(playlistRepository.save(any())).willAnswer(call -> call.getArgument(0));
-
-        // when
-        PlaylistIngestReport report = service.ingest(empty, LibrarySource.PLAYLIST);
-
-        // then
-        assertThat(report.tracks()).isZero();
-        verify(playlistClient, org.mockito.Mockito.never()).getPlaylistItems(any());
-    }
-
-    @Test
-    @DisplayName("nieznana liczba utworów każe pobrać pozycje, a nie uznać playlistę za pustą")
-    void ingest_whenTrackCountUnknown_stillFetchesItems() {
-
-        // given — Spotify nie podał węzła `tracks`
+        // given — o tym, czy w ogóle importujemy, decyduje snapshot; sam import
+        // nie zgaduje po nagłówku, ile jest do wzięcia
         SpotifyPlaylist unknownCount =
             new SpotifyPlaylist(PLAYLIST_ID, "Columbia", OWNER_ID, "DJ pgoogol", null, "snap-1");
         given(playlistClient.getPlaylistItems(PLAYLIST_ID)).willReturn(List.of(trackItem(0, FIRST)));
@@ -304,11 +288,11 @@ class PlaylistIngestionServiceTest {
     }
 
     @Test
-    @DisplayName("pusty wynik na niepustej playliście nie zapisuje snapshotu")
-    void ingest_whenItemsEmptyButPlaylistHasTracks_leavesSnapshotForRetry() {
+    @DisplayName("import bez ani jednej pozycji nie zapisuje snapshotu")
+    void ingest_whenItemsEmpty_leavesSnapshotForRetry() {
 
-        // given — playlista ma utwory, ale pozycje wróciły puste: zapisanie snapshotu
-        // zamroziłoby ten stan, bo kolejne przebiegi uznałyby playlistę za aktualną
+        // given — zapisany snapshot zamroziłby pustkę: kolejne przebiegi uznałyby
+        // playlistę za aktualną i nigdy by po nią nie sięgnęły
         Playlist existing = playlistEntity("Columbia");
         existing.setSpotifySnapshotId("snap-poprzedni");
         given(playlistClient.getPlaylistItems(PLAYLIST_ID)).willReturn(List.of());
