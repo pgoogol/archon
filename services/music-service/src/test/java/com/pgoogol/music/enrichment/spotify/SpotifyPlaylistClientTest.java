@@ -57,7 +57,7 @@ class SpotifyPlaylistClientTest {
           "total": 4,
           "items": [
             {
-              "track": {
+              "item": {
                 "id": "4uLU6hMCjMI75M1A2tKUQC",
                 "name": "Vivir Mi Vida",
                 "type": "track",
@@ -74,9 +74,9 @@ class SpotifyPlaylistClientTest {
                 "external_ids": {"isrc": "USSD11300483"}
               }
             },
-            {"track": null},
+            {"item": null},
             {
-              "track": {
+              "item": {
                 "id": null,
                 "name": "Nagranie z wesela.mp3",
                 "type": "track",
@@ -85,7 +85,7 @@ class SpotifyPlaylistClientTest {
               }
             },
             {
-              "track": {
+              "item": {
                 "id": "5xyzEpisode000000000000",
                 "name": "Podcast o salsie",
                 "type": "episode",
@@ -137,7 +137,7 @@ class SpotifyPlaylistClientTest {
 
         // given
         stubFor(post(urlPathEqualTo("/api/token")).willReturn(okJson(TOKEN_JSON)));
-        stubFor(get(urlPathEqualTo("/v1/playlists/%s/tracks".formatted(PLAYLIST_ID)))
+        stubFor(get(urlPathEqualTo("/v1/playlists/%s/items".formatted(PLAYLIST_ID)))
             .willReturn(okJson(ITEMS_JSON)));
 
         // when
@@ -154,6 +154,45 @@ class SpotifyPlaylistClientTest {
             .containsExactly(1, 2, 3);
         assertThat(items.get(3)).isInstanceOfSatisfying(SpotifyPlaylistItem.Unavailable.class,
             item -> assertThat(item.reason()).contains("episode"));
+    }
+
+    @Test
+    void getPlaylistItems_whenResponseUsesLegacyTrackField_stillMapsTracks(
+            WireMockRuntimeInfo wireMock) {
+
+        // given — kształt sprzed przeniesienia endpointu na /items: utwór w polu `track`.
+        // Czytamy obie nazwy, bo odpowiedź w starym kształcie inaczej wróciłaby jako
+        // playlista bez utworów, cicho i bez błędu
+        stubFor(post(urlPathEqualTo("/api/token")).willReturn(okJson(TOKEN_JSON)));
+        stubFor(get(urlPathEqualTo("/v1/playlists/%s/items".formatted(PLAYLIST_ID)))
+            .willReturn(okJson("""
+                {"total": 1, "items": [{"track": {"id": "%s", "name": "Vivir Mi Vida",
+                 "type": "track", "artists": [{"name": "Marc Anthony"}]}}]}"""
+                .formatted("4uLU6hMCjMI75M1A2tKUQC"))));
+
+        // when
+        List<SpotifyPlaylistItem> items = playlistClient(wireMock).getPlaylistItems(PLAYLIST_ID);
+
+        // then
+        assertThat(items).singleElement().isInstanceOfSatisfying(SpotifyPlaylistItem.Track.class,
+            track -> assertThat(track.metadata().title()).isEqualTo("Vivir Mi Vida"));
+    }
+
+    @Test
+    void getPlaylist_whenHeaderUsesItemsNode_readsTrackCount(WireMockRuntimeInfo wireMock) {
+
+        // given — nagłówek w kształcie po przeniesieniu: liczba utworów w `items`
+        stubFor(post(urlPathEqualTo("/api/token")).willReturn(okJson(TOKEN_JSON)));
+        stubFor(get(urlPathEqualTo("/v1/playlists/" + PLAYLIST_ID)).willReturn(okJson("""
+            {"id": "%s", "name": "Sabor Latino", "snapshot_id": "snap-1",
+             "owner": {"id": "dj-pgoogol", "display_name": "DJ pgoogol"},
+             "items": {"total": 12}}""".formatted(PLAYLIST_ID))));
+
+        // when
+        SpotifyPlaylist playlist = playlistClient(wireMock).getPlaylist(PLAYLIST_ID);
+
+        // then
+        assertThat(playlist.trackCount()).isEqualTo(12);
     }
 
     @Test
@@ -181,7 +220,7 @@ class SpotifyPlaylistClientTest {
         // given — playlisty prywatne (np. „Moje utwory z Shazam") token aplikacyjny
         // dostaje z 403, więc przy połączonym koncie czytamy tokenem właściciela
         given(accountService.userAccessTokenIfConnected()).willReturn(Optional.of("user-token"));
-        String tracksPath = "/v1/playlists/%s/tracks".formatted(PLAYLIST_ID);
+        String tracksPath = "/v1/playlists/%s/items".formatted(PLAYLIST_ID);
         stubFor(get(urlPathEqualTo(tracksPath)).atPriority(1)
             .withHeader("Authorization", equalTo("Bearer user-token"))
             .willReturn(okJson(ITEMS_JSON)));
@@ -202,7 +241,7 @@ class SpotifyPlaylistClientTest {
 
         // given — konto niepołączone, playlista prywatna: token aplikacyjny dostaje 403
         stubFor(post(urlPathEqualTo("/api/token")).willReturn(okJson(TOKEN_JSON)));
-        String tracksPath = "/v1/playlists/%s/tracks".formatted(PLAYLIST_ID);
+        String tracksPath = "/v1/playlists/%s/items".formatted(PLAYLIST_ID);
         stubFor(get(urlPathEqualTo(tracksPath)).willReturn(forbidden()));
         SpotifyPlaylistClient client = playlistClient(wireMock);
 
@@ -219,7 +258,7 @@ class SpotifyPlaylistClientTest {
 
         // given — 250 utworów = 3 strony po 100
         stubFor(post(urlPathEqualTo("/api/token")).willReturn(okJson(TOKEN_JSON)));
-        String tracksPath = "/v1/playlists/%s/tracks".formatted(PLAYLIST_ID);
+        String tracksPath = "/v1/playlists/%s/items".formatted(PLAYLIST_ID);
         stubFor(get(urlPathEqualTo(tracksPath)).willReturn(okJson(itemsPage(0, 100, 250))));
         stubFor(get(urlPathEqualTo(tracksPath)).withQueryParam("offset", equalTo("100"))
             .willReturn(okJson(itemsPage(100, 100, 250))));
@@ -288,7 +327,7 @@ class SpotifyPlaylistClientTest {
 
         // given — 250 utworów: 1 × PUT (zastąpienie) + 2 × POST (dopisanie)
         given(accountService.userAccessToken()).willReturn("user-token");
-        String tracksPath = "/v1/playlists/%s/tracks".formatted(PLAYLIST_ID);
+        String tracksPath = "/v1/playlists/%s/items".formatted(PLAYLIST_ID);
         stubFor(put(urlPathEqualTo(tracksPath)).willReturn(okJson("{\"snapshot_id\": \"s1\"}")));
         stubFor(post(urlPathEqualTo(tracksPath)).willReturn(okJson("{\"snapshot_id\": \"s2\"}")));
         List<String> spotifyIds = IntStream.range(0, 250).mapToObj("trk-%018d"::formatted).toList();
@@ -321,7 +360,7 @@ class SpotifyPlaylistClientTest {
 
         String items = IntStream.range(offset, offset + size)
             .mapToObj(index -> """
-                {"track": {"id": "trk-%018d", "name": "Utwór %d", "type": "track",
+                {"item": {"id": "trk-%018d", "name": "Utwór %d", "type": "track",
                  "artists": [{"name": "Wykonawca"}], "album": {"name": "Album"}}}"""
                 .formatted(index, index))
             .collect(Collectors.joining(",\n"));

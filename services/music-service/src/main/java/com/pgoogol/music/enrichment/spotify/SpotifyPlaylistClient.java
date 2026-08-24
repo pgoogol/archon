@@ -1,5 +1,6 @@
 package com.pgoogol.music.enrichment.spotify;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.http.MediaType;
@@ -148,9 +149,7 @@ public class SpotifyPlaylistClient {
 
         executor.call("playlista " + playlistId, () -> {
 
-            RestClient.RequestBodySpec request = replace
-                ? apiClient.put().uri("/v1/playlists/{id}/tracks", playlistId)
-                : apiClient.post().uri("/v1/playlists/{id}/tracks", playlistId);
+            RestClient.RequestBodySpec request = itemsRequest(playlistId, replace);
             return request
                 .headers(headers -> headers.setBearerAuth(accountService.userAccessToken()))
                 .contentType(MediaType.APPLICATION_JSON)
@@ -160,10 +159,20 @@ public class SpotifyPlaylistClient {
         });
     }
 
+    /** PUT zastępuje całą zawartość playlisty, POST dokłada kolejną partię. */
+    private RestClient.RequestBodySpec itemsRequest(String playlistId, boolean replace) {
+
+        if (replace) {
+
+            return apiClient.put().uri("/v1/playlists/{id}/items", playlistId);
+        }
+        return apiClient.post().uri("/v1/playlists/{id}/items", playlistId);
+    }
+
     private PlaylistItemsResponse fetchItemsPage(String playlistId, int offset) {
 
         return executor.call("playlista " + playlistId, () -> apiClient.get()
-            .uri(uriBuilder -> uriBuilder.path("/v1/playlists/{id}/tracks")
+            .uri(uriBuilder -> uriBuilder.path("/v1/playlists/{id}/items")
                 .queryParam("limit", PAGE_SIZE)
                 .queryParam("offset", offset)
                 .build(playlistId))
@@ -196,12 +205,12 @@ public class SpotifyPlaylistClient {
 
     private SpotifyPlaylistItem toItem(ItemNode item, int position) {
 
-        SpotifyTrackNode track = Objects.isNull(item) ? null : item.track();
-        if (Objects.isNull(track)) {
+        if (Objects.isNull(item) || Objects.isNull(item.item())) {
 
             return new SpotifyPlaylistItem.Unavailable(position,
                 "pozycja bez utworu — usunięty ze Spotify lub niedostępny w regionie");
         }
+        SpotifyTrackNode track = item.item();
         if (Boolean.TRUE.equals(track.isLocal()) || Objects.isNull(track.id())) {
 
             return new SpotifyPlaylistItem.Unavailable(position,
@@ -229,15 +238,20 @@ public class SpotifyPlaylistClient {
      */
     private Integer trackCount(PlaylistResponse response) {
 
-        if (Objects.isNull(response.tracks())) {
+        if (Objects.isNull(response.items())) {
 
             return null;
         }
-        return response.tracks().total();
+        return response.items().total();
     }
 
+    /**
+     * Nagłówek playlisty. Liczba utworów siedzi w {@code items}; {@code tracks} to
+     * nazwa sprzed przeniesienia endpointu na {@code /items} — czytamy obie.
+     */
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private record PlaylistResponse(String id, String name, OwnerNode owner, TracksNode tracks,
+    private record PlaylistResponse(String id, String name, OwnerNode owner,
+                                    @JsonAlias("tracks") CountNode items,
                                     @JsonProperty("snapshot_id") String snapshotId) {
 
     }
@@ -248,7 +262,7 @@ public class SpotifyPlaylistClient {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private record TracksNode(Integer total) {
+    private record CountNode(Integer total) {
 
     }
 
@@ -262,8 +276,13 @@ public class SpotifyPlaylistClient {
 
     }
 
+    /**
+     * Pozycja playlisty. Utwór siedzi w polu {@code item}; {@code track} to nazwa
+     * sprzed przeniesienia endpointu na {@code /items} — czytamy obie, żeby
+     * odpowiedź w starym kształcie nie wracała jako playlista bez utworów.
+     */
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private record ItemNode(SpotifyTrackNode track) {
+    private record ItemNode(@JsonAlias("track") SpotifyTrackNode item) {
 
     }
 
