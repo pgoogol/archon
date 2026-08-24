@@ -76,7 +76,10 @@ public class PlaylistIngestionService {
     public PlaylistIngestReport ingest(SpotifyPlaylist spotifyPlaylist, LibrarySource source) {
 
         Objects.requireNonNull(spotifyPlaylist, "spotifyPlaylist");
-        List<SpotifyPlaylistItem> items = fetchItems(spotifyPlaylist);
+        // import zawsze pobiera całą zawartość playlisty — o tym, czy w ogóle do niego
+        // dochodzi, decyduje wcześniej snapshot; tutaj nie ma już czego oszczędzać
+        List<SpotifyPlaylistItem> items =
+            playlistClient.getPlaylistItems(spotifyPlaylist.spotifyPlaylistId());
         Map<String, SpotifyTrackMetadata> uniqueTracks = uniqueTracks(items);
 
         upsertCatalog(uniqueTracks);
@@ -91,21 +94,6 @@ public class PlaylistIngestionService {
             report.name(), report.spotifyPlaylistId(), report.tracks(), report.imported(),
             report.alreadyExisted(), report.skipped().size());
         return report;
-    }
-
-    /**
-     * Pusta playlista nie wymaga pytania o utwory — nagłówek podaje ich liczbę,
-     * a przy kwocie liczonej per konto każde oszczędzone wywołanie jest tego warte.
-     * Skrót działa wyłącznie na jawnym zerze: nieznana liczba (Spotify nie podał
-     * węzła {@code tracks}) to powód, żeby pobrać, a nie żeby odpuścić.
-     */
-    private List<SpotifyPlaylistItem> fetchItems(SpotifyPlaylist spotifyPlaylist) {
-
-        if (Objects.equals(spotifyPlaylist.trackCount(), 0)) {
-
-            return List.of();
-        }
-        return playlistClient.getPlaylistItems(spotifyPlaylist.spotifyPlaylistId());
     }
 
     private Map<String, SpotifyTrackMetadata> uniqueTracks(List<SpotifyPlaylistItem> items) {
@@ -215,25 +203,22 @@ public class PlaylistIngestionService {
      * import nie zostawi wersji, przy której następny przebieg uznałby playlistę
      * za już pobraną.
      *
-     * <p>Import bez ani jednej pozycji zostawia snapshot nietknięty, chyba że
-     * playlista jest pusta naprawdę. Pusty wynik na playliście, która utwory ma,
-     * oznacza, że coś poszło nie tak po drodze — zapisanie wtedy snapshotu
-     * zamroziłoby ten stan na zawsze, bo kolejne przebiegi uznałyby playlistę
-     * za aktualną i nigdy by po nią nie sięgnęły.</p>
+     * <p>Import, który nie przyniósł ani jednej pozycji, snapshotu nie zapisuje.
+     * Zapisany zamroziłby ten stan na zawsze — kolejne przebiegi uznałyby playlistę
+     * za aktualną i nigdy by po nią nie sięgnęły. Playlista pusta naprawdę kosztuje
+     * przez to jedno wywołanie na przebieg; niewidzialna dziura w bibliotece
+     * kosztuje dużo więcej.</p>
      */
     private void storeSnapshot(Playlist playlist, SpotifyPlaylist spotifyPlaylist,
                                List<SpotifyPlaylistItem> items) {
 
-        if (!items.isEmpty() || Objects.equals(spotifyPlaylist.trackCount(), 0)) {
+        if (!items.isEmpty()) {
 
             playlist.setSpotifySnapshotId(spotifyPlaylist.snapshotId());
             return;
         }
-        log.warn("""
-            Playlista '{}' ({}) wróciła bez pozycji, choć Spotify podaje utworów: {} \
-            — snapshot zostaje niezapisany, żeby następny przebieg spróbował ponownie""",
-            spotifyPlaylist.name(), spotifyPlaylist.spotifyPlaylistId(),
-            Objects.toString(spotifyPlaylist.trackCount(), "nieznana liczba"));
+        log.warn("Playlista '{}' ({}) wróciła bez pozycji — snapshot niezapisany",
+            spotifyPlaylist.name(), spotifyPlaylist.spotifyPlaylistId());
     }
 
     /** Kolejność na Spotify jest źródłem prawdy przy imporcie — wpisy odtwarzamy od zera. */
