@@ -29,21 +29,10 @@ public class SpotifyPlaylistClient {
     private static final String TRACK_TYPE = "track";
     private static final String TRACK_URI_PREFIX = "spotify:track:";
 
-    /**
-     * Bez {@code fields} Spotify dokłada do każdej pozycji komplet rynków,
-     * linków i obrazków w trzech rozmiarach — kilkaset kilobajtów na stronę,
-     * z czego czytamy garść pól. Lista jest wprost tym, co mapuje
-     * {@link SpotifyTrackMapper}.
-     */
-    private static final String ITEM_FIELDS = """
-        total,items(track(id,name,type,is_local,duration_ms,explicit,popularity,\
-        artists(name),album(name,release_date,images),external_ids(isrc)))""";
-
-    /** Sam nagłówek: bez tego Spotify dokłada do playlisty pierwsze sto utworów. */
-    private static final String PLAYLIST_FIELDS =
-        "id,name,snapshot_id,owner(id,display_name),tracks(total)";
-
-    private static final String MY_PLAYLISTS_FIELDS = "total,items(%s)".formatted(PLAYLIST_FIELDS);
+    // Świadomie nie przycinamy odpowiedzi parametrem `fields`. Maska oszczędza
+    // pasmo, ale nie kwotę — a kwota była jedynym powodem tej optymalizacji.
+    // Odpowiedź przycięta o pole, którego się nie spodziewamy, wraca jako pusta
+    // playlista i cicho zapisuje się jako zaimportowana; niewarte tej ceny.
 
     private final RestClient apiClient;
     private final SpotifyAppTokenProvider tokenProvider;
@@ -85,7 +74,6 @@ public class SpotifyPlaylistClient {
             .uri(uriBuilder -> uriBuilder.path("/v1/me/playlists")
                 .queryParam("limit", MY_PLAYLISTS_PAGE_SIZE)
                 .queryParam("offset", offset)
-                .queryParam("fields", MY_PLAYLISTS_FIELDS)
                 .build())
             .headers(headers -> headers.setBearerAuth(accountService.userAccessToken()))
             .retrieve()
@@ -104,9 +92,7 @@ public class SpotifyPlaylistClient {
 
         Objects.requireNonNull(playlistId, "playlistId");
         PlaylistResponse response = executor.call("playlista " + playlistId, () -> apiClient.get()
-            .uri(uriBuilder -> uriBuilder.path("/v1/playlists/{id}")
-                .queryParam("fields", PLAYLIST_FIELDS)
-                .build(playlistId))
+            .uri("/v1/playlists/{id}", playlistId)
             .headers(headers -> headers.setBearerAuth(readToken()))
             .retrieve()
             .body(PlaylistResponse.class));
@@ -180,7 +166,6 @@ public class SpotifyPlaylistClient {
             .uri(uriBuilder -> uriBuilder.path("/v1/playlists/{id}/tracks")
                 .queryParam("limit", PAGE_SIZE)
                 .queryParam("offset", offset)
-                .queryParam("fields", ITEM_FIELDS)
                 .build(playlistId))
             .headers(headers -> headers.setBearerAuth(readToken()))
             .retrieve()
@@ -233,11 +218,22 @@ public class SpotifyPlaylistClient {
     private SpotifyPlaylist toPlaylist(PlaylistResponse response) {
 
         OwnerNode owner = Objects.requireNonNullElse(response.owner(), new OwnerNode(null, null));
-        int trackCount = Objects.isNull(response.tracks())
-            ? 0
-            : Objects.requireNonNullElse(response.tracks().total(), 0);
         return new SpotifyPlaylist(response.id(), response.name(),
-            owner.id(), owner.displayName(), trackCount, response.snapshotId());
+            owner.id(), owner.displayName(), trackCount(response), response.snapshotId());
+    }
+
+    /**
+     * Brak węzła {@code tracks} to nieznana liczba utworów, a nie zero. Rozróżnienie
+     * jest istotne: na zerze import pomija pobranie pozycji, więc uznanie braku
+     * danych za pustą playlistę zapisałoby ją jako zaimportowaną i pustą.
+     */
+    private Integer trackCount(PlaylistResponse response) {
+
+        if (Objects.isNull(response.tracks())) {
+
+            return null;
+        }
+        return response.tracks().total();
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

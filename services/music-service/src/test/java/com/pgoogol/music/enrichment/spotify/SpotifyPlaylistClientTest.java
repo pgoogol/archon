@@ -157,21 +157,21 @@ class SpotifyPlaylistClientTest {
     }
 
     @Test
-    void getPlaylistItems_always_asksSpotifyOnlyForMappedFields(WireMockRuntimeInfo wireMock) {
+    void getPlaylist_whenHeaderHasNoTracksNode_leavesTrackCountUnknown(
+            WireMockRuntimeInfo wireMock) {
 
-        // given — bez `fields` Spotify odsyła komplet rynków i obrazków na każdą pozycję
+        // given — nagłówek bez węzła `tracks`; zero i „nie wiadomo" to nie to samo,
+        // bo na zerze import odpuszcza pobranie pozycji
         stubFor(post(urlPathEqualTo("/api/token")).willReturn(okJson(TOKEN_JSON)));
-        String tracksPath = "/v1/playlists/%s/tracks".formatted(PLAYLIST_ID);
-        stubFor(get(urlPathEqualTo(tracksPath)).willReturn(okJson(ITEMS_JSON)));
+        stubFor(get(urlPathEqualTo("/v1/playlists/" + PLAYLIST_ID)).willReturn(okJson("""
+            {"id": "%s", "name": "Sabor Latino", "snapshot_id": "snap-1",
+             "owner": {"id": "dj-pgoogol", "display_name": "DJ pgoogol"}}""".formatted(PLAYLIST_ID))));
 
         // when
-        playlistClient(wireMock).getPlaylistItems(PLAYLIST_ID);
+        SpotifyPlaylist playlist = playlistClient(wireMock).getPlaylist(PLAYLIST_ID);
 
-        // then — lista jedzie jednym ciągiem, bez rozjechanych nawiasów i spacji
-        verify(getRequestedFor(urlPathEqualTo(tracksPath))
-            .withQueryParam("fields", equalTo("""
-                total,items(track(id,name,type,is_local,duration_ms,explicit,popularity,\
-                artists(name),album(name,release_date,images),external_ids(isrc)))""")));
+        // then
+        assertThat(playlist.trackCount()).isNull();
     }
 
     @Test

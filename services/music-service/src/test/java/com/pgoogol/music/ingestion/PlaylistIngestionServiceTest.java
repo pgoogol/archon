@@ -286,6 +286,44 @@ class PlaylistIngestionServiceTest {
     }
 
     @Test
+    @DisplayName("nieznana liczba utworów każe pobrać pozycje, a nie uznać playlistę za pustą")
+    void ingest_whenTrackCountUnknown_stillFetchesItems() {
+
+        // given — Spotify nie podał węzła `tracks`
+        SpotifyPlaylist unknownCount =
+            new SpotifyPlaylist(PLAYLIST_ID, "Columbia", OWNER_ID, "DJ pgoogol", null, "snap-1");
+        given(playlistClient.getPlaylistItems(PLAYLIST_ID)).willReturn(List.of(trackItem(0, FIRST)));
+        givenEmptyCatalogAndLibrary();
+
+        // when
+        PlaylistIngestReport report = service.ingest(unknownCount, LibrarySource.PLAYLIST);
+
+        // then
+        assertThat(report.tracks()).isEqualTo(1);
+        verify(playlistClient).getPlaylistItems(PLAYLIST_ID);
+    }
+
+    @Test
+    @DisplayName("pusty wynik na niepustej playliście nie zapisuje snapshotu")
+    void ingest_whenItemsEmptyButPlaylistHasTracks_leavesSnapshotForRetry() {
+
+        // given — playlista ma utwory, ale pozycje wróciły puste: zapisanie snapshotu
+        // zamroziłoby ten stan, bo kolejne przebiegi uznałyby playlistę za aktualną
+        Playlist existing = playlistEntity("Columbia");
+        existing.setSpotifySnapshotId("snap-poprzedni");
+        given(playlistClient.getPlaylistItems(PLAYLIST_ID)).willReturn(List.of());
+        given(playlistRepository.findBySpotifyPlaylistId(PLAYLIST_ID))
+            .willReturn(Optional.of(existing));
+        given(playlistRepository.save(any())).willAnswer(call -> call.getArgument(0));
+
+        // when
+        service.ingest(playlist(OWNER_ID), LibrarySource.PLAYLIST);
+
+        // then
+        assertThat(existing.getSpotifySnapshotId()).isEqualTo("snap-poprzedni");
+    }
+
+    @Test
     @DisplayName("domknięty import zapisuje snapshot, po którym następny przebieg pomija playlistę")
     void ingest_whenImportFinishes_storesSnapshotOnPlaylist() {
 

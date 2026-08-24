@@ -81,7 +81,7 @@ public class PlaylistIngestionService {
 
         upsertCatalog(uniqueTracks);
         int imported = saveLibraryEntries(uniqueTracks.keySet(), source);
-        Playlist playlist = upsertPlaylist(spotifyPlaylist);
+        Playlist playlist = upsertPlaylist(spotifyPlaylist, items);
         replacePlaylistTracks(playlist, List.copyOf(uniqueTracks.keySet()));
 
         PlaylistIngestReport report = new PlaylistIngestReport(playlist.getId(),
@@ -96,10 +96,12 @@ public class PlaylistIngestionService {
     /**
      * Pusta playlista nie wymaga pytania o utwory — nagłówek podaje ich liczbę,
      * a przy kwocie liczonej per konto każde oszczędzone wywołanie jest tego warte.
+     * Skrót działa wyłącznie na jawnym zerze: nieznana liczba (Spotify nie podał
+     * węzła {@code tracks}) to powód, żeby pobrać, a nie żeby odpuścić.
      */
     private List<SpotifyPlaylistItem> fetchItems(SpotifyPlaylist spotifyPlaylist) {
 
-        if (spotifyPlaylist.trackCount() == 0) {
+        if (Objects.equals(spotifyPlaylist.trackCount(), 0)) {
 
             return List.of();
         }
@@ -192,7 +194,8 @@ public class PlaylistIngestionService {
         return entries.size();
     }
 
-    private Playlist upsertPlaylist(SpotifyPlaylist spotifyPlaylist) {
+    private Playlist upsertPlaylist(SpotifyPlaylist spotifyPlaylist,
+                                    List<SpotifyPlaylistItem> items) {
 
         Playlist playlist = playlistRepository
             .findBySpotifyPlaylistId(spotifyPlaylist.spotifyPlaylistId())
@@ -203,11 +206,34 @@ public class PlaylistIngestionService {
                 return created;
             });
         playlist.setName(spotifyPlaylist.name());
-        // snapshot zapisujemy razem z zawartością i w tej samej transakcji: przerwany
-        // import nie zostawi wersji, przy której następny przebieg uznałby playlistę
-        // za już pobraną
-        playlist.setSpotifySnapshotId(spotifyPlaylist.snapshotId());
+        storeSnapshot(playlist, spotifyPlaylist, items);
         return playlistRepository.save(playlist);
+    }
+
+    /**
+     * Snapshot zapisujemy razem z zawartością i w tej samej transakcji: przerwany
+     * import nie zostawi wersji, przy której następny przebieg uznałby playlistę
+     * za już pobraną.
+     *
+     * <p>Import bez ani jednej pozycji zostawia snapshot nietknięty, chyba że
+     * playlista jest pusta naprawdę. Pusty wynik na playliście, która utwory ma,
+     * oznacza, że coś poszło nie tak po drodze — zapisanie wtedy snapshotu
+     * zamroziłoby ten stan na zawsze, bo kolejne przebiegi uznałyby playlistę
+     * za aktualną i nigdy by po nią nie sięgnęły.</p>
+     */
+    private void storeSnapshot(Playlist playlist, SpotifyPlaylist spotifyPlaylist,
+                               List<SpotifyPlaylistItem> items) {
+
+        if (!items.isEmpty() || Objects.equals(spotifyPlaylist.trackCount(), 0)) {
+
+            playlist.setSpotifySnapshotId(spotifyPlaylist.snapshotId());
+            return;
+        }
+        log.warn("""
+            Playlista '{}' ({}) wróciła bez pozycji, choć Spotify podaje utworów: {} \
+            — snapshot zostaje niezapisany, żeby następny przebieg spróbował ponownie""",
+            spotifyPlaylist.name(), spotifyPlaylist.spotifyPlaylistId(),
+            Objects.toString(spotifyPlaylist.trackCount(), "nieznana liczba"));
     }
 
     /** Kolejność na Spotify jest źródłem prawdy przy imporcie — wpisy odtwarzamy od zera. */
