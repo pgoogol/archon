@@ -121,6 +121,11 @@ argumentach — dlatego da się go testować bez bazy), a **`imports` woła `rec
 nie odwrotnie** (przepis nie wie, że istnieje import; gdyby wiedział, każda
 zmiana w imporcie ruszałaby rdzeń).
 
+**Wejść do modułu z zewnątrz ma być mało i mają być nazwane.** Dla `recipe` to
+`RecipeWriter`, `RecipeService` i `RecipeNoteService` — nie dowolna klasa
+z `recipe.application`. Reguła kosztuje dziś tyle co nic, a jest warunkiem
+taniego przejścia na Spring Modulith, gdyby kiedyś doszedł (§12.1).
+
 Reguły egzekwowane przez `ArchitectureTest` (wzór: finance):
 
 ```java
@@ -499,6 +504,44 @@ rozjadą się w walidacji.
 | **Pobieranie Facebooka i Instagrama przez scraper** | wymaga obchodzenia logowania; zamiast tego jawna lista zamkniętych hostów i ścieżka zrzut/tekst (R26) |
 | **LLM liczy jednostki i skalowanie** | każda liczba z modelu to liczba do sprawdzenia; przeliczenia są deterministyczne, więc należą do kodu (R5) |
 | **Wspólny klient LLM przez skopiowanie kodu z music** | kopia rozjeżdża się przy pierwszej poprawce; starter w `libs/java` to reguła repo (R11) |
+| **Spring Modulith zamiast ArchUnita** | §12.1 |
+
+### 12.1 Spring Modulith — dlaczego nie teraz
+
+Modulith i heksagon nie są alternatywami: heksagon opisuje wnętrze modułu,
+Modulith pilnuje granic **między** modułami i dokłada narzędzia wokół nich.
+Pytanie brzmi więc wyłącznie: czym egzekwować macierz z §3.
+
+| Co daje Modulith | Czy potrzebne tutaj |
+|---|---|
+| weryfikacja granic (`ApplicationModules.verify()`) | **już jest** — ArchUnit siedzi w root POM i robi to w `ArchitectureTest` |
+| testy pojedynczego modułu (`@ApplicationModuleTest`) | oszczędność przy kilkunastu modułach; przy dziewięciu marginalna |
+| generowane diagramy i „module canvas" | diagramy w tym dokumencie opisują decyzje, a nie strukturę — generator ich nie zastąpi |
+| **rejestr zdarzeń** (trwałe zdarzenia między modułami, wznawiane po restarcie) | jedyna ciężka funkcja, a serwis jest zaprojektowany **bez** wewnętrznej szyny — moduły wołają się wprost |
+| obserwowalność per moduł | narzędzie jednoosobowe; przesada |
+
+Koszt wejścia jest konkretny, nie teoretyczny. Modulith traktuje pakiet główny
+modułu jako jego API, a podpakiety jako wnętrze — przy układzie
+`recipe.domain` / `recipe.application` / `recipe.infrastructure` **wszystko** jest
+wnętrzem, a `imports` woła `RecipeWriter` z `recipe.application`. Trzeba by
+wprowadzić fasadę w korzeniu każdego modułu albo `@NamedInterface`, czyli zmienić
+konwencję, którą piszą już music i finance, dołożyć zależność do całego reaktora
+i mieć dwa mechanizmy pilnujące tych samych granic. Do tego dochodzi zgodność
+wersji: repo stoi na Spring Boot 4, więc linia Modulitha musi być z nim zgodna —
+do sprawdzenia w momencie dokładania, nie z pamięci.
+
+**Kiedy wrócić do tej decyzji** — po jednym z tych zdarzeń, nie „gdyby urosło":
+
+1. Potrzebne są zdarzenia przeżywające restart (przepis zaakceptowany → lista
+   zakupów → powiadomienie). Rejestr Modulitha jest wtedy tańszy niż własny outbox.
+2. Modułów robi się kilkanaście i start kontekstu w testach zaczyna boleć.
+3. Serwis przestaje być narzędziem jednej osoby i przydaje się generowana
+   dokumentacja struktury.
+
+Do tego czasu drzwi trzyma otwarte jedno przyzwyczajenie, opisane w §3: wejść do
+modułu z zewnątrz ma być mało i mają być nazwane. Przeniesienie kilku klas do
+korzenia pakietu to godzina pracy; rozplątywanie dziesięciu wywołań w głąb
+cudzego modułu to tydzień.
 
 ## 13. Mapa katalogów
 
