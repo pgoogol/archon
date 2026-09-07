@@ -93,11 +93,12 @@ tworzy rewizji; formularz we froncie zakłada i edytuje przepis.
 | 2.4 | `LlmProperties` z nazwanymi klientami, `LlmClients`, `LlmAutoConfiguration`, `LlmUsageListener`, `CostEstimator` |
 | 2.5 | `FakeLlmClient` i `LlmWireMock` (sukces z JSON, 429 z `Retry-After`, 500, odpowiedź obcięta, żądanie z obrazem) |
 | 2.6 | Testy: auto-konfiguracja (`ApplicationContextRunner`), oba providery na WireMock, ponowienia, parsowanie ekstrakcji do rekordu |
-| 2.7 | Notatka w `services/music-service/docs/DECYZJE.md` (D36) — bez zmian w kodzie music |
+| 2.7 | Aktualizacja D40 w `services/music-service/docs/DECYZJE.md` o to, co przy budowie startera wyszło inaczej niż w notatce — bez zmian w kodzie music |
 
 **DoD:** `./mvnw -pl libs/java/llm-starter verify` zielone z pokryciem wg reguł;
 aplikacja testowa w `src/test` wysyła tekst + obraz i dostaje rekord zgodny ze
-schematem; `git diff --stat` na music-service pokazuje wyłącznie plik `DECYZJE.md`.
+schematem; `git diff --stat` na music-service pokazuje wyłącznie plik `DECYZJE.md`
+(notatka D40 stoi tam od etapu planowania — M2 co najwyżej ją prostuje).
 
 ---
 

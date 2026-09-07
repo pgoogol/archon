@@ -950,3 +950,41 @@ filtr niewidoczny na ekranie nie ma prawa działać. Tak samo nieznane klucze w 
 Kryteria wyszukiwarki w backendzie zostają bez zmian — `CatalogSearchCriteria` nadal
 przyjmuje komplet filtrów z M5.6 (używa ich m.in. generator setu, D33), a przywrócenie
 któregokolwiek na ekran jest dopisaniem pola do listy w `library/query.ts`, nie migracją.
+
+## D40. Wspólny starter LLM powstaje poza tym serwisem (informacja)
+
+W `libs/java/llm-starter` powstaje wspólna warstwa LLM dla całego repo — na potrzeby
+domeny kuchennej (`services/kitchen-service`), która czyta przepisy z tekstu, ze stron
+i ze zdjęć. **Music-service nie jest w tej pracy ruszany**: zostaje na własnym kliencie
+z `enrichment/llm` do najbliższej sesji nad wzbogacaniem. Ta decyzja jest notatką, żeby
+przy tamtej sesji nie projektować migracji od zera.
+
+Do czasu migracji w repo żyją dwa klienty LLM. To świadomy koszt: przepisywanie
+działającego wzbogacania tylko po to, żeby ujednolicić warstwę, wywoływałoby regresję
+w jedynym miejscu, które realnie płaci rachunki za API.
+
+Czym starter różni się od klienta z tego serwisu — lista rzeczy do uwzględnienia przy
+przenosinach:
+
+- **Treść żądania to lista części, nie para `system` + `user`.** Wiadomość niesie
+  fragmenty tekstowe i obrazy, bo ekstrakcja przepisu ze zdjęcia potrzebuje wizji.
+  `TrackAnalysisPrompt` mapuje się na to bez zmiany sensu.
+- **`temperature` wysyłana wyłącznie, gdy jawnie ustawiona.** Nowsze modele odrzucają
+  ten parametr błędem 400, a tutejsza konfiguracja ustawia go zawsze (`0.2`) — po
+  przejściu na starter trzeba świadomie zdecydować, czy zostaje.
+- **Prompty jako zasoby wersjonowane**: `llm/<nazwa>/<wersja>/{system.md,user.md,schema.json}`
+  zamiast `llm/track-analysis-v1.txt`. Numer wersji nadal wchodzi do
+  `track_catalog.enrich_version`, więc zakres przeliczania utworów nie zmienia znaczenia.
+- **Wyjście strukturalne pilnowane schematem** po stronie providera zamiast walidacji
+  ręcznie parsowanego JSON-a w `TrackAnalysisService`.
+- **Zużycie tokenów przez słuchacza** (`LlmUsageListener`) zamiast sumowania
+  `inputTokens`/`outputTokens` w pętli batcha.
+- **Nazwane klienty w konfiguracji** (`llm.clients.<nazwa>`) zamiast wyboru providera
+  w `LlmClientConfig` — sam wybór implementacji przechodzi do startera.
+- **Własne wyjątki startera** (`LlmRateLimited`, `LlmUnavailable`, `LlmNotConfigured`, …)
+  mapowane w serwisie na jego kody błędów; dzisiejsze rzucanie `RateLimitedException`
+  i `ExternalServiceException` wprost z klienta znika.
+
+Konfiguracja tego serwisu (`LLM_PROVIDER`, `LLM_API_KEY`, `LLM_MODEL`, `LLM_BASE_URL`)
+zostaje bez zmian — domena kuchenna ma własny komplet zmiennych (`KITCHEN_LLM_*`),
+bo do zdjęć może wybrać inny model niż ten do opisu utworów.
