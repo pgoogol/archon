@@ -56,6 +56,37 @@ egzekwuje `ArchitectureTest` w finance-service:
    stanu z dziennika i normalizacja szkicu nie znają Springa, JPA ani Jacksona
    — sprawdza się je jak zwykły kod, bez kontekstu i bazy. Pilnuje tego ArchUnit.
 
+### 2.1 Co bierzemy z heksagonu, a czego nie
+
+Heksagon opłaca się tam, gdzie jest logika warta odizolowania od wejścia-wyjścia,
+i tam, gdzie wejść-wyjść jest naprawdę kilka. W tym serwisie oba warunki są
+spełnione — ale nie w każdym module tak samo:
+
+| Gdzie płaci | Dlaczego |
+|---|---|
+| `revision` | cofanie zmian i liczenie różnic to czyste funkcje; testy bez bazy chodzą w milisekundach i sprawdzają setki losowych ciągów edycji |
+| `imports` | cztery różne wejścia (URL, tekst, pliki, czat) prowadzą do jednego rdzenia; adapter dochodzi bez ruszania rdzenia — kanał e-mail będzie piątym |
+| warstwa LLM | dwa providery za jednym interfejsem, plus `FakeLlmClient` w testach — to są trzy realne implementacje jednego portu, nie hipoteza |
+| `media` | dysk dziś, obiektowy magazyn kiedyś; jedyne miejsce dotykające `java.nio.file` |
+| `dictionary` | konwersja jednostek to arytmetyka; framework byłby tam wyłącznie kosztem |
+
+| Gdzie jest kosztem | Jak to ograniczamy |
+|---|---|
+| moduły w praktyce CRUD-owe (uwagi, zdjęcia, słowniki) | warstwy zostają dla spójności, ale **bez** dodatkowych interfejsów i mapperów — `application` woła repozytorium wprost |
+| encje | **encja JPA jest modelem domenowym**; nie budujemy drugiego modelu „czystego" i mapperów między nimi |
+| porty | **interfejs portu tylko wtedy, gdy ma więcej niż jedną implementację** (`MediaStorage`, `LlmClient`) albo gdy domena musi zostać bez frameworka. Repozytorium Spring Data **jest** portem — nie owijamy go własnym interfejsem z adapterem |
+| `api` | jedno dla całego serwisu, nie po jednym na moduł — tak jak w music i finance |
+
+Anty-wzorce, których w tym serwisie nie chcemy, bo to one dają heksagonowi złą
+sławę: port i adapter na każdą klasę · mapper na każdej granicy · anemiczna
+domena, w której cała logika wylądowała w `application` · pełna ceremonia
+w module, który ma trzy pola i listę.
+
+Gdyby trzeba było zostawić **jedną** regułę z tego rozdziału, zostaje macierz
+z §3 — granice między modułami. Warstwy porządkują plik, granice modułów
+decydują o tym, czy za rok da się dołożyć listy zakupów bez przepisywania
+przepisów.
+
 ## 3. Moduły i granice
 
 | Moduł | Odpowiedzialność | Czego NIE robi |

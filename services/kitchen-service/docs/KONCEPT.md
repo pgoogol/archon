@@ -388,7 +388,7 @@ erDiagram
 | `diet` | wegetariańska, wegańska, bezglutenowa, bez laktozy, bez cukru, keto, niskokaloryczna, wysokobiałkowa |
 | `ingredient` | pusty — katalog rośnie z importów i formularza; lista „wszystkich produktów" i tak wymagałaby scalania z tym, co realnie przychodzi |
 
-### 4.3 Co znaczy „grupa zamiast sekcji" (R3)
+### 4.3 Co znaczy „grupa zamiast sekcji" (R3) — rozstrzygnięte
 
 Przepis na sernik ma zwykle dwie listy składników: *na spód* i *na masę*, czasem
 też *na polewę*. Są trzy sposoby, żeby to zapisać:
@@ -402,6 +402,10 @@ też *na polewę*. Są trzy sposoby, żeby to zapisać:
 Praktycznie: składniki „mąka 250 g" i „masło 125 g" mają `group_label = "na spód"`,
 „twaróg 1 kg" i „cukier 200 g" mają `"na masę"`, a ekran rysuje dwa nagłówki.
 W bazie to jedna kolumna tekstowa, nie trzy tabele.
+
+**Wybór potwierdzony (2026-09-07): etykieta na wierszu.** Podprzepisy zostają
+w backlogu (§15) — wpinają się później jako `recipe_ingredient.sub_recipe_id`,
+bez ruszania tego, co powstanie teraz.
 
 **Brak alergenów** znaczy tyle, że nie ma pola „zawiera gluten, orzechy, laktozę".
 Diety (bezglutenowa, bez laktozy) zostają jako tagi słownikowe, bo one opisują
