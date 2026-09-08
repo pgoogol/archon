@@ -17,3 +17,6 @@ select 'create database music'
 
 select 'create database finance'
  where not exists (select 1 from pg_database where datname = 'finance')\gexec
+
+select 'create database kitchen'
+ where not exists (select 1 from pg_database where datname = 'kitchen')\gexec

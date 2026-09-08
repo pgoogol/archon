@@ -16,6 +16,10 @@ const apiProxy = {
     target: 'http://localhost:8081',
     changeOrigin: true,
   },
+  '/kitchen/api/v1': {
+    target: 'http://localhost:8082',
+    changeOrigin: true,
+  },
 }
 
 export default defineConfig({

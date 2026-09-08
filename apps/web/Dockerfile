@@ -28,6 +28,8 @@ ENV MUSIC_API_HOST=music-service
 ENV MUSIC_API_PORT=8080
 ENV FINANCE_API_HOST=finance-service
 ENV FINANCE_API_PORT=8081
+ENV KITCHEN_API_HOST=kitchen-service
+ENV KITCHEN_API_PORT=8082
 COPY apps/web/nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /repo/apps/web/dist /usr/share/nginx/html
 EXPOSE 80

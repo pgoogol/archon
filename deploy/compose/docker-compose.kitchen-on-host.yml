@@ -1,0 +1,8 @@
+# Nakładka: kitchen-service na hoście. Opis i komendy: URUCHAMIANIE.md
+
+services:
+
+  web:
+    environment:
+      KITCHEN_API_HOST: host.docker.internal
+      KITCHEN_API_PORT: "8082"

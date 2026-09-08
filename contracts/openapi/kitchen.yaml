@@ -1,0 +1,91 @@
+openapi: 3.1.0
+
+info:
+  title: kitchen-service API
+  version: 1.0.0
+  description: |
+    API domeny kuchennej: przepisy rozbite na pojedyncze składniki i kroki,
+    import z linku, wklejonego tekstu i zdjęć, katalog składników, historia
+    zmian oraz kanał przyjmujący przepisy z czatów.
+
+    Zakres tej wersji obejmuje wyłącznie słowniki — kolejne obszary dochodzą
+    razem z kamieniami z docs/PLAN.md i każdy z nich zaczyna się od zmiany
+    w tym pliku, nie w kodzie.
+
+servers:
+  - url: /
+    description: aplikacja za proxy — ścieżki niosą własny prefiks serwisu
+  - url: http://localhost:8082
+    description: serwis uruchomiony lokalnie
+
+tags:
+  - name: dictionaries
+    description: 'Słowniki: jednostki, kuchnie, kategorie, diety, tagi, sprzęt'
+
+paths:
+
+  /kitchen/api/v1/dictionaries:
+    get:
+      tags: [dictionaries]
+      operationId: dictionaries
+      summary: Komplet słowników do formularza i filtrów
+      description: |
+        Formularz przepisu potrzebuje wszystkich słowników naraz, a zmieniają się
+        rzadko — stąd jedno wywołanie zamiast sześciu. Puste listy są poprawną
+        odpowiedzią: znaczą, że słownik jeszcze nie ma pozycji.
+      responses:
+        '200':
+          description: Słowniki
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DictionariesResponse' }
+
+components:
+
+  schemas:
+
+    DictionariesResponse:
+      type: object
+      description: Komplet słowników potrzebnych formularzowi przepisu i filtrom
+      properties:
+        units:
+          type: array
+          items: { $ref: '#/components/schemas/UnitResponse' }
+        cuisines:
+          type: array
+          items: { $ref: '#/components/schemas/DictionaryEntryResponse' }
+        categories:
+          type: array
+          items: { $ref: '#/components/schemas/DictionaryEntryResponse' }
+        diets:
+          type: array
+          items: { $ref: '#/components/schemas/DictionaryEntryResponse' }
+        tags:
+          type: array
+          items: { $ref: '#/components/schemas/DictionaryEntryResponse' }
+        equipment:
+          type: array
+          items: { $ref: '#/components/schemas/DictionaryEntryResponse' }
+
+    DictionaryEntryResponse:
+      type: object
+      description: 'Pozycja słownika: kuchnia, kategoria, dieta, tag albo sprzęt'
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string, example: polska }
+
+    UnitResponse:
+      type: object
+      description: Jednostka miary ze słownika
+      properties:
+        id: { type: integer, format: int64 }
+        code: { type: string, example: lyzka }
+        name: { type: string, example: łyżka }
+        kind: { $ref: '#/components/schemas/UnitKind' }
+
+    UnitKind:
+      type: string
+      description: |
+        Rodzaj jednostki. Przeliczać wolno wyłącznie w obrębie jednego rodzaju —
+        zamiana gramów na mililitry zależy od produktu i nie należy do słownika.
+      enum: [MASS, VOLUME, COUNT, OTHER]

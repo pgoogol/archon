@@ -38,6 +38,18 @@ server {
         proxy_read_timeout 300s;
     }
 
+    location /kitchen/api/v1/ {
+        proxy_pass http://${KITCHEN_API_HOST}:${KITCHEN_API_PORT};
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        # zdjęcia przepisów idą prosto z telefonu, bez zmniejszania po stronie
+        # przeglądarki — domyślny 1 MB odbijałby każdy import ze zdjęć
+        client_max_body_size 100m;
+        # import przez LLM potrafi trwać dłużej niż domyślne 60 s
+        proxy_read_timeout 300s;
+    }
+
     location / {
         root /usr/share/nginx/html;
         index index.html;

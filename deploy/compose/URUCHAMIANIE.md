@@ -1,7 +1,8 @@
 # Uruchamianie środowiska lokalnego
 
-Trzy komponenty — `music-service`, `finance-service`, front — i każdy z osobna
-działa albo w kontenerze, albo na hoście. Baza stoi zawsze w kontenerze.
+Cztery komponenty — `music-service`, `finance-service`, `kitchen-service`, front —
+i każdy z osobna działa albo w kontenerze, albo na hoście. Baza stoi zawsze
+w kontenerze.
 
 **Wyłącznie development.** Hasło bazy jest jawne i stałe, port 5432 wystawiony na
 wszystkie interfejsy (baza jest widoczna z całej sieci lokalnej), aplikacje bez
@@ -27,7 +28,8 @@ Wybierają, co wchodzi w kontenerze. Sumują się, więc kombinacje pisze się w
 | *(brak)* | sama baza |
 | `music` | music-service |
 | `finance` | finance-service |
-| `services` | oba serwisy backendowe |
+| `kitchen` | kitchen-service |
+| `services` | wszystkie serwisy backendowe |
 | `web` | front |
 | `full` | wszystko |
 
@@ -40,17 +42,21 @@ na hoście, wskazuje się nakładką — jedna na serwis, składają się ze sob
 |---|---|
 | `docker-compose.music-on-host.yml` | nginx frontu kieruje `/music/api/v1` na host:8080 |
 | `docker-compose.finance-on-host.yml` | nginx frontu kieruje `/finance/api/v1` na host:8081 |
+| `docker-compose.kitchen-on-host.yml` | nginx frontu kieruje `/kitchen/api/v1` na host:8082 |
 
 Nakładka ma sens tylko przy froncie w kontenerze. Front z Vite proxuje na
-`localhost:8080` i `localhost:8081` niezależnie od tego, gdzie stoją serwisy.
+`localhost:8080`, `localhost:8081` i `localhost:8082` niezależnie od tego, gdzie
+stoją serwisy.
 
 ## Sekrety — `.env`
 
 Plik `.env` leży w katalogu głównym repo (wzór: `.env.example`) i jest potrzebny
-wyłącznie music-service — Spotify, LLM, MusicBrainz. Reszta zestawu wstaje bez
-niego.
+dwóm serwisom: music-service (Spotify, LLM, MusicBrainz) oraz kitchen-service
+(provider LLM do czytania przepisów z tekstu i zdjęć). Reszta zestawu wstaje bez
+niego, a i te dwa startują — bez kluczy działają wszystkie funkcje poza tymi,
+które wołają zewnętrzne API.
 
-**Nie trzeba nic dopisywać do komend.** Music-service ma w compose `env_file`
+**Nie trzeba nic dopisywać do komend.** Oba serwisy mają w compose `env_file`
 z twardą ścieżką `../../.env`, więc plik z katalogu głównego wchodzi sam, przy
 każdym wariancie. Brak pliku nie jest błędem (`required: false`) — serwis wstaje,
 a wartości domyślne bierze z `application.yml`.
@@ -100,7 +106,14 @@ Po zmianie w `libs/java/logging-starter` najpierw
 ## Wszystkie kombinacje
 
 Adresy niezależnie od wariantu: front `http://localhost:5173` (Vite tak samo),
-music `http://localhost:8080`, finance `http://localhost:8081`, baza `5432`.
+music `http://localhost:8080`, finance `http://localhost:8081`, kitchen
+`http://localhost:8082`, baza `5432`.
+
+Kombinacje niżej opisują music i finance; `kitchen-service` wchodzi do każdej
+z nich tak samo — profilem `kitchen` w kontenerze albo `./mvnw -pl
+services/kitchen-service spring-boot:run -Dspring-boot.run.profiles=local`
+na hoście, z nakładką `docker-compose.kitchen-on-host.yml`, gdy front stoi
+w kontenerze.
 
 Sekrety z `.env` wchodzą same tam, gdzie music-service jedzie w kontenerze —
 patrz sekcja wyżej.
@@ -171,7 +184,7 @@ docker compose -f deploy/compose/docker-compose.yml --profile full up -d --build
 
 - **Postgres 16 — ta sama wersja co w testach integracyjnych.** Rozjazd major
   wersji między testami a środowiskiem lokalnym daje błędy, których nie widać w CI.
-- **Bazy per serwis** (`music`, `finance`) zakłada skrypt z `postgres/init` przy
+- **Bazy per serwis** (`music`, `finance`, `kitchen`) zakłada skrypt z `postgres/init` przy
   inicjalizacji pustego wolumenu. `POSTGRES_USER: postgres` to rola
   administracyjna — dane serwisów nie trafiają do bazy `postgres`.
 - **Kontekst builda serwisów to katalog główny repo.** Moduł nie zbuduje się bez
@@ -181,8 +194,8 @@ docker compose -f deploy/compose/docker-compose.yml --profile full up -d --build
   serwisu — powtórka w compose potrafiłaby się z nimi rozjechać. Zestaw wstaje
   bez `.env` i mówi wprost, czego mu brakuje. Wzór: `.env.example`.
 - **Front nigdy nie zna adresu backendu.** Woła adresy względne, a nginx rozdziela
-  je po prefiksie ścieżki: `/music/api/v1` do music, `/finance/api/v1` do finance.
-  Ten sam obraz działa lokalnie i na serwerze.
+  je po prefiksie ścieżki: `/music/api/v1` do music, `/finance/api/v1` do finance,
+  `/kitchen/api/v1` do kitchen. Ten sam obraz działa lokalnie i na serwerze.
 - **`required: false` przy `depends_on` frontu** jest sednem mieszania wariantów:
   serwis wyłączony profilem (bo chodzi na hoście) przestaje być warunkiem startu
   frontu, zamiast wywracać całe `up`. Gdy serwis wchodzi w kontenerze, front nadal

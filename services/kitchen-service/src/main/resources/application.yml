@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: kitchen-service
+  servlet:
+    multipart:
+      # zdjęcia przepisów przychodzą prosto z telefonu, bez zmniejszania —
+      # zmniejsza je serwis, nie przeglądarka; kilka stron przepisu naraz
+      # mieści się w limicie żądania
+      max-file-size: 20MB
+      max-request-size: 100MB
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        # encje nie noszą nazwy schematu w adnotacjach — trzyma ją konfiguracja,
+        # jedno miejsce zamiast powtórki przy każdej tabeli
+        default_schema: kitchen
+  flyway:
+    # schemat zakłada Flyway; tam też ląduje jego tabela historii
+    schemas: kitchen
+  datasource:
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 3000
+      max-lifetime: 1800000
+      leak-detection-threshold: 5000
+
+server:
+  port: 8082
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized

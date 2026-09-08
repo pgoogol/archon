@@ -7,10 +7,11 @@
   "types": "./src/music.ts",
   "exports": {
     "./music": "./src/music.ts",
-    "./finance": "./src/finance.ts"
+    "./finance": "./src/finance.ts",
+    "./kitchen": "./src/kitchen.ts"
   },
   "scripts": {
-    "generate": "openapi-typescript ../../../contracts/openapi/music.yaml -o src/music.generated.ts && openapi-typescript ../../../contracts/openapi/finance.yaml -o src/finance.generated.ts",
+    "generate": "openapi-typescript ../../../contracts/openapi/music.yaml -o src/music.generated.ts && openapi-typescript ../../../contracts/openapi/finance.yaml -o src/finance.generated.ts && openapi-typescript ../../../contracts/openapi/kitchen.yaml -o src/kitchen.generated.ts",
     "build": "tsc --noEmit -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },

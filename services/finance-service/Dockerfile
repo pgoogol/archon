@@ -15,6 +15,7 @@ COPY services/finance-service/pom.xml services/finance-service/
 # zanim zawęzi build do -pl, i przerywa, gdy któregokolwiek brakuje. Same POM-y,
 # bez źródeł — te moduły się tutaj nie budują.
 COPY services/music-service/pom.xml services/music-service/
+COPY services/kitchen-service/pom.xml services/kitchen-service/
 RUN mvn -B -q -pl services/finance-service -am dependency:go-offline
 
 COPY libs/java/logging-starter/src libs/java/logging-starter/src

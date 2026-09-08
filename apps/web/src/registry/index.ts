@@ -4,5 +4,6 @@
 import type { FeatureManifest } from '@/shared/featureManifest'
 import { musicFeature } from '@/features/music'
 import { financeFeature } from '@/features/finance'
+import { kitchenFeature } from '@/features/kitchen'
 
-export const features: FeatureManifest[] = [musicFeature, financeFeature]
+export const features: FeatureManifest[] = [musicFeature, financeFeature, kitchenFeature]

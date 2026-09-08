@@ -31,10 +31,12 @@ serwera. Ścieżka „wklej tekst / zrób zrzut ekranu" jest podstawowa, nie awa
 
 ---
 
-## M0 — Szkielet serwisu i infrastruktura
+## M0 — Szkielet serwisu i infrastruktura ✅
 
 **Cel:** pusty, ale kompletny serwis w monorepo: buduje się, wstaje w compose,
 ma prefiks w proxy, kontrakt, generowane typy i domenę widoczną we froncie.
+
+**Zrobione 2026-09-08.** Ustalenia i odstępstwa: sekcja na końcu tego pliku.
 
 | # | Zadanie |
 |---|---|
@@ -258,5 +260,44 @@ odrzuconych szkiców · eksport PDF/JSON.
 
 ## Ustalenia z M0
 
-*(uzupełniane po zakończeniu M0: wynik sprawdzenia responsywności powłoki,
-ewentualne odstępstwa od KONCEPT i ARCHITEKTURA).*
+**Powłoka na wąskim ekranie (zadanie 0.8) — nadaje się, bez zmian w `shell/`.**
+Pomiar w Chromium na zbudowanym froncie: przy 375 × 812 i 768 × 1024 `scrollWidth`
+równa się szerokości okna, żaden element nie wystaje poza widok, przyciski domen
+i zakładek zawijają się do kolejnych wierszy. Jedyna uwaga na przyszłość:
+nagłówek zjada na telefonie **222 px, czyli 27% wysokości ekranu** (nazwa domeny,
+podpis zawijający się do czterech wierszy, dwa rzędy przycisków). Dla listy
+przepisów to bez znaczenia, ale ekran importu ze zdjęciami (M5) ma być obsługiwany
+kciukiem — wtedy trzeba wrócić do tematu i zgłosić to jako wadę powłoki, jeśli
+podpis i nawigacja nadal będą zajmować tyle miejsca. Dziś to nie blokuje niczego.
+
+**Testy integracyjne nie mają jak się uruchomić w tej sesji — Docker jest
+niedostępny.** Testcontainers nie wstanie, więc `KitchenServiceApplicationTests`
+(migracje na czystej bazie) czeka na CI. Test kontraktu udało się mimo to
+uruchomić i **przechodzi**: kontekst wstaje bez bazy po wyłączeniu autokonfiguracji
+`DataSource`, JPA, Hibernate i Flyway (`SPRING_AUTOCONFIGURE_EXCLUDE` +
+`TEST_POSTGRES_CONTAINER=false`), a to wystarcza, żeby springdoc wygenerował
+specyfikację. Ręcznie pisany `contracts/openapi/kitchen.yaml` zgadza się z kodem
+we wszystkich czterech wymiarach (operacje, parametry, pola schematów, enumy).
+
+**Odstępstwa i decyzje drobne, które wyszły przy pisaniu:**
+
+- **Schemat `kitchen` w bazie `kitchen`** — wzorem finance (`default_schema`
+  + `flyway.schemas`), a nie wzorem music, który siedzi w `public`. Nazwa schematu
+  jest w konfiguracji, więc encje jej nie noszą.
+- **`V1__rozszerzenia.sql` zakłada rozszerzenia w schemacie `public`**, mimo że
+  tabele pójdą do `kitchen`: funkcje `similarity` i `unaccent` mają się rozwiązywać
+  bez kwalifikowania nazwą schematu.
+- **Dockerfile'e music i finance dostały `COPY services/kitchen-service/pom.xml`.**
+  Maven czyta całą listę modułów z root POM-u, zanim zawęzi build do `-pl`, więc
+  bez tego wiersza obrazy pozostałych serwisów przestałyby się budować. To samo
+  będzie dotyczyć każdego kolejnego modułu — także `llm-startera` w M2.
+- **Reguły ArchUnita na moduły, których jeszcze nie ma** (`recipe`, `revision`,
+  `media`, encje, repozytoria) mają `allowEmptyShould(true)`. Zaczną gryźć w chwili,
+  gdy pakiet powstanie, zamiast wywalać build za to, że jeszcze go nie ma.
+- **Ekran „Przepisy" pobiera słowniki** (dziś puste listy) i pokazuje błąd, gdy
+  serwis nie odpowiada. To celowo pierwsza droga end-to-end: kontrakt → typy TS →
+  zapytanie → kontekst domeny → ekran. Trzy testy frontu pilnują pustego stanu,
+  komunikatu o błędzie i wczytania słowników przez dostawcę domeny.
+- **`docker-compose.kitchen-on-host.yml`** powstał od razu, dla symetrii
+  z pozostałymi serwisami — bez niego front w kontenerze nie trafiłby do kuchni
+  uruchomionej na hoście.
