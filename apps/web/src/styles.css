@@ -1490,3 +1490,72 @@ td .stars-static { font-size: 12px; letter-spacing: -1px; }
 }
 .finance-bar-fill { display: block; height: 100%; background: var(--accent); }
 .finance-bar-value { font-family: var(--font-mono); color: var(--muted); }
+
+/* ── kuchnia ─────────────────────────────────────────────────────────────── */
+
+/* Formularz przepisu jest gęsty: wiersz składnika to sześć pól obok siebie.
+   Na wąskim ekranie zawijają się zamiast wypychać stronę w bok — ekran importu
+   ze zdjęć obsługuje się kciukiem. */
+.panel-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.recipe-list { list-style: none; margin: var(--space-4) 0 0; padding: 0; display: grid; gap: var(--space-2); }
+.recipe-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--module-sm);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+.recipe-card:hover { border-color: var(--accent); }
+.recipe-title { font-family: var(--font-display); letter-spacing: 0.04em; }
+
+.recipe-editor { display: grid; gap: var(--space-4); }
+.draft-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+}
+.draft-row .grow, .recipe-editor .grow { flex: 1 1 240px; }
+.draft-step textarea { flex: 1 1 320px; }
+.step-number { font-family: var(--font-mono); color: var(--muted); }
+.row-actions { display: flex; gap: var(--space-1); margin-left: auto; }
+.checkbox { display: inline-flex; align-items: center; gap: var(--space-1); }
+
+.ingredient-list { list-style: none; margin: 0 0 var(--space-4); padding: 0; display: grid; gap: var(--space-1); }
+.ingredient-list .quantity { font-family: var(--font-mono); color: var(--accent-2); }
+.step-list { margin: 0 0 var(--space-4); padding-left: var(--space-5); display: grid; gap: var(--space-2); }
+.note-list { list-style: none; margin: var(--space-3) 0 0; padding: 0; display: grid; gap: var(--space-2); }
+.note-list li {
+  padding: var(--space-2) var(--space-3);
+  background: var(--panel-2);
+  border-left: 2px solid var(--accent);
+  border-radius: var(--radius);
+}
+.source-line { font-size: 0.85em; font-style: italic; }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

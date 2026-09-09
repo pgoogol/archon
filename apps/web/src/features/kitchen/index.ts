@@ -14,6 +14,12 @@ export const kitchenFeature: FeatureManifest = {
   Provider: KitchenWorkspaceProvider,
   // każdy ekran przez lazy(): statyczny import wciągnąłby całą domenę
   // do głównego bundla i skasował sens rejestru
-  routes: [{ path: '', Component: lazy(() => import('./routes/PrzepisyRoute')) }],
+  routes: [
+    { path: '', Component: lazy(() => import('./routes/PrzepisyRoute')) },
+    { path: 'przepis', Component: lazy(() => import('./routes/PrzepisRoute')) },
+    { path: 'edycja', Component: lazy(() => import('./routes/EdycjaRoute')) },
+  ],
+  // widok przepisu i formularz otwiera się z listy, więc nie mają własnej
+  // zakładki — nawigacja pokazuje ekrany, na które wchodzi się wprost
   nav: [{ label: 'Przepisy', to: '' }],
 }

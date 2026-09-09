@@ -4,6 +4,149 @@
  */
 
 export interface paths {
+    "/kitchen/api/v1/recipes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista przepisów od najnowszego */
+        get: operations["listRecipes"];
+        put?: never;
+        /** Nowy przepis wpisany ręcznie */
+        post: operations["createRecipe"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/kitchen/api/v1/recipes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Przepis z całą zawartością */
+        get: operations["getRecipe"];
+        /** Zapis zmian — rewizja powstaje tylko wtedy, gdy coś naprawdę się zmieniło */
+        put: operations["updateRecipe"];
+        post?: never;
+        /** Archiwizacja przepisu — dziennik zmian zachowuje odniesienia */
+        delete: operations["archiveRecipe"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/kitchen/api/v1/recipes/{recipeId}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Uwagi od najnowszej */
+        get: operations["listNotes"];
+        put?: never;
+        /** Nowa uwaga */
+        post: operations["addNote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/kitchen/api/v1/recipes/{recipeId}/notes/{noteId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Usunięcie uwagi */
+        delete: operations["deleteNote"];
+        options?: never;
+        head?: never;
+        /** Zmiana treści uwagi */
+        patch: operations["editNote"];
+        trace?: never;
+    };
+    "/kitchen/api/v1/ingredients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Katalog z filtrem po nazwie i statusie */
+        get: operations["searchIngredients"];
+        put?: never;
+        /** Nowa pozycja katalogu */
+        post: operations["createIngredient"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/kitchen/api/v1/ingredients/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Pozycja katalogu razem z synonimami */
+        get: operations["getIngredient"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Poprawienie nazwy, kategorii, jednostki albo statusu */
+        patch: operations["updateIngredient"];
+        trace?: never;
+    };
+    "/kitchen/api/v1/ingredients/{id}/aliases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Nowy synonim prowadzący do tej pozycji */
+        post: operations["addIngredientAlias"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/kitchen/api/v1/ingredients/{id}/aliases/{aliasId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Usunięcie synonimu */
+        delete: operations["deleteIngredientAlias"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/kitchen/api/v1/dictionaries": {
         parameters: {
             query?: never;
@@ -30,6 +173,299 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @description Jednolity format błędu */
+        ErrorResponse: {
+            /**
+             * @description Kod maszynowy — po nim klient rozpoznaje przypadek, nie po treści.
+             *
+             *     Przykłady:
+             *     * `RECIPE_NOT_FOUND` — przepis nie istnieje
+             *     * `RECIPE_MODIFIED` — ktoś zapisał zmiany w międzyczasie
+             *     * `RECIPE_EMPTY` — przepis bez składników i bez kroków
+             *     * `INGREDIENT_EXISTS` — składnik o tej nazwie już jest w katalogu
+             */
+            errorCode?: string;
+            message?: string;
+            /** Format: date-time */
+            timestamp?: string;
+            traceId?: string;
+        };
+        /** @description Przepis w postaci do zapisania — wspólny kształt dla formularza, importu i przywracania wersji */
+        RecipeDraft: {
+            title: string;
+            description?: string;
+            servingsAmount?: number;
+            /** @example porcje */
+            servingsUnit?: string;
+            /** Format: int32 */
+            prepMinutes?: number;
+            /** Format: int32 */
+            cookMinutes?: number;
+            /** Format: int32 */
+            totalMinutes?: number;
+            /** @example polska */
+            cuisine?: string;
+            /** @example danie główne */
+            category?: string;
+            difficulty?: components["schemas"]["Difficulty"];
+            ingredients?: components["schemas"]["DraftIngredient"][];
+            steps?: components["schemas"]["DraftStep"][];
+            tags?: string[];
+            diets?: string[];
+        };
+        /** @description Składnik przepisu */
+        DraftIngredient: {
+            /**
+             * Format: int64
+             * @description Identyfikator istniejącego wiersza; pusty przy nowym
+             */
+            id?: number;
+            /** @example na spód */
+            group?: string;
+            /** @example czerwona cebula */
+            displayName: string;
+            /** @example cebula czerwona */
+            canonicalName?: string;
+            sourceText?: string;
+            quantityMin?: number;
+            quantityMax?: number;
+            /** @example g */
+            unit?: string;
+            quantityText?: string;
+            /** @example posiekana */
+            preparation?: string;
+            optional?: boolean;
+            note?: string;
+            alternatives?: components["schemas"]["DraftAlternative"][];
+        };
+        /** @description Zamiennik składnika */
+        DraftAlternative: {
+            /** Format: int64 */
+            id?: number;
+            displayName: string;
+            canonicalName?: string;
+            quantityMin?: number;
+            quantityMax?: number;
+            unit?: string;
+            quantityText?: string;
+            note?: string;
+        };
+        /** @description Krok przygotowania */
+        DraftStep: {
+            /** Format: int64 */
+            id?: number;
+            group?: string;
+            text: string;
+            sourceText?: string;
+            /** Format: int32 */
+            durationMinutes?: number;
+            /** Format: int32 */
+            temperatureC?: number;
+            /** @example termoobieg */
+            temperatureNote?: string;
+            /** @description Pozycje z listy składników użyte w tym kroku, liczone od zera */
+            ingredientIndexes?: number[];
+            equipment?: string[];
+        };
+        /** @description Zapis przepisu: treść, opis zmiany i numer rewizji, na której pracował klient */
+        SaveRecipeRequest: {
+            draft: components["schemas"]["RecipeDraft"];
+            changeSummary?: string;
+            /**
+             * Format: int32
+             * @description Numer rewizji z ekranu klienta; nieaktualny kończy się konfliktem zamiast cichego nadpisania
+             */
+            expectedRevisionNo?: number;
+        };
+        /** @description Wynik zapisu przepisu */
+        SaveResponse: {
+            recipe?: components["schemas"]["RecipeResponse"];
+            /** @description Czy zapis coś zmienił — false znaczy, że rewizja nie powstała */
+            changed?: boolean;
+            /** Format: int32 */
+            revisionNo?: number;
+        };
+        /** @description Przepis z całą zawartością */
+        RecipeResponse: {
+            /** Format: int64 */
+            id?: number;
+            title?: string;
+            description?: string;
+            servingsAmount?: number;
+            servingsUnit?: string;
+            /** Format: int32 */
+            prepMinutes?: number;
+            /** Format: int32 */
+            cookMinutes?: number;
+            /** Format: int32 */
+            totalMinutes?: number;
+            cuisine?: string;
+            category?: string;
+            difficulty?: components["schemas"]["Difficulty"];
+            status?: components["schemas"]["RecipeStatus"];
+            /** Format: int32 */
+            currentRevisionNo?: number;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+            source?: components["schemas"]["SourceResponse"];
+            ingredients?: components["schemas"]["IngredientLineResponse"][];
+            steps?: components["schemas"]["StepResponse"][];
+            tags?: string[];
+            diets?: string[];
+        };
+        /** @description Przepis na liście */
+        RecipeSummaryResponse: {
+            /** Format: int64 */
+            id?: number;
+            title?: string;
+            description?: string;
+            /** Format: int32 */
+            totalMinutes?: number;
+            cuisine?: string;
+            category?: string;
+            difficulty?: components["schemas"]["Difficulty"];
+            /** Format: int32 */
+            ingredientCount?: number;
+            /** Format: int32 */
+            stepCount?: number;
+            /** Format: date-time */
+            createdAt?: string;
+        };
+        /** @description Strona listy przepisów */
+        RecipePageResponse: {
+            items?: components["schemas"]["RecipeSummaryResponse"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
+        /** @description Skąd wziął się przepis */
+        SourceResponse: {
+            kind?: components["schemas"]["SourceKind"];
+            url?: string;
+            siteName?: string;
+            author?: string;
+        };
+        /** @description Składnik przepisu */
+        IngredientLineResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int32 */
+            position?: number;
+            group?: string;
+            /**
+             * Format: int64
+             * @description Pozycja katalogu, do której dopasowano składnik; pusta = niedopasowany
+             */
+            ingredientId?: number;
+            displayName?: string;
+            sourceText?: string;
+            quantityMin?: number;
+            quantityMax?: number;
+            unit?: string;
+            unitName?: string;
+            quantityText?: string;
+            preparation?: string;
+            optional?: boolean;
+            note?: string;
+            alternatives?: components["schemas"]["AlternativeResponse"][];
+        };
+        /** @description Zamiennik składnika */
+        AlternativeResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int32 */
+            position?: number;
+            /** Format: int64 */
+            ingredientId?: number;
+            displayName?: string;
+            quantityMin?: number;
+            quantityMax?: number;
+            unit?: string;
+            unitName?: string;
+            quantityText?: string;
+            note?: string;
+        };
+        /** @description Krok przygotowania */
+        StepResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int32 */
+            position?: number;
+            group?: string;
+            text?: string;
+            sourceText?: string;
+            /** Format: int32 */
+            durationMinutes?: number;
+            /** Format: int32 */
+            temperatureC?: number;
+            temperatureNote?: string;
+            /** @description Identyfikatory składników użytych w tym kroku */
+            ingredientIds?: number[];
+            equipment?: string[];
+        };
+        /** @description Treść uwagi do przepisu */
+        NoteRequest: {
+            body: string;
+        };
+        /** @description Uwaga do przepisu */
+        NoteResponse: {
+            /** Format: int64 */
+            id?: number;
+            body?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        /** @description Nowa albo zmieniona pozycja katalogu */
+        IngredientRequest: {
+            name: string;
+            category?: string;
+            defaultUnit?: string;
+            status?: components["schemas"]["IngredientStatus"];
+        };
+        /** @description Pozycja katalogu składników */
+        IngredientResponse: {
+            /** Format: int64 */
+            id?: number;
+            name?: string;
+            category?: string;
+            /** @description Kod jednostki, w której zwykle podaje się ten składnik */
+            defaultUnit?: string;
+            status?: components["schemas"]["IngredientStatus"];
+            aliases?: components["schemas"]["AliasResponse"][];
+        };
+        /** @description Strona katalogu składników */
+        IngredientPageResponse: {
+            items?: components["schemas"]["IngredientResponse"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
+        /** @description Nowy synonim */
+        AliasRequest: {
+            alias: string;
+            language?: string;
+        };
+        /** @description Synonim prowadzący do pozycji katalogu */
+        AliasResponse: {
+            /** Format: int64 */
+            id?: number;
+            alias?: string;
+            language?: string;
+        };
         /** @description Komplet słowników potrzebnych formularzowi przepisu i filtrom */
         DictionariesResponse: {
             units?: components["schemas"]["UnitResponse"][];
@@ -62,8 +498,56 @@ export interface components {
          * @enum {string}
          */
         UnitKind: "MASS" | "VOLUME" | "COUNT" | "OTHER";
+        /**
+         * @description Jak trudny jest przepis w wykonaniu
+         * @enum {string}
+         */
+        Difficulty: "EASY" | "MEDIUM" | "HARD";
+        /**
+         * @description Przepis znika z książki przez archiwizację, nie przez skasowanie
+         * @enum {string}
+         */
+        RecipeStatus: "ACTIVE" | "ARCHIVED";
+        /**
+         * @description Skąd przyszła treść przepisu
+         * @enum {string}
+         */
+        SourceKind: "URL" | "TEXT" | "FILES" | "CHAT" | "MANUAL";
+        /**
+         * @description NEW to pozycja dopisana automatycznie i czekająca na przejrzenie
+         * @enum {string}
+         */
+        IngredientStatus: "NEW" | "VERIFIED";
     };
-    responses: never;
+    responses: {
+        /** @description Żądanie nie przeszło walidacji */
+        BadRequest: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
+        /** @description Zasób nie istnieje */
+        NotFound: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
+        /** @description Stan zasobu nie pozwala na tę operację */
+        Conflict: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
+    };
     parameters: never;
     requestBodies: never;
     headers: never;
@@ -71,6 +555,376 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    listRecipes: {
+        parameters: {
+            query?: {
+                page?: number;
+                /** @description Domyślnie 20, maksymalnie 100 — sufit pilnuje kontroler */
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Strona listy */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecipePageResponse"];
+                };
+            };
+        };
+    };
+    createRecipe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveRecipeRequest"];
+            };
+        };
+        responses: {
+            /** @description Przepis założony, powstała rewizja pierwsza */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SaveResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    getRecipe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Przepis */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecipeResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    updateRecipe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveRecipeRequest"];
+            };
+        };
+        responses: {
+            /** @description Stan po zapisie */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SaveResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    archiveRecipe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Zarchiwizowany */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    listNotes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recipeId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Uwagi */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NoteResponse"][];
+                };
+            };
+        };
+    };
+    addNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recipeId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NoteRequest"];
+            };
+        };
+        responses: {
+            /** @description Uwaga dopisana */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NoteResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    deleteNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recipeId: number;
+                noteId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Usunięta */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    editNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recipeId: number;
+                noteId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NoteRequest"];
+            };
+        };
+        responses: {
+            /** @description Uwaga po zmianie */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NoteResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    searchIngredients: {
+        parameters: {
+            query?: {
+                q?: string;
+                status?: components["schemas"]["IngredientStatus"];
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Strona katalogu */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IngredientPageResponse"];
+                };
+            };
+        };
+    };
+    createIngredient: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IngredientRequest"];
+            };
+        };
+        responses: {
+            /** @description Pozycja dopisana */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IngredientResponse"];
+                };
+            };
+            409: components["responses"]["Conflict"];
+        };
+    };
+    getIngredient: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Pozycja katalogu */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IngredientResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    updateIngredient: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IngredientRequest"];
+            };
+        };
+        responses: {
+            /** @description Pozycja po zmianie */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IngredientResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    addIngredientAlias: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AliasRequest"];
+            };
+        };
+        responses: {
+            /** @description Synonim dopisany */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AliasResponse"];
+                };
+            };
+            409: components["responses"]["Conflict"];
+        };
+    };
+    deleteIngredientAlias: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+                aliasId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Usunięty */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
     dictionaries: {
         parameters: {
             query?: never;

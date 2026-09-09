@@ -10,6 +10,7 @@ export const validationMessages = {
   required: 'Pole jest wymagane',
   requiredDate: 'Podaj datę',
   integer: 'Podaj liczbę całkowitą',
+  number: 'Podaj liczbę',
   positiveAmount: 'Kwota musi być większa od zera',
   nonNegativeAmount: 'Kwota nie może być ujemna',
   currencyCode: 'Kod waluty ma trzy wielkie litery',

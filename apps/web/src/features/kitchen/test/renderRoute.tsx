@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render } from '@testing-library/react'
 import type { ReactElement } from 'react'
 
@@ -5,24 +6,31 @@ import {
   KitchenWorkspaceContext,
   type KitchenWorkspace,
 } from '@/features/kitchen/state/KitchenWorkspace'
-import { EMPTY_DICTIONARIES } from '@/features/kitchen/test/server'
+import { DICTIONARIES } from '@/features/kitchen/test/server'
 
 /**
- * Ekrany kuchni biorą słowniki z kontekstu. Test podaje go wprost, żeby stan
- * wczytywania i błędu dało się sprawdzić bez czekania na ponowienia zapytania —
- * drogę „API → zapytanie → kontekst" sprawdza osobny przypadek na prawdziwym
- * dostawcy.
+ * Ekrany kuchni biorą słowniki z kontekstu, a dane z TanStack Query. Test
+ * dostaje własny `QueryClient`, bo cache współdzielony między testami pokazywałby
+ * dane poprzedniego przypadku.
+ *
+ * `retry: false` jest konieczne, nie kosmetyczne: domyślne ponowienie sprawia,
+ * że test błędu czeka na kolejne próby i kończy się timeoutem zamiast asercją.
  */
 export function renderRoute(ui: ReactElement, overrides: Partial<KitchenWorkspace> = {}) {
 
   const workspace: KitchenWorkspace = {
-    dictionaries: EMPTY_DICTIONARIES,
+    dictionaries: DICTIONARIES,
     loading: false,
     error: null,
     ...overrides,
   }
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  })
   const result = render(
-    <KitchenWorkspaceContext.Provider value={workspace}>{ui}</KitchenWorkspaceContext.Provider>,
+    <QueryClientProvider client={client}>
+      <KitchenWorkspaceContext.Provider value={workspace}>{ui}</KitchenWorkspaceContext.Provider>
+    </QueryClientProvider>,
   )
-  return { ...result, workspace }
+  return { ...result, workspace, client }
 }
