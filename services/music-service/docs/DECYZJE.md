@@ -988,3 +988,29 @@ przenosinach:
 Konfiguracja tego serwisu (`LLM_PROVIDER`, `LLM_API_KEY`, `LLM_MODEL`, `LLM_BASE_URL`)
 zostaje bez zmian — domena kuchenna ma własny komplet zmiennych (`KITCHEN_LLM_*`),
 bo do zdjęć może wybrać inny model niż ten do opisu utworów.
+
+### Co wyszło inaczej, niż zakładała ta notatka (starter zbudowany)
+
+Starter stoi w `libs/java/llm-starter`. Kod tego serwisu nadal nietknięty — poniżej
+poprawki do listy powyżej, żeby przy migracji nie zderzyć się z nimi na ślepo:
+
+- **Limit tokenów u providerów zgodnych z OpenAI idzie jako `max_completion_tokens`.**
+  Tutejszy klient wysyła `max_tokens`, którego modele rozumujące już nie przyjmują.
+- **`ApiCallGuard` z tego serwisu nie znika.** Starter ma własny `LlmCallGuard`
+  z limitem i progiem `Retry-After` per klient; migracja zabiera ścieżkę LLM, a
+  MusicBrainz i Spotify zostają na `common/ratelimit` bez zmian.
+- **Zużycie liczy tokeny z cache osobno** (`cacheRead`, `cacheWrite`), a u providerów
+  zgodnych z OpenAI odejmuje `cached_tokens` od `prompt_tokens`. Dzisiejsze sumowanie
+  w pętli batcha liczyłoby je dwa razy.
+- **Nazwane klienty są sprawdzane przy starcie tylko wtedy, gdy serwis je wyliczy**
+  w `llm.required-clients` — starter nie zgadnie, o którą nazwę serwis poprosi.
+- **Zamiast pary `system` + `user` z pliku jest `Prompt` z podstawianiem `{{nazwa}}`**;
+  brak wartości dla miejsca w szablonie jest błędem, nie pustym napisem.
+- **Do testów serwisu starter daje `FakeLlmClient`** (skryptowane odpowiedzi + rejestr
+  żądań) w `com.pgoogol.llm.test`. Stuby WireMocka zostały w testach samego startera,
+  bo badają kształt żądania providera, a nie zachowanie serwisu.
+- **Kształt `output_config` u Anthropic (schemat wyjścia i `effort`) jest spisany
+  z dokumentacji, nie sprawdzony na żywym koncie** — w sesji, w której powstawał
+  starter, nie było klucza ani wyjścia do sieci. Pola serializują się tylko przy
+  ekstrakcji albo jawnym `effort`, więc zwykłe uzupełnienie tekstu jest tym niezagrożone.
+  Pierwsze prawdziwe wywołanie w domenie kuchennej to zweryfikuje.

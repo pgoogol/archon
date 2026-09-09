@@ -57,7 +57,10 @@ CI zielone na czystym klonie.
 
 ---
 
-## M1 — Model, jedyna ścieżka zapisu, dziennik zmian *(blokuje resztę)*
+## M1 — Model, jedyna ścieżka zapisu, dziennik zmian ✅ *(blokuje resztę)*
+
+**Zrobione 2026-09-09.** Testy integracyjne (Testcontainers) czekają na CI —
+w sesji nie było Dockera.
 
 **Cel:** zamrożony schemat z KONCEPT §4; przepis da się założyć ręcznie, obejrzeć
 i zmienić, a każda zmiana zostawia ślad w dzienniku (R18).
@@ -83,7 +86,9 @@ tworzy rewizji; formularz we froncie zakłada i edytuje przepis.
 
 ---
 
-## M2 — `llm-starter` *(równolegle z M1)*
+## M2 — `llm-starter` ✅ *(równolegle z M1)*
+
+**Zrobione 2026-09-09.** Ustalenia i odstępstwa: sekcja na końcu tego pliku.
 
 **Cel:** starter z ARCHITEKTURA §6 gotowy do użycia, bez dotykania music-service.
 
@@ -301,3 +306,50 @@ we wszystkich czterech wymiarach (operacje, parametry, pola schematów, enumy).
 - **`docker-compose.kitchen-on-host.yml`** powstał od razu, dla symetrii
   z pozostałymi serwisami — bez niego front w kontenerze nie trafiłby do kuchni
   uruchomionej na hoście.
+
+## Ustalenia z M2
+
+**Kształt `output_config` u Anthropic jest spisany z dokumentacji, nie sprawdzony
+na żywym koncie.** Dotyczy schematu wyjścia i `effort` — w tej sesji nie było ani
+klucza, ani wyjścia do sieci. Oba pola serializują się wyłącznie przy ekstrakcji
+albo jawnym `effort`, więc zwykłe uzupełnienie tekstu jest tym niezagrożone:
+żądanie bez schematu wygląda tak samo jak przed dołożeniem tych pól. Pierwsze
+prawdziwe wywołanie w M3 to zweryfikuje. Ta sama uwaga jest w D40 music-service
+i w ARCHITEKTURA §6, żeby nie wyszła dopiero z błędu 400.
+
+**Trzy Dockerfile'y dostały `COPY libs/java/llm-starter/pom.xml`** — dokładnie to,
+co zapowiadały ustalenia z M0: Maven czyta całą listę modułów z roota, zanim zawęzi
+build do `-pl`. Formalnie oznacza to, że `git diff` na music-service pokazuje dwa
+pliki, nie jeden (`DECYZJE.md` i `Dockerfile`), ale **kod music-service jest
+nietknięty** — a bez tego wiersza obraz tego serwisu przestałby się budować.
+
+**Odstępstwa od kontraktu z ARCHITEKTURA §6:**
+
+- **`LlmClient` ma `name()`.** Bez tego ani zdarzenie zużycia, ani komunikat błędu
+  nie mówią, który z nazwanych klientów zapłacił albo odmówił.
+- **Sprawdzenie nazwanych klientów przy starcie jest jawne** — `llm.required-clients`.
+  Starter nie zgadnie, o którą nazwę serwis poprosi w kodzie, więc lista musi paść
+  z konfiguracji; bez niej brak wpisu wyszedłby dopiero przy pierwszym imporcie.
+- **`max_completion_tokens` u providerów zgodnych z OpenAI**, nie `max_tokens` —
+  modele rozumujące odrzucają dawną nazwę.
+- **Tokeny z cache liczone osobno.** U providerów zgodnych z OpenAI `prompt_tokens`
+  zawiera już `cached_tokens`, więc odejmujemy je, żeby nie policzyć dwa razy.
+- **`LlmWireMock` został w testach startera** (`LlmWireMockStubs`), a nie w jarze.
+  Stuby badają kształt żądania providera, czyli rzecz wewnętrzną dla startera;
+  serwisowi do testów wystarcza `FakeLlmClient`, który jest w `com.pgoogol.llm.test`
+  w kodzie głównym. Gdyby kuchnia potrzebowała stubów providera, przeniesienie jest
+  wtedy świadomą decyzją, a nie zapasem na wszelki wypadek.
+- **Prompty podstawiają zmienne** — `Prompt.user(mapa)` z `{{nazwa}}`. Brak wartości
+  jest błędem, nie pustym napisem: prompt z dziurą to zapytanie, za które płacimy,
+  a odpowiedź i tak jest o czymś innym.
+- **`CostEstimator` dopasowuje cennik po najdłuższym przedrostku nazwy modelu**
+  i zwraca pusty wynik, gdy nie zna modelu. Zero w raporcie wyglądałoby jak
+  darmowe zapytanie.
+- **Klucz nie wychodzi poza starter.** Nagłówki w logu mają maskę, a treść błędu
+  providera przechodzi przez `SecretMasker`, zanim trafi do komunikatu wyjątku —
+  providerzy potrafią odesłać klucz w treści 400, a klucz raz zalogowany jest
+  spalony.
+
+**Bramka pokrycia nie mierzy tego modułu.** Reguła JaCoCo celuje w klasy `*Service`,
+a starter żadnej takiej nie ma. 67 testów pokrywa oba providery na WireMocku,
+auto-konfigurację, limiter, prompty, cennik i ekstrakcję tekst + obraz do rekordu.

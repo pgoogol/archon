@@ -1,0 +1,1 @@
+Odpowiadasz krótko.

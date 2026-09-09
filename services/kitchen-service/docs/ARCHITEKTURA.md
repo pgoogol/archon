@@ -286,6 +286,8 @@ Starter jest wspólny dla całego repo (R11) i nie zna kuchni. Kontrakt:
 ```java
 public interface LlmClient {
 
+    String name();
+
     LlmResponse complete(LlmRequest request);
 
     <T> LlmExtraction<T> extract(LlmRequest request, JsonSchema schema, Class<T> type);
@@ -304,13 +306,23 @@ public record LlmUsage(long inputTokens, long outputTokens, long cacheReadTokens
 | Providery | `anthropic` (`/v1/messages`) i `openai`-zgodny (`/v1/chat/completions`); obrazy jako base64 / data-URI |
 | Wyjście strukturalne | `output_config.format` (Anthropic) / `response_format` ze `strict` (OpenAI) — schemat z zasobu, nie z kodu |
 | `temperature` | wysyłana **tylko** gdy jawnie ustawiona — nowsze modele odrzucają ten parametr błędem 400 |
-| Prompty | `PromptRepository.load("recipe-extraction", "v1")` czyta `llm/<nazwa>/<wersja>/{system.md,user.md,schema.json}` z classpath |
-| Nazwane klienty | `llm.clients.text`, `llm.clients.vision`; `LlmClients.client("vision")`; brak klienta o tej nazwie = błąd przy starcie |
+| Limit tokenów | Anthropic `max_tokens`, OpenAI `max_completion_tokens` — modele rozumujące odrzucają dawną nazwę |
+| Prompty | `PromptRepository.load("recipe-extraction", "v1")` czyta `llm/<nazwa>/<wersja>/{system.md,user.md,schema.json}` z classpath; `Prompt.user(mapa)` podstawia `{{nazwa}}`, brak wartości = błąd |
+| Nazwane klienty | `llm.clients.text`, `llm.clients.vision`; `LlmClients.client("vision")`; nazwy wyliczone w `llm.required-clients` sprawdzane przy starcie |
 | Brak klucza | start przechodzi, pierwsze użycie rzuca `LlmNotConfiguredException` (serwis bez klucza działa „bez importu") |
-| Limity | limiter `requests-per-second`, retry 429/5xx/timeout z `Retry-After` (3 próby, 1 s → 8 s), brak retry dla 4xx |
-| Rozliczenie | `LlmUsageListener` (SPI) — kuchnia dopisuje tokeny do bieżącego `import_job`; starter sam nie zna encji |
+| Limity | limiter `requests-per-second`, retry 429/5xx/timeout z `Retry-After` (3 próby, 1 s → 8 s), brak retry dla 4xx; `Retry-After` dłuższy niż `max-honored-retry-after` idzie do wywołującego |
+| Rozliczenie | `LlmUsageListener` (SPI) — kuchnia dopisuje tokeny do bieżącego `import_job`; starter sam nie zna encji. `CostEstimator` liczy szacunek z `llm.pricing.<model>`, pusty gdy cennik nie zna modelu |
 | Wyjątki | `LlmNotConfigured`, `LlmRateLimited`, `LlmUnavailable`, `LlmRequestRejected`, `LlmResponse`, `LlmUnsupportedInput` — serwis mapuje je na swoje kody |
-| Testy | `FakeLlmClient` (skryptowane odpowiedzi + rejestr żądań) i `LlmWireMock` (stuby obu providerów) |
+| Testy | `FakeLlmClient` (skryptowane odpowiedzi + rejestr żądań) w `com.pgoogol.llm.test`; stuby WireMocka zostają w testach startera, bo badają kształt żądania providera, nie zachowanie serwisu |
+
+Klucz API nie wychodzi poza starter: nagłówki w logu mają maskę, a treść błędu
+providera przechodzi przez `SecretMasker`, zanim wejdzie do komunikatu wyjątku.
+
+Kształt `output_config` u Anthropic — i schemat wyjścia, i `effort` — jest spisany
+z dokumentacji, a nie sprawdzony na żywym koncie: w sesji, w której powstawał starter,
+nie było klucza ani wyjścia do sieci. Oba pola serializują się wyłącznie przy ekstrakcji
+albo jawnym `effort`, więc zwykłe uzupełnienie tekstu jest tym niezagrożone; pierwsze
+prawdziwe wywołanie w M3 to zweryfikuje.
 
 Music-service pozostaje na własnym kliencie (R11); notatka o migracji trafia do
 jego `DECYZJE.md`.

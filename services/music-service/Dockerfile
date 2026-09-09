@@ -14,6 +14,7 @@ COPY services/music-service/pom.xml services/music-service/
 # POM-y pozostałych modułów reaktora: Maven czyta całą listę <module> z roota,
 # zanim zawęzi build do -pl, i przerywa, gdy któregokolwiek brakuje. Same POM-y,
 # bez źródeł — te moduły się tutaj nie budują.
+COPY libs/java/llm-starter/pom.xml libs/java/llm-starter/
 COPY services/finance-service/pom.xml services/finance-service/
 COPY services/kitchen-service/pom.xml services/kitchen-service/
 RUN mvn -B -q -pl services/music-service -am dependency:go-offline
