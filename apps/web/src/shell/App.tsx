@@ -1,19 +1,30 @@
-// Powłoka aplikacji: nagłówek, nawigacja i host toastów. Nie zna żadnej domeny
-// — czyta rejestr i manifesty (reguła z .claude/rules/frontend-architecture.md).
-// Dodanie domeny to nowy katalog w src/features/ plus jedna linia w registry.ts.
+// Powłoka aplikacji: bramka logowania, nagłówek, nawigacja i host toastów.
+// Nie zna żadnej domeny — czyta rejestr i manifesty (reguła z
+// .claude/rules/frontend-architecture.md). Dodanie domeny to nowy katalog
+// w src/features/ plus jedna linia w registry.ts.
 
 import { Suspense, useMemo } from 'react'
 
 import { features } from '@/registry'
+import { AuthProvider, useAuth } from '@/shared/auth/AuthContext'
 import { ToastProvider } from '@/shared/ui/Toasts'
 import type { FeatureManifest } from '@/shared/featureManifest'
 import { useHashRoute } from '@/shared/hooks/useHashRoute'
+import LoginGate from '@/shell/LoginGate'
 
 export default function App() {
 
   return (
     <ToastProvider>
-      <AppShell />
+      <AuthProvider>
+        {/* filtr poświaty musi stać w dokumencie zanim pierwszy ekran go użyje,
+            a używa go zarówno bramka, jak i przegląd — dlatego jest tutaj,
+            nie w powłoce właściwej */}
+        <CrtDefs />
+        <LoginGate>
+          <AppShell />
+        </LoginGate>
+      </AuthProvider>
     </ToastProvider>
   )
 }
@@ -36,6 +47,7 @@ function CrtDefs() {
 function AppShell() {
 
   const { featureId, path, params, navigate } = useHashRoute()
+  const { config, subject, signOut } = useAuth()
 
   const feature = useMemo<FeatureManifest>(
     () => features.find((candidate) => candidate.id === featureId) ?? features[0],
@@ -51,8 +63,6 @@ function AppShell() {
 
   return (
     <div className="app">
-      <CrtDefs />
-
       <header className="app-header">
         <div className="brand">
           <h1>{feature.title}</h1>
@@ -90,6 +100,15 @@ function AppShell() {
             </button>
           ))}
         </nav>
+
+        {config?.enabled === true && (
+          <div className="session">
+            {subject !== null && <span className="session-subject">{subject}</span>}
+            <button type="button" className="session-out" onClick={signOut}>
+              Wyloguj
+            </button>
+          </div>
+        )}
       </header>
 
       <Provider>

@@ -52,6 +52,9 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    env_file:
+      - path: ../../.env
+        required: false
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/finance
       SPRING_DATASOURCE_USERNAME: postgres
@@ -79,6 +82,12 @@ services:
         required: false
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    # Ten sam plik co serwisy — jedno miejsce na całe środowisko. nginx bierze
+    # stąd wyłącznie GOOGLE_CLIENT_ID, AUTH_ENABLED i AUTH_LOCAL_ENABLED
+    # i podstawia je do odpowiedzi /auth-config.json.
+    env_file:
+      - path: ../../.env
+        required: false
     environment:
       MUSIC_API_HOST: music-service
       MUSIC_API_PORT: "8080"

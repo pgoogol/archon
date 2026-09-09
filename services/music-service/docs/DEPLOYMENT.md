@@ -54,11 +54,20 @@ docker exec music-view-postgres pg_dump -U musicview musicview > backup.sql
 
 ### Zanim wystawisz to publicznie
 
-- **Aplikacja nie ma logowania (D2/D14)** — publiczny adres oznacza, że każdy,
-  kto go zna, może przeglądać bibliotekę, zlecać wzbogacanie (koszt LLM!)
-  i eksportować playlisty na Twoje konto Spotify. Postaw przed nią cokolwiek,
-  co pyta o hasło (basic auth na proxy / Cloudflare Access), albo trzymaj się
-  wariantu lokalnego.
+- **Aplikacja wymaga logowania** — każde żądanie do API niesie poświadczenia:
+  token identyfikacyjny Google albo konto lokalne. Publiczna zostaje wyłącznie
+  sonda `/actuator/health`. Proxy pytające o hasło nie jest już potrzebne.
+- **Zanim wystawisz adres, zamknij konto domyślne.** Świeża instalacja wpuszcza
+  na `admin`/`admin` — podmień `AUTH_LOCAL_PASSWORD_HASH` (hash BCrypt o sile 12,
+  np. `htpasswd -nbBC 12 admin haslo`) albo ustaw `AUTH_LOCAL_ENABLED=false`
+  i zostaw samo logowanie Google. Ta para jest pierwszą, jaką sprawdzają skanery.
+- **Logowanie Google wymaga dwóch zmiennych:** `GOOGLE_CLIENT_ID` (identyfikator
+  klienta OAuth typu „Aplikacja internetowa" z Google Cloud) oraz
+  `AUTH_ALLOWED_EMAILS` z adresami, które mają wstęp. Bez listy adresów serwis
+  nie wstanie — inaczej ważny token miałoby każde konto Google na świecie.
+- **Nigdy nie ustawiaj `SPRING_PROFILES_ACTIVE=no-auth` na publicznym adresie.**
+  Ten profil zdejmuje uwierzytelnianie i istnieje wyłącznie dla pracy lokalnej
+  i testów E2E.
 - Sekrety wyłącznie w zmiennych środowiskowych platformy, nigdy w repo (D14);
   klucz, który gdzieś wyciekł, traktuj jak spalony i zrotuj.
 - Job wzbogacania jest restartowalny (D10), ale długi — platformy z usypianiem

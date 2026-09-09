@@ -32,6 +32,12 @@
   --glow-accent: rgba(255, 166, 61, 0.35);
   --glow-cyan: rgba(87, 219, 230, 0.28);
 
+  /* ekran dostępu: pierścienie rdzenia, siatka tła i linia skanująca */
+  --hud-ring: rgba(87, 219, 230, 0.55);
+  --hud-ring-soft: rgba(87, 219, 230, 0.22);
+  --hud-grid: rgba(87, 219, 230, 0.07);
+  --hud-scan: rgba(87, 219, 230, 0.10);
+
   --slot-warmup: #1d5f7d;
   --slot-middle: #2a8fb0;
   --slot-peak: #57dbe6;
@@ -1490,3 +1496,233 @@ td .stars-static { font-size: 12px; letter-spacing: -1px; }
 }
 .finance-bar-fill { display: block; height: 100%; background: var(--accent); }
 .finance-bar-value { font-family: var(--font-mono); color: var(--muted); }
+
+
+/* ==========================================================================
+   Ekran dostępu
+
+   Stoi na tej samej estetyce co reszta aplikacji: pierścienie jarzą się przez
+   ten sam filtr `crt-glow`, kolory i odstępy pochodzą z tokenów wyżej. Ruch
+   ustaje przy ograniczonym ruchu w systemie — poniżej jedna reguła zdejmuje
+   wszystkie animacje naraz.
+   ========================================================================== */
+
+.login-gate {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: var(--space-5);
+  background:
+    linear-gradient(transparent 95%, var(--hud-scan) 96%, transparent 97%) 0 0 / 100% 220px,
+    repeating-linear-gradient(0deg, var(--hud-grid) 0 1px, transparent 1px 44px),
+    repeating-linear-gradient(90deg, var(--hud-grid) 0 1px, transparent 1px 44px),
+    radial-gradient(circle at 50% 45%, var(--bg-2), var(--bg) 70%);
+  animation: hud-scan 7s linear infinite;
+}
+
+@keyframes hud-scan {
+  from { background-position: 0 -220px, 0 0, 0 0, 0 0; }
+  to { background-position: 0 100vh, 0 0, 0 0, 0 0; }
+}
+
+.hud-rings {
+  position: absolute;
+  width: min(78vmin, 620px);
+  height: min(78vmin, 620px);
+  pointer-events: none;
+}
+
+.hud-ring {
+  fill: none;
+  transform-origin: center;
+}
+
+.hud-ring-outer {
+  stroke: var(--hud-ring-soft);
+  stroke-width: 1;
+  stroke-dasharray: 3 26;
+  animation: hud-spin 42s linear infinite;
+}
+
+.hud-ring-mid {
+  stroke: var(--hud-ring);
+  stroke-width: 1.5;
+  stroke-dasharray: 120 320;
+  animation: hud-spin 26s linear infinite reverse;
+}
+
+.hud-ring-inner {
+  stroke: var(--hud-ring-soft);
+  stroke-width: 1;
+  stroke-dasharray: 8 14;
+  animation: hud-spin 34s linear infinite;
+}
+
+@keyframes hud-spin {
+  to { transform: rotate(360deg); }
+}
+
+.hud-core {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  width: min(340px, 100%);
+  padding: var(--space-5);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--module);
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  box-shadow: 0 0 40px var(--glow-cyan);
+}
+
+.hud-eyebrow {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--accent-2);
+}
+
+.hud-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 34px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.hud-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.hud-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.hud-field > span {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.hud-field > input {
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-2);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+
+.hud-field > input:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 1px;
+}
+
+.hud-field-error {
+  color: var(--danger);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.hud-submit {
+  padding: var(--space-3);
+  border: 0;
+  border-radius: var(--pill);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-display);
+  font-size: 14px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.hud-submit:disabled {
+  background: var(--muted);
+  cursor: progress;
+}
+
+.hud-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.hud-divider::before,
+.hud-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-soft);
+}
+
+.hud-note {
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+/* linia statusu zamiast toastu: bramka stoi przed powłoką, a komunikat ma
+   zostać na ekranie tak długo, jak długo blokuje wejście */
+.hud-status {
+  min-height: 1.2em;
+  margin: 0;
+  color: var(--danger);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-align: center;
+}
+
+/* pasek sesji w nagłówku — widoczny tylko przy włączonym logowaniu */
+.session {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.session-subject {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.session-out {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--pill);
+  background: transparent;
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-gate,
+  .hud-ring-outer,
+  .hud-ring-mid,
+  .hud-ring-inner {
+    animation: none;
+  }
+}

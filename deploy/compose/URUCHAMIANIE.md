@@ -46,14 +46,19 @@ Nakładka ma sens tylko przy froncie w kontenerze. Front z Vite proxuje na
 
 ## Sekrety — `.env`
 
-Plik `.env` leży w katalogu głównym repo (wzór: `.env.example`) i jest potrzebny
-wyłącznie music-service — Spotify, LLM, MusicBrainz. Reszta zestawu wstaje bez
-niego.
+Plik `.env` leży w katalogu głównym repo (wzór: `.env.example`). Music-service
+bierze stąd Spotify, LLM i MusicBrainz; wszystkie trzy kontenery biorą stąd
+konfigurację logowania. Reszta zestawu wstaje bez tego pliku.
 
-**Nie trzeba nic dopisywać do komend.** Music-service ma w compose `env_file`
+**Nie trzeba nic dopisywać do komend.** Każdy kontener ma w compose `env_file`
 z twardą ścieżką `../../.env`, więc plik z katalogu głównego wchodzi sam, przy
 każdym wariancie. Brak pliku nie jest błędem (`required: false`) — serwis wstaje,
 a wartości domyślne bierze z `application.yml`.
+
+Front dostaje ten sam plik, choć nginx czyta z niego wyłącznie `GOOGLE_CLIENT_ID`,
+`AUTH_ENABLED` i `AUTH_LOCAL_ENABLED` — podstawia je do odpowiedzi
+`/auth-config.json`, z której front dowiaduje się, czy i jak pytać o logowanie.
+Jeden plik na całe środowisko jest tu wart więcej niż osobna lista dla frontu.
 
 Uwaga na dwie rzeczy przy zmianach w compose:
 
@@ -78,6 +83,35 @@ aplikacji jako pusty łańcuch i przykrywa wartość domyślną z `application.y
 która wchodzi wyłącznie przy zmiennej nieustawionej. Zmienną, której nie
 ustawiasz, zakomentuj. Wyjątkiem jest `LLM_PROVIDER` — pusty traktujemy tam jak
 brak, bo `.env` skopiowany z `.env.example` inaczej wywracał start serwisu.
+
+## Logowanie
+
+Serwisy wymagają poświadczeń przy każdym żądaniu: token identyfikacyjny Google
+(nagłówek `Bearer`) albo konto lokalne (`Basic`). Publiczna zostaje wyłącznie
+sonda `/actuator/health` — woła ją healthcheck kontenera.
+
+Zaraz po `up` działa konto **admin / admin**. Wystarczy do pracy lokalnej i nie
+wymaga żadnej konfiguracji. **Przed wystawieniem aplikacji na publiczny adres
+podmień `AUTH_LOCAL_PASSWORD_HASH` albo ustaw `AUTH_LOCAL_ENABLED=false`** —
+tę parę skanery próbują jako pierwszą.
+
+Logowanie Google włącza się samo po ustawieniu `GOOGLE_CLIENT_ID`
+i `AUTH_ALLOWED_EMAILS`. Konto spoza listy dostaje 403, a nie 401: token jest
+poprawny, brakuje uprawnień.
+
+### Uruchomienie bez logowania
+
+Do pracy nad czymś innym niż logowanie i do testów E2E służy profil `no-auth`:
+
+```bash
+SPRING_PROFILES_ACTIVE=no-auth ./mvnw -pl services/music-service spring-boot:run \
+  -Dspring-boot.run.profiles=local,no-auth
+```
+
+W kontenerze ten sam efekt daje `SPRING_PROFILES_ACTIVE=no-auth` w `.env`.
+Nazwa profilu jest jednocześnie ostrzeżeniem — nikt nie ustawi go przypadkiem,
+a zwykłe uruchomienie zawsze wymaga poświadczeń. Bramkę w samym froncie zdejmuje
+osobno `AUTH_ENABLED=false`; backend i tak pilnuje swojego.
 
 ## Komponent na hoście
 

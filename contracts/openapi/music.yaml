@@ -30,7 +30,36 @@ tags:
   - name: auth
     description: Połączenie konta Spotify
 
+  - name: identity
+    description: Tożsamość zalogowanego podmiotu
+
+# Każde żądanie niesie poświadczenia: token Google (Bearer) albo konto lokalne
+# (Basic). Publiczne zostaje wyłącznie /actuator/health, które stoi poza tym
+# kontraktem.
+security:
+  - bearerAuth: []
+  - basicAuth: []
+
 paths:
+
+  /auth/whoami:
+    get:
+      tags: [identity]
+      operationId: whoAmI
+      summary: Tożsamość zalogowanego podmiotu
+      description: |
+        Potwierdza, że serwis uznał poświadczenia. Front woła ten adres po
+        zalogowaniu — zanim wpuści do aplikacji — i to jedyny sposób sprawdzenia
+        loginu z hasłem, bo uwierzytelnianie Basic nie ma własnego endpointu.
+        Ścieżka stoi poza prefiksem domenowym, bo nie należy do żadnej domeny.
+      responses:
+        '200':
+          description: Poświadczenia uznane
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WhoAmIResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
 
   /music/api/v1/catalog/tracks:
     get:
@@ -654,6 +683,22 @@ paths:
 
 components:
 
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Token identyfikacyjny Google. Serwis sprawdza podpis kluczem z JWKS
+        Google, termin ważności, wystawcę, odbiorcę (identyfikator klienta)
+        oraz to, czy zweryfikowany adres e-mail jest na liście dozwolonych.
+    basicAuth:
+      type: http
+      scheme: basic
+      description: |
+        Konto lokalne z konfiguracji serwisu — login i hasło. Alternatywa dla
+        Google, przydatna zanim konto Google zostanie skonfigurowane.
+
   parameters:
     SpotifyId:
       name: spotifyId
@@ -677,6 +722,16 @@ components:
       schema: { type: integer, format: int64 }
 
   responses:
+    Unauthorized:
+      description: Brak poświadczeń albo poświadczenia nieważne
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Forbidden:
+      description: Poświadczenia ważne, ale konto nie ma dostępu
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
     BadRequest:
       description: Błąd walidacji
       content:
@@ -699,6 +754,12 @@ components:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
 
   schemas:
+
+    WhoAmIResponse:
+      type: object
+      properties:
+        subject: { type: string }
+        authentication: { type: string }
 
     GenreFamily:
       type: string

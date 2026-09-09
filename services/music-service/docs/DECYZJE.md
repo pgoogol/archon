@@ -15,6 +15,9 @@ Zamiast `com.saborlatino` z konceptu (§10). Struktura modułów bez zmian:
 
 ## D2. Multi-user wycofany
 
+> Klauzula o braku uwierzytelniania jest **nieaktualna** — patrz D40. Reszta
+> decyzji (jeden właściciel, brak encji `User`, brak ról) obowiązuje.
+
 Aplikacja jest **narzędziem osobistym jednego DJ-a**. Znika cały Etap 3 konceptu:
 
 - brak encji `User` i systemu kont/auth,
@@ -126,6 +129,9 @@ front React (tabela biblioteki, wyszukiwanie, filtry, szczegóły utworu, panel 
 fundament pod pełny front Etapu 2.
 
 ## D14. Bezpieczeństwo kluczy
+
+> Zdanie „bez auth w aplikacji" jest **nieaktualne** — patrz D40. Zasady
+> dotyczące samych sekretów obowiązują bez zmian.
 
 Bez auth w aplikacji (narzędzie lokalne). Sekrety wyłącznie w zmiennych środowiskowych /
 `.env` (poza repo; w repo tylko `.env.example`): Spotify Client ID+Secret, klucz API
@@ -950,3 +956,52 @@ filtr niewidoczny na ekranie nie ma prawa działać. Tak samo nieznane klucze w 
 Kryteria wyszukiwarki w backendzie zostają bez zmian — `CatalogSearchCriteria` nadal
 przyjmuje komplet filtrów z M5.6 (używa ich m.in. generator setu, D33), a przywrócenie
 któregokolwiek na ekran jest dopisaniem pola do listy w `library/query.ts`, nie migracją.
+
+## D40. Logowanie: token Google albo konto lokalne, walidacja w każdym serwisie
+
+Uchyla klauzulę z D2/D14 o braku uwierzytelniania. Powód jest praktyczny: bez
+logowania publiczny adres oznaczał, że każdy, kto go zna, może zlecić
+wzbogacanie na koszt właściciela i eksportować playlisty na jego konto Spotify.
+DEPLOYMENT.md kazał więc stawiać z przodu proxy pytające o hasło — jeden
+komponent więcej do utrzymania, żeby nadrobić brak jednej funkcji.
+
+**Co się nie zmienia:** aplikacja nadal jest narzędziem jednej osoby. Nie ma
+encji `User`, nie ma ról, nie ma rejestracji. Autoryzacja sprowadza się do
+pytania „czy to właściciel", a odpowiada na nie lista dozwolonych adresów.
+
+**Dwie drogi wejścia, obok siebie.** Token identyfikacyjny Google jako `Bearer`
+oraz konto z konfiguracji jako `Basic`. Konto lokalne istnieje, żeby aplikacja
+otwierała się od razu po instalacji, zanim ktokolwiek założy klienta OAuth
+w Google Cloud.
+
+**Dlaczego Basic, a nie własny token dla konta lokalnego.** Wystawianie własnego
+JWT wymagałoby endpointu logowania, a każda ścieżka API zaczyna się od
+`/<serwis>/api/v<n>`. Ekran logowania musiałby więc wołać konkretną domenę, czego
+powłoka frontu nie może wiedzieć. Pozostawały: nowy serwis auth, współdzielony
+sekret między serwisami albo Basic. Basic nie kosztuje nic z tych trzech.
+
+**Dlaczego `jwk-set-uri`, a nie `issuer-uri`.** Ten drugi pobiera dokument
+discovery przy starcie kontekstu — aplikacja nie wstawałaby bez sieci, a testy
+i praca offline przestałyby działać. Klucze spod JWKS ściągają się leniwie, przy
+pierwszym tokenie; wystawcę i odbiorcę sprawdzamy własnymi walidatorami.
+
+**Konto spoza listy dostaje 403, nie 401.** Token jest poprawny, brakuje
+uprawnień. W logach to różnica między obcym kontem a zepsutym tokenem, więc
+lista dozwolonych adresów nie jest walidatorem tokenu, tylko decyzją o dostępie
+podejmowaną po jego przyjęciu.
+
+**Kod dzielony to starter `libs/java/security-starter`,** nie kopia w każdym
+serwisie — serwis nigdy nie zależy od serwisu. Wyjątkowo jego zależności
+Springa nie są opcjonalne: uwierzytelnianie jest przedmiotem tego startera,
+a przy opcjonalnych serwis musiałby dokładać je ręcznie i bez nich starter po
+cichu nie robiłby nic.
+
+**Profil `no-auth`** zdejmuje uwierzytelnianie do pracy lokalnej i testów E2E.
+Nazwa jest jednocześnie ostrzeżeniem: nikt nie ustawi go przypadkiem, a działa
+tak samo na hoście, w kontenerze i pod Playwrightem. Zwykłe uruchomienie zawsze
+wymaga poświadczeń.
+
+**Konfiguracja frontu przychodzi w czasie działania** (`/auth-config.json`
+podstawiane przez nginx), a nie jako `VITE_*` wbudowane w pakiet — z tego samego
+powodu, dla którego adresy backendów siedzą w konfiguracji proxy: ten sam obraz
+ma działać lokalnie i na serwerze.

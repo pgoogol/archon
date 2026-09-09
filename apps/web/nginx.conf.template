@@ -38,6 +38,25 @@ server {
         proxy_read_timeout 300s;
     }
 
+    # Konfiguracja logowania podawana w czasie działania, nie wbudowana w pakiet
+    # JS — z tego samego powodu co adresy backendów wyżej: jeden obraz ma
+    # działać lokalnie i na serwerze. Identyfikator klienta Google nie jest
+    # sekretem, ale środowiskiem — i tak samo się nim zarządza.
+    location = /auth-config.json {
+        default_type application/json;
+        return 200 '{"enabled":${AUTH_ENABLED},"googleClientId":"${GOOGLE_CLIENT_ID}","localAccountEnabled":${AUTH_LOCAL_ENABLED}}';
+    }
+
+    # Tożsamość zalogowanego podmiotu. Adres stoi poza prefiksem domenowym, bo
+    # wystawia go wspólny starter, nie domena — prowadzimy go na music-service,
+    # bo każdy serwis odpowiada tu tak samo.
+    location = /auth/whoami {
+        proxy_pass http://${MUSIC_API_HOST}:${MUSIC_API_PORT};
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
     location / {
         root /usr/share/nginx/html;
         index index.html;

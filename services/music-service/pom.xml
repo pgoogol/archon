@@ -24,6 +24,12 @@
       <artifactId>logging-starter</artifactId>
     </dependency>
 
+    <!-- starter z reaktora: uwierzytelnianie wchodzi samą zależnością -->
+    <dependency>
+      <groupId>com.pgoogol</groupId>
+      <artifactId>security-starter</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
@@ -109,6 +115,11 @@
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-test</artifactId>
+      <scope>test</scope>
+    </dependency>
     <!-- Boot 4 rozbił warstwy testowe na moduły per technologia; starter-test
          nie wciąga już @WebMvcTest, @DataJpaTest ani TestEntityManagera -->
     <dependency>
@@ -171,6 +182,30 @@
 
   <build>
     <plugins>
+      <!-- Testy sprawdzają domenę, nie logowanie: profil bez uwierzytelniania
+           schodzi im z drogi. Świadomie przez właściwość systemową, a nie przez
+           application.yml w src/test/resources — tamten plik przesłania cały
+           application.yml serwisu, bo z classpath wygrywa pierwszy znaleziony.
+           Samo uwierzytelnianie pokrywa security-starter oraz SecurityChainSmokeTest,
+           który jawnie wraca do profilu domyślnego. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <systemPropertyVariables>
+            <spring.profiles.active>no-auth</spring.profiles.active>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <systemPropertyVariables>
+            <spring.profiles.active>no-auth</spring.profiles.active>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>

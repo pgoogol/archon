@@ -1,6 +1,9 @@
 // Warstwa transportowa HTTP — jedyne miejsce w aplikacji, które woła `fetch`.
-// Nie zna żadnej domeny: przenosi JSON i zamienia odpowiedź błędu backendu
-// (errorCode + message, format z backend-errors.md) na typowany wyjątek.
+// Nie zna żadnej domeny: przenosi JSON, dokleja poświadczenia bieżącej sesji
+// i zamienia odpowiedź błędu backendu (errorCode + message, format
+// z backend-errors.md) na typowany wyjątek.
+
+import { currentCredential, reportUnauthorized } from '@/shared/auth/credentialStore'
 
 export class ApiError extends Error {
   constructor(
@@ -12,10 +15,40 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Dokleja nagłówek `Authorization` do żądania.
+ *
+ * Nagłówki scalamy, nigdy nie podmieniamy: `jsonInit` wnosi `Content-Type`,
+ * a wysyłki plików podają samo `FormData` bez nagłówków — dopisanie im
+ * `Content-Type` zepsułoby granicę multipart. Nagłówek podany jawnie wygrywa
+ * z zapamiętanym, bo tą drogą sprawdzamy poświadczenia przy logowaniu, zanim
+ * trafią do pamięci.
+ */
+function withCredential(init?: RequestInit): RequestInit | undefined {
+
+  const credential = currentCredential()
+  if (credential === null) {
+
+    return init
+  }
+  const headers = new Headers(init?.headers)
+  if (headers.has('Authorization')) {
+
+    return { ...init, headers }
+  }
+  headers.set('Authorization', credential)
+  return { ...init, headers }
+}
+
 export async function request<T>(url: string, init?: RequestInit): Promise<T> {
 
-  const response = await fetch(url, init)
+  const response = await fetch(url, withCredential(init))
   if (!response.ok) {
+
+    if (response.status === 401) {
+
+      reportUnauthorized()
+    }
     let errorCode = 'HTTP_' + response.status
     let message = response.statusText
     try {

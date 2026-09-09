@@ -87,3 +87,26 @@ clients:
   deezer:
     base-url: https://api.deezer.com
     requests-per-second: 10
+
+# Uwierzytelnianie: token identyfikacyjny Google jako Bearer albo konto lokalne
+# jako Basic. Obie drogi obok siebie — konto lokalne pozwala otworzyć aplikację,
+# zanim klient Google zostanie skonfigurowany.
+#
+# Konto spoza listy dozwolonych adresów dostaje 403, a nie 401: token jest
+# w porządku, brakuje uprawnień — w logach to widać jako różne zdarzenia.
+bearer-auth:
+  # identyfikator klienta OAuth z Google Cloud; puste = logowanie tylko kontem lokalnym
+  audience: ${GOOGLE_CLIENT_ID:}
+  allowed-emails: ${AUTH_ALLOWED_EMAILS:}
+  local-account:
+    enabled: ${AUTH_LOCAL_ENABLED:true}
+    username: ${AUTH_LOCAL_USERNAME:admin}
+    # wyłącznie hash BCrypt — hasło jawnym tekstem nigdy nie trafia do konfiguracji;
+    # wartość domyślna to hasło `admin`, do podmiany przed wystawieniem publicznie
+    password-hash: ${AUTH_LOCAL_PASSWORD_HASH:$2a$12$BvwzPFLCgfGMGbvLuk.S8eag3KABV0PHfzaXdFyvnI9g3pruZuw0q}
+  public-paths:
+    # sondę zdrowia woła healthcheck kontenera — jej zamknięcie psuje kolejność startu
+    - /actuator/health
+    # Spotify wywołuje ten adres przeglądarką użytkownika i nie doniesie tokenu;
+    # przed podszyciem broni go parametr `state` sprawdzany w kontrolerze
+    - /music/api/v1/auth/spotify/callback

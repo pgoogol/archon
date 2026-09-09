@@ -1,24 +1,22 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 
 import App from '@/shell/App'
 import { features } from '@/registry'
+import { useShellApi } from '@/shell/test/server'
 
 // Test powłoki nie zna żadnej domeny — wszystkie oczekiwania czyta z rejestru.
 // Import fixtures konkretnej domeny byłby tu naruszeniem granicy warstw
 // i ESLint odrzuciłby go jako błąd.
 const feature = features[0]
 
+// Domyślna konfiguracja serwera powłoki wyłącza logowanie, więc te testy patrzą
+// na samą powłokę. Bramka ma własny plik testowy.
+useShellApi()
+
 beforeEach(() => {
   window.location.hash = ''
-  // ekrany domen pobierają dane na starcie; powłoce wystarczy, że fetch nie wybucha
-  globalThis.fetch = vi.fn().mockResolvedValue({
-    ok: true,
-    status: 200,
-    statusText: 'OK',
-    json: async () => ({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 }),
-  }) as unknown as typeof fetch
 })
 
 describe('powłoka', () => {
@@ -56,14 +54,15 @@ describe('powłoka', () => {
   it('przełączenie zakładką zapisuje w adresie domenę razem z ekranem', async () => {
 
     const user = userEvent.setup()
-    const target = feature.nav.find((item) => item.to !== '')
+    const target = feature.nav.find((item) => item.to !== '')!
     render(<App />)
     await screen.findByRole('heading', { name: feature.title })
 
-    await user.click(screen.getByTestId(`tab-${target!.to}`))
+    const tabs = screen.getByRole('navigation', { name: 'widoki' })
+    await user.click(within(tabs).getByRole('button', { name: target.label }))
 
     await waitFor(() =>
-      expect(window.location.hash).toBe(`#/${feature.id}/${target!.to}`),
+      expect(window.location.hash).toBe(`#/${feature.id}/${target.to}`),
     )
   })
 
@@ -89,5 +88,13 @@ describe('powłoka', () => {
     features.forEach((entry) => {
       expect(switcher).toHaveTextContent(entry.title)
     })
+  })
+
+  it('przy wyłączonym logowaniu nie pokazuje paska sesji', async () => {
+
+    render(<App />)
+    await screen.findByRole('heading', { name: feature.title })
+
+    expect(screen.queryByRole('button', { name: 'Wyloguj' })).not.toBeInTheDocument()
   })
 })

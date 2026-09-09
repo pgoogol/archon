@@ -1,0 +1,7 @@
+# Profil bez uwierzytelniania — wyłącznie do pracy lokalnej i testów E2E.
+#
+# Nazwa profilu jest jednocześnie ostrzeżeniem: nikt nie ustawi go przypadkiem,
+# a działa tak samo na hoście, w kontenerze i pod Playwrightem. Zwykłe
+# uruchomienie, bez wskazania tego profilu, zawsze wymaga poświadczeń.
+bearer-auth:
+  enabled: false

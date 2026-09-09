@@ -1,0 +1,3 @@
+com.pgoogol.bearerauth.autoconfigure.BearerAuthAutoConfiguration
+com.pgoogol.bearerauth.autoconfigure.BearerAuthDisabledAutoConfiguration
+com.pgoogol.bearerauth.autoconfigure.WhoAmIAutoConfiguration
