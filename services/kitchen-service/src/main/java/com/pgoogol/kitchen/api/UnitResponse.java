@@ -13,6 +13,6 @@ public record UnitResponse(
 
     static UnitResponse of(Unit unit) {
 
-        return new UnitResponse(unit.id(), unit.code(), unit.name(), unit.kind());
+        return new UnitResponse(unit.getId(), unit.getCode(), unit.getName(), unit.getKind());
     }
 }

@@ -5,12 +5,16 @@ info:
   version: 1.0.0
   description: |
     API domeny kuchennej: przepisy rozbite na pojedyncze składniki i kroki,
-    import z linku, wklejonego tekstu i zdjęć, katalog składników, historia
-    zmian oraz kanał przyjmujący przepisy z czatów.
+    katalog składników, słowniki i historia zmian.
 
-    Zakres tej wersji obejmuje wyłącznie słowniki — kolejne obszary dochodzą
-    razem z kamieniami z docs/PLAN.md i każdy z nich zaczyna się od zmiany
-    w tym pliku, nie w kodzie.
+    Dwie rzeczy warto wiedzieć, zanim się z tego skorzysta:
+
+    * **Zapis przepisu ma jeden kształt.** `RecipeDraft` opisuje przepis
+      i wchodzi tą samą drogą przy zakładaniu, edycji, akceptacji szkicu
+      z importu i przywracaniu starszej wersji.
+    * **Historia zapisuje zmienione pola, nie kopie przepisu.** Zapis, który
+      niczego nie zmienił, nie tworzy rewizji — `SaveResponse.changed` mówi,
+      czy coś się stało.
 
 servers:
   - url: /
@@ -19,10 +23,257 @@ servers:
     description: serwis uruchomiony lokalnie
 
 tags:
+  - name: recipes
+    description: 'Przepisy: lista, odczyt, zapis, archiwizacja'
+  - name: notes
+    description: Uwagi do przepisu
+  - name: ingredients
+    description: Katalog składników i synonimy
   - name: dictionaries
     description: 'Słowniki: jednostki, kuchnie, kategorie, diety, tagi, sprzęt'
 
 paths:
+
+  /kitchen/api/v1/recipes:
+    get:
+      tags: [recipes]
+      operationId: listRecipes
+      summary: Lista przepisów od najnowszego
+      parameters:
+        - { name: page, in: query, schema: { type: integer, default: 0 } }
+        - name: size
+          in: query
+          description: Domyślnie 20, maksymalnie 100 — sufit pilnuje kontroler
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Strona listy
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RecipePageResponse' }
+    post:
+      tags: [recipes]
+      operationId: createRecipe
+      summary: Nowy przepis wpisany ręcznie
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SaveRecipeRequest' }
+      responses:
+        '201':
+          description: Przepis założony, powstała rewizja pierwsza
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SaveResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /kitchen/api/v1/recipes/{id}:
+    get:
+      tags: [recipes]
+      operationId: getRecipe
+      summary: Przepis z całą zawartością
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: Przepis
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RecipeResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [recipes]
+      operationId: updateRecipe
+      summary: Zapis zmian — rewizja powstaje tylko wtedy, gdy coś naprawdę się zmieniło
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SaveRecipeRequest' }
+      responses:
+        '200':
+          description: Stan po zapisie
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SaveResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+    delete:
+      tags: [recipes]
+      operationId: archiveRecipe
+      summary: Archiwizacja przepisu — dziennik zmian zachowuje odniesienia
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '204': { description: Zarchiwizowany }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /kitchen/api/v1/recipes/{recipeId}/notes:
+    get:
+      tags: [notes]
+      operationId: listNotes
+      summary: Uwagi od najnowszej
+      parameters:
+        - { name: recipeId, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: Uwagi
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/NoteResponse' }
+    post:
+      tags: [notes]
+      operationId: addNote
+      summary: Nowa uwaga
+      parameters:
+        - { name: recipeId, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NoteRequest' }
+      responses:
+        '201':
+          description: Uwaga dopisana
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NoteResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /kitchen/api/v1/recipes/{recipeId}/notes/{noteId}:
+    patch:
+      tags: [notes]
+      operationId: editNote
+      summary: Zmiana treści uwagi
+      parameters:
+        - { name: recipeId, in: path, required: true, schema: { type: integer, format: int64 } }
+        - { name: noteId, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NoteRequest' }
+      responses:
+        '200':
+          description: Uwaga po zmianie
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NoteResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [notes]
+      operationId: deleteNote
+      summary: Usunięcie uwagi
+      parameters:
+        - { name: recipeId, in: path, required: true, schema: { type: integer, format: int64 } }
+        - { name: noteId, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '204': { description: Usunięta }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /kitchen/api/v1/ingredients:
+    get:
+      tags: [ingredients]
+      operationId: searchIngredients
+      summary: Katalog z filtrem po nazwie i statusie
+      parameters:
+        - { name: q, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/IngredientStatus' } }
+        - { name: page, in: query, schema: { type: integer, default: 0 } }
+        - { name: size, in: query, schema: { type: integer, default: 20 } }
+      responses:
+        '200':
+          description: Strona katalogu
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/IngredientPageResponse' }
+    post:
+      tags: [ingredients]
+      operationId: createIngredient
+      summary: Nowa pozycja katalogu
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/IngredientRequest' }
+      responses:
+        '201':
+          description: Pozycja dopisana
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/IngredientResponse' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /kitchen/api/v1/ingredients/{id}:
+    get:
+      tags: [ingredients]
+      operationId: getIngredient
+      summary: Pozycja katalogu razem z synonimami
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: Pozycja katalogu
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/IngredientResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [ingredients]
+      operationId: updateIngredient
+      summary: Poprawienie nazwy, kategorii, jednostki albo statusu
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/IngredientRequest' }
+      responses:
+        '200':
+          description: Pozycja po zmianie
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/IngredientResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /kitchen/api/v1/ingredients/{id}/aliases:
+    post:
+      tags: [ingredients]
+      operationId: addIngredientAlias
+      summary: Nowy synonim prowadzący do tej pozycji
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AliasRequest' }
+      responses:
+        '201':
+          description: Synonim dopisany
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AliasResponse' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /kitchen/api/v1/ingredients/{id}/aliases/{aliasId}:
+    delete:
+      tags: [ingredients]
+      operationId: deleteIngredientAlias
+      summary: Usunięcie synonimu
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+        - { name: aliasId, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '204': { description: Usunięty }
+        '404': { $ref: '#/components/responses/NotFound' }
 
   /kitchen/api/v1/dictionaries:
     get:
@@ -42,7 +293,348 @@ paths:
 
 components:
 
+  responses:
+    BadRequest:
+      description: Żądanie nie przeszło walidacji
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    NotFound:
+      description: Zasób nie istnieje
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Conflict:
+      description: Stan zasobu nie pozwala na tę operację
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+
   schemas:
+
+    ErrorResponse:
+      type: object
+      description: Jednolity format błędu
+      properties:
+        errorCode:
+          type: string
+          description: |
+            Kod maszynowy — po nim klient rozpoznaje przypadek, nie po treści.
+
+            Przykłady:
+            * `RECIPE_NOT_FOUND` — przepis nie istnieje
+            * `RECIPE_MODIFIED` — ktoś zapisał zmiany w międzyczasie
+            * `RECIPE_EMPTY` — przepis bez składników i bez kroków
+            * `INGREDIENT_EXISTS` — składnik o tej nazwie już jest w katalogu
+        message: { type: string }
+        timestamp: { type: string, format: date-time }
+        traceId: { type: string }
+
+    RecipeDraft:
+      type: object
+      description: Przepis w postaci do zapisania — wspólny kształt dla formularza, importu i przywracania wersji
+      required: [title]
+      properties:
+        title: { type: string, maxLength: 300 }
+        description: { type: string }
+        servingsAmount: { type: number }
+        servingsUnit: { type: string, maxLength: 50, example: porcje }
+        prepMinutes: { type: integer, format: int32 }
+        cookMinutes: { type: integer, format: int32 }
+        totalMinutes: { type: integer, format: int32 }
+        cuisine: { type: string, example: polska }
+        category: { type: string, example: danie główne }
+        difficulty: { $ref: '#/components/schemas/Difficulty' }
+        ingredients:
+          type: array
+          items: { $ref: '#/components/schemas/DraftIngredient' }
+        steps:
+          type: array
+          items: { $ref: '#/components/schemas/DraftStep' }
+        tags:
+          type: array
+          items: { type: string }
+        diets:
+          type: array
+          items: { type: string }
+
+    DraftIngredient:
+      type: object
+      description: Składnik przepisu
+      required: [displayName]
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Identyfikator istniejącego wiersza; pusty przy nowym
+        group: { type: string, maxLength: 100, example: na spód }
+        displayName: { type: string, maxLength: 200, example: czerwona cebula }
+        canonicalName: { type: string, maxLength: 200, example: cebula czerwona }
+        sourceText: { type: string }
+        quantityMin: { type: number }
+        quantityMax: { type: number }
+        unit: { type: string, maxLength: 30, example: g }
+        quantityText: { type: string, maxLength: 100 }
+        preparation: { type: string, maxLength: 200, example: posiekana }
+        optional: { type: boolean }
+        note: { type: string }
+        alternatives:
+          type: array
+          items: { $ref: '#/components/schemas/DraftAlternative' }
+
+    DraftAlternative:
+      type: object
+      description: Zamiennik składnika
+      required: [displayName]
+      properties:
+        id: { type: integer, format: int64 }
+        displayName: { type: string, maxLength: 200 }
+        canonicalName: { type: string, maxLength: 200 }
+        quantityMin: { type: number }
+        quantityMax: { type: number }
+        unit: { type: string, maxLength: 30 }
+        quantityText: { type: string, maxLength: 100 }
+        note: { type: string }
+
+    DraftStep:
+      type: object
+      description: Krok przygotowania
+      required: [text]
+      properties:
+        id: { type: integer, format: int64 }
+        group: { type: string, maxLength: 100 }
+        text: { type: string }
+        sourceText: { type: string }
+        durationMinutes: { type: integer, format: int32 }
+        temperatureC: { type: integer, format: int32 }
+        temperatureNote: { type: string, maxLength: 100, example: termoobieg }
+        ingredientIndexes:
+          type: array
+          description: Pozycje z listy składników użyte w tym kroku, liczone od zera
+          items: { type: integer, format: int32 }
+        equipment:
+          type: array
+          items: { type: string }
+
+    SaveRecipeRequest:
+      type: object
+      description: 'Zapis przepisu: treść, opis zmiany i numer rewizji, na której pracował klient'
+      required: [draft]
+      properties:
+        draft: { $ref: '#/components/schemas/RecipeDraft' }
+        changeSummary: { type: string, maxLength: 500 }
+        expectedRevisionNo:
+          type: integer
+          format: int32
+          description: Numer rewizji z ekranu klienta; nieaktualny kończy się konfliktem zamiast cichego nadpisania
+
+    SaveResponse:
+      type: object
+      description: Wynik zapisu przepisu
+      properties:
+        recipe: { $ref: '#/components/schemas/RecipeResponse' }
+        changed:
+          type: boolean
+          description: Czy zapis coś zmienił — false znaczy, że rewizja nie powstała
+        revisionNo: { type: integer, format: int32 }
+
+    RecipeResponse:
+      type: object
+      description: Przepis z całą zawartością
+      properties:
+        id: { type: integer, format: int64 }
+        title: { type: string }
+        description: { type: string }
+        servingsAmount: { type: number }
+        servingsUnit: { type: string }
+        prepMinutes: { type: integer, format: int32 }
+        cookMinutes: { type: integer, format: int32 }
+        totalMinutes: { type: integer, format: int32 }
+        cuisine: { type: string }
+        category: { type: string }
+        difficulty: { $ref: '#/components/schemas/Difficulty' }
+        status: { $ref: '#/components/schemas/RecipeStatus' }
+        currentRevisionNo: { type: integer, format: int32 }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        source: { $ref: '#/components/schemas/SourceResponse' }
+        ingredients:
+          type: array
+          items: { $ref: '#/components/schemas/IngredientLineResponse' }
+        steps:
+          type: array
+          items: { $ref: '#/components/schemas/StepResponse' }
+        tags:
+          type: array
+          items: { type: string }
+        diets:
+          type: array
+          items: { type: string }
+
+    RecipeSummaryResponse:
+      type: object
+      description: Przepis na liście
+      properties:
+        id: { type: integer, format: int64 }
+        title: { type: string }
+        description: { type: string }
+        totalMinutes: { type: integer, format: int32 }
+        cuisine: { type: string }
+        category: { type: string }
+        difficulty: { $ref: '#/components/schemas/Difficulty' }
+        ingredientCount: { type: integer, format: int32 }
+        stepCount: { type: integer, format: int32 }
+        createdAt: { type: string, format: date-time }
+
+    RecipePageResponse:
+      type: object
+      description: Strona listy przepisów
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/RecipeSummaryResponse' }
+        page: { type: integer, format: int32 }
+        size: { type: integer, format: int32 }
+        totalElements: { type: integer, format: int64 }
+        totalPages: { type: integer, format: int32 }
+
+    SourceResponse:
+      type: object
+      description: Skąd wziął się przepis
+      properties:
+        kind: { $ref: '#/components/schemas/SourceKind' }
+        url: { type: string }
+        siteName: { type: string }
+        author: { type: string }
+
+    IngredientLineResponse:
+      type: object
+      description: Składnik przepisu
+      properties:
+        id: { type: integer, format: int64 }
+        position: { type: integer, format: int32 }
+        group: { type: string }
+        ingredientId:
+          type: integer
+          format: int64
+          description: Pozycja katalogu, do której dopasowano składnik; pusta = niedopasowany
+        displayName: { type: string }
+        sourceText: { type: string }
+        quantityMin: { type: number }
+        quantityMax: { type: number }
+        unit: { type: string }
+        unitName: { type: string }
+        quantityText: { type: string }
+        preparation: { type: string }
+        optional: { type: boolean }
+        note: { type: string }
+        alternatives:
+          type: array
+          items: { $ref: '#/components/schemas/AlternativeResponse' }
+
+    AlternativeResponse:
+      type: object
+      description: Zamiennik składnika
+      properties:
+        id: { type: integer, format: int64 }
+        position: { type: integer, format: int32 }
+        ingredientId: { type: integer, format: int64 }
+        displayName: { type: string }
+        quantityMin: { type: number }
+        quantityMax: { type: number }
+        unit: { type: string }
+        unitName: { type: string }
+        quantityText: { type: string }
+        note: { type: string }
+
+    StepResponse:
+      type: object
+      description: Krok przygotowania
+      properties:
+        id: { type: integer, format: int64 }
+        position: { type: integer, format: int32 }
+        group: { type: string }
+        text: { type: string }
+        sourceText: { type: string }
+        durationMinutes: { type: integer, format: int32 }
+        temperatureC: { type: integer, format: int32 }
+        temperatureNote: { type: string }
+        ingredientIds:
+          type: array
+          description: Identyfikatory składników użytych w tym kroku
+          items: { type: integer, format: int64 }
+        equipment:
+          type: array
+          items: { type: string }
+
+    NoteRequest:
+      type: object
+      description: Treść uwagi do przepisu
+      required: [body]
+      properties:
+        body: { type: string, maxLength: 5000 }
+
+    NoteResponse:
+      type: object
+      description: Uwaga do przepisu
+      properties:
+        id: { type: integer, format: int64 }
+        body: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    IngredientRequest:
+      type: object
+      description: Nowa albo zmieniona pozycja katalogu
+      required: [name]
+      properties:
+        name: { type: string, maxLength: 200 }
+        category: { type: string, maxLength: 50 }
+        defaultUnit: { type: string, maxLength: 30 }
+        status: { $ref: '#/components/schemas/IngredientStatus' }
+
+    IngredientResponse:
+      type: object
+      description: Pozycja katalogu składników
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        category: { type: string }
+        defaultUnit:
+          type: string
+          description: Kod jednostki, w której zwykle podaje się ten składnik
+        status: { $ref: '#/components/schemas/IngredientStatus' }
+        aliases:
+          type: array
+          items: { $ref: '#/components/schemas/AliasResponse' }
+
+    IngredientPageResponse:
+      type: object
+      description: Strona katalogu składników
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/IngredientResponse' }
+        page: { type: integer, format: int32 }
+        size: { type: integer, format: int32 }
+        totalElements: { type: integer, format: int64 }
+        totalPages: { type: integer, format: int32 }
+
+    AliasRequest:
+      type: object
+      description: Nowy synonim
+      required: [alias]
+      properties:
+        alias: { type: string, maxLength: 200 }
+        language: { type: string, maxLength: 5 }
+
+    AliasResponse:
+      type: object
+      description: Synonim prowadzący do pozycji katalogu
+      properties:
+        id: { type: integer, format: int64 }
+        alias: { type: string }
+        language: { type: string }
 
     DictionariesResponse:
       type: object
@@ -89,3 +681,23 @@ components:
         Rodzaj jednostki. Przeliczać wolno wyłącznie w obrębie jednego rodzaju —
         zamiana gramów na mililitry zależy od produktu i nie należy do słownika.
       enum: [MASS, VOLUME, COUNT, OTHER]
+
+    Difficulty:
+      type: string
+      description: Jak trudny jest przepis w wykonaniu
+      enum: [EASY, MEDIUM, HARD]
+
+    RecipeStatus:
+      type: string
+      description: Przepis znika z książki przez archiwizację, nie przez skasowanie
+      enum: [ACTIVE, ARCHIVED]
+
+    SourceKind:
+      type: string
+      description: Skąd przyszła treść przepisu
+      enum: [URL, TEXT, FILES, CHAT, MANUAL]
+
+    IngredientStatus:
+      type: string
+      description: NEW to pozycja dopisana automatycznie i czekająca na przejrzenie
+      enum: [NEW, VERIFIED]

@@ -76,6 +76,12 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
     </dependency>
+    <!-- puste listy ze szkicu przychodzą jako null; CollectionUtils zdejmuje
+         z kodu powtarzalne sprawdzanie null-a przed każdą iteracją -->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-collections4</artifactId>
+    </dependency>
     <!-- mappery encja → DTO generuje procesor adnotacji (ścieżka w root POM) -->
     <dependency>
       <groupId>org.mapstruct</groupId>

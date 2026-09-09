@@ -191,7 +191,7 @@ class ArchitectureTest {
         // given: zamiana szklanek na mililitry to arytmetyka — sprawdza się ją
         // przez podanie liczb, a nie przez postawienie kontekstu
         ArchRule rule = noClasses()
-            .that().resideInAPackage(BASE + ".dictionary.domain..")
+            .that().resideInAPackage(BASE + ".dictionary.units..")
             .should().dependOnClassesThat()
             .resideInAnyPackage("org.springframework..", "jakarta.persistence..", "org.hibernate..")
             .because("konwersja jednostek ma się dać testować jak zwykły kod");
@@ -207,7 +207,7 @@ class ArchitectureTest {
         // given: cofanie zmian i liczenie różnic sprawdza się przez podanie
         // dwóch stanów, a nie przez zapisanie czegokolwiek
         ArchRule rule = noClasses()
-            .that().resideInAPackage(BASE + ".revision.domain..")
+            .that().resideInAPackage(BASE + ".revision.diff..")
             .should().dependOnClassesThat()
             .resideInAnyPackage("org.springframework..", "jakarta.persistence..", "org.hibernate..")
             .because("dziennik zmian ma się dać testować jak zwykły kod")
