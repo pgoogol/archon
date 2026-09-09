@@ -28,6 +28,13 @@ ENV MUSIC_API_HOST=music-service
 ENV MUSIC_API_PORT=8080
 ENV FINANCE_API_HOST=finance-service
 ENV FINANCE_API_PORT=8081
+
+# Konfiguracja logowania podawana obrazowi, nie wbudowana w pakiet JS.
+# GOOGLE_CLIENT_ID nie jest sekretem (przeglądarka i tak go widzi), ale jest
+# zależny od środowiska, więc wchodzi tą samą drogą co adresy backendów.
+ENV AUTH_ENABLED=true
+ENV AUTH_LOCAL_ENABLED=true
+ENV GOOGLE_CLIENT_ID=
 COPY apps/web/nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /repo/apps/web/dist /usr/share/nginx/html
 EXPOSE 80

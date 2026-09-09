@@ -10,6 +10,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+import java.util.stream.Stream;
+
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideOutsideOfPackages;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
@@ -25,8 +28,11 @@ class ArchitectureTest {
 
     private static final String BASE = "com.pgoogol.music";
 
-    /** Jedyny obcy pakiet, po który serwis może sięgać: starter z libs/java. */
-    private static final String LOGGING_STARTER = "com.pgoogol.httpexchangelogger";
+    /** Jedyne obce pakiety, po które serwis może sięgać: startery z libs/java. */
+    private static final List<String> LIB_PACKAGES = List.of(
+        "com.pgoogol.httpexchangelogger",
+        "com.pgoogol.bearerauth"
+    );
 
     private static JavaClasses classesUnderTest;
 
@@ -44,7 +50,7 @@ class ArchitectureTest {
 
         // given
         ArchRule rule = classes()
-            .that().resideOutsideOfPackage(LOGGING_STARTER + "..")
+            .that().resideOutsideOfPackages(libPackages())
             .should().resideInAPackage(BASE + "..")
             .because("pakiet bezpośrednio pod com.pgoogol kolidowałby z kolejnym serwisem");
 
@@ -58,7 +64,7 @@ class ArchitectureTest {
 
         // given
         DescribedPredicate<JavaClass> foreignDomain = resideInAPackage("com.pgoogol..")
-            .and(resideOutsideOfPackages(BASE + "..", LOGGING_STARTER + ".."))
+            .and(resideOutsideOfPackages(serviceAndLibPackages()))
             .as("klasa z innej domeny com.pgoogol");
 
         ArchRule rule = noClasses()
@@ -77,6 +83,7 @@ class ArchitectureTest {
         // given
         ArchRule rule = classes()
             .that().haveSimpleNameEndingWith("Controller")
+            .and().resideInAPackage(BASE + "..")
             .should().resideInAPackage(BASE + ".api..")
             .because("kontrolery, DTO i mappery trzymamy w api");
 
@@ -91,6 +98,7 @@ class ArchitectureTest {
         // given
         ArchRule rule = noClasses()
             .that().resideOutsideOfPackage(BASE + ".api..")
+            .and().resideInAPackage(BASE + "..")
             .should().dependOnClassesThat().haveSimpleNameEndingWith("Controller")
             .because("zależność idzie od api w głąb domeny, nigdy odwrotnie");
 
@@ -109,5 +117,19 @@ class ArchitectureTest {
 
         // when / then
         rule.check(classesUnderTest);
+    }
+
+    private static String[] libPackages() {
+
+        return LIB_PACKAGES.stream()
+            .map(name -> name + "..")
+            .toArray(String[]::new);
+    }
+
+    private static String[] serviceAndLibPackages() {
+
+        Stream<String> own = Stream.of(BASE + "..");
+        Stream<String> libs = LIB_PACKAGES.stream().map(name -> name + "..");
+        return Stream.concat(own, libs).toArray(String[]::new);
     }
 }

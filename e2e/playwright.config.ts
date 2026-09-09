@@ -76,6 +76,11 @@ export default defineConfig({
         CLIENTS_SPOTIFY_AUTHURL: `http://127.0.0.1:${STUB_PORT}`,
         MB_USER_AGENT: 'archon-music-e2e (test@example.com)',
         MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: 'health,info',
+        // Bez logowania: prawdziwego tokenu Google w CI nie da się zdobyć,
+        // a stub-server istnieje właśnie po to, żeby przepływ nie zależał od
+        // zewnętrznych usług. Nazwa profilu jest jednocześnie ostrzeżeniem —
+        // zwykłe uruchomienie serwisu zawsze wymaga poświadczeń.
+        SPRING_PROFILES_ACTIVE: 'no-auth',
       },
     },
     {
@@ -90,6 +95,9 @@ export default defineConfig({
       command:
         'pnpm exec vite preview --host 127.0.0.1 --port ' + WEB_PORT + ' --strictPort',
       cwd: '../apps/web',
+      // bramka logowania zasłoniłaby cały przepływ, a kontekst żądań
+      // Playwrighta i tak nie ma skąd wziąć poświadczeń
+      env: { AUTH_ENABLED: 'false' },
       url: `http://127.0.0.1:${WEB_PORT}/`,
       timeout: 60_000,
       reuseExistingServer: !process.env.CI,

@@ -23,6 +23,7 @@
 
   <modules>
     <module>libs/java/logging-starter</module>
+    <module>libs/java/security-starter</module>
     <module>services/music-service</module>
     <module>services/finance-service</module>
   </modules>
@@ -84,6 +85,11 @@
       <dependency>
         <groupId>com.pgoogol</groupId>
         <artifactId>logging-starter</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.pgoogol</groupId>
+        <artifactId>security-starter</artifactId>
         <version>${project.version}</version>
       </dependency>
 
