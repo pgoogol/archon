@@ -29,6 +29,9 @@ import java.util.concurrent.atomic.AtomicReference;
  * {@code startup}, a po {@link #flushOutsideUnit()} do kolejnych jednostek
  * {@code background}.</p>
  *
+ * <p>Analizy wyłączone w {@link DiagnosticsSettings#disabledAnalyzers()} silnik pomija
+ * od razu przy tworzeniu, więc nie kosztują nic w żadnej jednostce.</p>
+ *
  * <p>Diagnostyka nie może zepsuć aplikacji: wyjątek z analizy albo reportera ląduje
  * w logu na DEBUG i nie wychodzi do wywołującego. Każda analiza i każdy reporter ma
  * osobny {@code try}, więc jeden zepsuty nie zabiera wyników pozostałym.</p>
@@ -53,7 +56,9 @@ public class DiagnosticsEngine {
                              List<FindingReporter> reporters, Clock clock) {
 
         this.settings = Objects.requireNonNull(settings, "ustawienia są wymagane");
-        this.analyzers = List.copyOf(analyzers);
+        this.analyzers = analyzers.stream()
+            .filter(analyzer -> settings.analyzerEnabled(analyzer.id()))
+            .toList();
         this.reporters = List.copyOf(reporters);
         this.clock = Objects.requireNonNull(clock, "zegar jest wymagany");
         if (settings.captureOutsideUnit()) {

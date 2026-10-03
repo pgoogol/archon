@@ -1,6 +1,8 @@
 package com.pgoogol.diagnostics.core;
 
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Ustawienia diagnostyki, bez Springa. Tryb wyznacza to, czego nie da się nadpisać,
@@ -25,13 +27,17 @@ import java.util.Objects;
  * @param unitShapeLimit     ile różnych kształtów analiza liczy osobno w jednej jednostce
  * @param captureOutsideUnit czy zdarzenie bez otwartej jednostki trafia do wspólnej
  *                           jednostki {@code startup}/{@code background}, zamiast przepaść
+ * @param disabledAnalyzers  identyfikatory analiz wyłączonych w tej aplikacji
+ *                           ({@code diagnostics.analyzers.<id>.enabled=false}); progi
+ *                           każdej analizy przychodzą w jej konstruktorze
  */
 public record DiagnosticsSettings(
     DiagnosticsMode mode,
     boolean captureParameters,
     int unitEventLimit,
     int unitShapeLimit,
-    boolean captureOutsideUnit) {
+    boolean captureOutsideUnit,
+    Set<String> disabledAnalyzers) {
 
     public static final int DEV_UNIT_EVENT_LIMIT = 10_000;
 
@@ -59,6 +65,7 @@ public record DiagnosticsSettings(
 
             throw new IllegalArgumentException("w trybie prod jednostka nie trzyma zdarzeń, tylko liczniki");
         }
+        disabledAnalyzers = Set.copyOf(disabledAnalyzers);
     }
 
     /** Wartości domyślne trybu; pojedyncze ustawienia zmienia się metodami {@code with…}. */
@@ -67,8 +74,8 @@ public record DiagnosticsSettings(
         Objects.requireNonNull(mode, "tryb diagnostyki jest wymagany");
         return switch (mode) {
 
-            case DEV -> new DiagnosticsSettings(mode, false, DEV_UNIT_EVENT_LIMIT, DEV_UNIT_SHAPE_LIMIT, false);
-            case PROD -> new DiagnosticsSettings(mode, false, 0, PROD_UNIT_SHAPE_LIMIT, false);
+            case DEV -> new DiagnosticsSettings(mode, false, DEV_UNIT_EVENT_LIMIT, DEV_UNIT_SHAPE_LIMIT, false, Set.of());
+            case PROD -> new DiagnosticsSettings(mode, false, 0, PROD_UNIT_SHAPE_LIMIT, false, Set.of());
         };
     }
 
@@ -76,6 +83,12 @@ public record DiagnosticsSettings(
     public boolean keepStatementText() {
 
         return Objects.equals(mode, DiagnosticsMode.DEV);
+    }
+
+    /** Czy analiza o tym identyfikatorze ma pracować; silnik pomija wyłączone. */
+    public boolean analyzerEnabled(String analyzerId) {
+
+        return !disabledAnalyzers.contains(analyzerId);
     }
 
     /** Kiedy ustalać miejsce wywołania. */
@@ -90,21 +103,35 @@ public record DiagnosticsSettings(
 
     public DiagnosticsSettings withCaptureParameters(boolean value) {
 
-        return new DiagnosticsSettings(mode, value, unitEventLimit, unitShapeLimit, captureOutsideUnit);
+        return new DiagnosticsSettings(mode, value, unitEventLimit, unitShapeLimit, captureOutsideUnit, disabledAnalyzers);
     }
 
     public DiagnosticsSettings withUnitEventLimit(int value) {
 
-        return new DiagnosticsSettings(mode, captureParameters, value, unitShapeLimit, captureOutsideUnit);
+        return new DiagnosticsSettings(mode, captureParameters, value, unitShapeLimit, captureOutsideUnit, disabledAnalyzers);
     }
 
     public DiagnosticsSettings withUnitShapeLimit(int value) {
 
-        return new DiagnosticsSettings(mode, captureParameters, unitEventLimit, value, captureOutsideUnit);
+        return new DiagnosticsSettings(mode, captureParameters, unitEventLimit, value, captureOutsideUnit, disabledAnalyzers);
     }
 
     public DiagnosticsSettings withCaptureOutsideUnit(boolean value) {
 
-        return new DiagnosticsSettings(mode, captureParameters, unitEventLimit, unitShapeLimit, value);
+        return new DiagnosticsSettings(mode, captureParameters, unitEventLimit, unitShapeLimit, value, disabledAnalyzers);
+    }
+
+    public DiagnosticsSettings withAnalyzerEnabled(String analyzerId, boolean enabled) {
+
+        Objects.requireNonNull(analyzerId, "identyfikator analizy jest wymagany");
+        Set<String> disabled = new HashSet<>(disabledAnalyzers);
+        if (enabled) {
+
+            disabled.remove(analyzerId);
+        } else {
+
+            disabled.add(analyzerId);
+        }
+        return new DiagnosticsSettings(mode, captureParameters, unitEventLimit, unitShapeLimit, captureOutsideUnit, disabled);
     }
 }

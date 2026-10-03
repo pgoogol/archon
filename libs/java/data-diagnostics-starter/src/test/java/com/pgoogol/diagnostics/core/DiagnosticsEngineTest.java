@@ -54,6 +54,21 @@ class DiagnosticsEngineTest {
     }
 
     @Test
+    @DisplayName("analiza wyłączona w ustawieniach nie startuje, więc nie daje wniosków")
+    void open_whenAnalyzerDisabled_skipsIt() {
+
+        // given
+        DiagnosticsSettings settings = DEV.withAnalyzerEnabled("counting", false);
+        DiagnosticsEngine engine = engine(settings, new CountingAnalyzer());
+
+        // when
+        runUnit(engine, 3);
+
+        // then
+        assertThat(reporter.single().findings()).isEmpty();
+    }
+
+    @Test
     @DisplayName("granica otwarta wewnątrz innej dołącza do jej jednostki, więc raport jest jeden")
     void open_whenUnitAlreadyOpen_joinsItAndReportsOnce() {
 

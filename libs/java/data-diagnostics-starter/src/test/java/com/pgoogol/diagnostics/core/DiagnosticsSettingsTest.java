@@ -84,6 +84,25 @@ class DiagnosticsSettingsTest {
     }
 
     @Test
+    @DisplayName("wyłączona analiza przestaje pracować, a ponowne włączenie ją przywraca")
+    void withAnalyzerEnabled_whenToggled_switchesOnlyThatAnalyzer() {
+
+        // given
+        DiagnosticsSettings settings = DiagnosticsSettings.defaults(DiagnosticsMode.DEV);
+
+        // when
+        DiagnosticsSettings disabled = settings.withAnalyzerEnabled("n-plus-one", false);
+        DiagnosticsSettings enabledAgain = disabled.withAnalyzerEnabled("n-plus-one", true);
+
+        // then
+        assertAll(
+            () -> assertThat(settings.analyzerEnabled("n-plus-one")).isTrue(),
+            () -> assertThat(disabled.analyzerEnabled("n-plus-one")).isFalse(),
+            () -> assertThat(disabled.analyzerEnabled("slow-operation")).isTrue(),
+            () -> assertThat(enabledAgain.analyzerEnabled("n-plus-one")).isTrue());
+    }
+
+    @Test
     @DisplayName("limit kształtów musi zostawić miejsce choć na jeden kształt")
     void withUnitShapeLimit_whenZero_fails() {
 
