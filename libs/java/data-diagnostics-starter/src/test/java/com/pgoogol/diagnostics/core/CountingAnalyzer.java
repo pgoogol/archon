@@ -3,6 +3,7 @@ package com.pgoogol.diagnostics.core;
 import com.pgoogol.diagnostics.core.analysis.AnalysisSession;
 import com.pgoogol.diagnostics.core.analysis.DiagnosticAnalyzer;
 import com.pgoogol.diagnostics.core.report.Finding;
+import com.pgoogol.diagnostics.core.report.Severity;
 
 import java.util.List;
 
@@ -14,7 +15,7 @@ final class CountingAnalyzer implements DiagnosticAnalyzer {
     /** Wniosek, który ta analiza oddaje po {@code count} zdarzeniach. */
     static Finding findingFor(int count) {
 
-        return new Finding(CODE, "zdarzenia: " + count);
+        return new Finding(CODE, Severity.INFO, "zdarzenia: " + count, count, 0, List.of());
     }
 
     @Override

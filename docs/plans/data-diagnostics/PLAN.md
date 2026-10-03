@@ -45,8 +45,9 @@ Od 1.4 testy integracyjne potrzebują PostgreSQL. Bez Dockera: `service postgres
 | 1.1.6 Silnik | zrobione | `DiagnosticsEngine` (`open` → `UnitOfWorkScope` bez wyjątku sprawdzanego, licznik wejść, `ThreadLocal`, `flushOutsideUnit()` raportuje jednostkę `startup`, potem kolejne `background`) i pakietowa `RunningUnit` (sesje analiz pod `ReentrantLock`, bo `synchronized` przypina wątek wirtualny na JDK 21; sesja po wyjątku wypada z jednostki; łapane też `LinkageError`). Kontrakt `DiagnosticAnalyzer`/`AnalysisSession` z 1.2.1 wszedł tu, bo bez niego potoku zamknięcia nie da się przetestować; do tego `FindingReporter` i `Finding` w wersji minimalnej (kod, tytuł), resztę pól dokłada 1.3.1. Zielono na JDK 21, JDK 25 niesprawdzony |
 | 1.2.1 Kontrakt analiz | zrobione | interfejsy weszły w 1.1.6. Tu: `DiagnosticsSettings.disabledAnalyzers` (`diagnostics.analyzers.<id>.enabled`), silnik odfiltrowuje wyłączone analizy przy tworzeniu. Progi każdej analizy przychodzą w jej konstruktorze (wartości domyślne trybu w `defaults(settings)`), warstwa Springa w 1.4.6 zwiąże je z `diagnostics.analyzers.<id>.*`. Zielono na JDK 21 |
 | 1.2.2 Licznik kształtów | zrobione | publiczny `ShapeStats` (klucz: magazyn + kształt; ponad limit nowe kształty idą do kubełka `other`, osobnego na magazyn, oznaczonego `overflow`, bez przykładu tekstu) i pakietowy `ShapeAccumulator`; migawka `ShapeSummary` w `core.report`, bo trafi do wniosków. Liczy też błędy, bo potrzebuje ich 1.2.6. W testach builder `DataAccessEventBuilder`. Zielono na JDK 21 |
-| 1.2.3 Waga | następny | |
-| 1.2.4 – 1.9.4 | do zrobienia | |
+| 1.2.3 Waga | zrobione | `Severity` w `core.report` (część wniosku, inaczej `report` i `analysis` zależałyby od siebie nawzajem), `SeverityScale` w `core.analysis`: próg włącznie → `WARN`, od `criticalMultiplier`× progu → `CRITICAL`, granica nasyca się zamiast przepełnić. `Finding` dostał wagę, pomiar, próg i `shapes` (lista `ShapeSummary`), bo analizy 1.2.4–1.2.7 muszą gdzieś oddać dane; w 1.3.1 zostają odcisk, `detectedAt`, wersja formatu i podsumowanie jednostki. Zielono na JDK 21 |
+| 1.2.4 N+1 | następny | |
+| 1.2.5 – 1.9.4 | do zrobienia | |
 | Etapy 2–5+ | do zrobienia | |
 
 ## Decyzje (2026-10-03)
