@@ -47,8 +47,9 @@ Od 1.4 testy integracyjne potrzebują PostgreSQL. Bez Dockera: `service postgres
 | 1.2.2 Licznik kształtów | zrobione | publiczny `ShapeStats` (klucz: magazyn + kształt; ponad limit nowe kształty idą do kubełka `other`, osobnego na magazyn, oznaczonego `overflow`, bez przykładu tekstu) i pakietowy `ShapeAccumulator`; migawka `ShapeSummary` w `core.report`, bo trafi do wniosków. Liczy też błędy, bo potrzebuje ich 1.2.6. W testach builder `DataAccessEventBuilder`. Zielono na JDK 21 |
 | 1.2.3 Waga | zrobione | `Severity` w `core.report` (część wniosku, inaczej `report` i `analysis` zależałyby od siebie nawzajem), `SeverityScale` w `core.analysis`: próg włącznie → `WARN`, od `criticalMultiplier`× progu → `CRITICAL`, granica nasyca się zamiast przepełnić. `Finding` dostał wagę, pomiar, próg i `shapes` (lista `ShapeSummary`), bo analizy 1.2.4–1.2.7 muszą gdzieś oddać dane; w 1.3.1 zostają odcisk, `detectedAt`, wersja formatu i podsumowanie jednostki. Zielono na JDK 21 |
 | 1.2.4 N+1 | zrobione | `NPlusOneAnalyzer` z `defaults(settings)` (próg 5/10) na pakietowej `RepeatedShapeSession`, którą użyje też 1.2.5; kubełek `other` nie daje wniosku, wnioski od najczęstszego kształtu. W testach pomocnik `AnalyzerRuns`. Zielono na JDK 21 |
-| 1.2.5 Brak batcha | następny | |
-| 1.2.6 – 1.9.4 | do zrobienia | |
+| 1.2.5 Brak batcha | zrobione | `MissingBatchAnalyzer` (próg 5 w obu trybach) na `RepeatedShapeSession`: liczy tylko `WRITE` z rozmiarem batcha 0. Zielono na JDK 21 |
+| 1.2.6 Wolne operacje | następny | |
+| 1.2.7 – 1.9.4 | do zrobienia | |
 | Etapy 2–5+ | do zrobienia | |
 
 ## Decyzje (2026-10-03)
