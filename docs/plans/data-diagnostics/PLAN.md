@@ -15,6 +15,7 @@ Plan biblioteki diagnostyki dostępu do danych (`libs/java/data-diagnostics-star
 
 - Etap 0: `claude/spring-boot-4.1` → PR [pgoogol/archon#14](https://github.com/pgoogol/archon/pull/14).
 - Etap 1: `claude/hopeful-darwin-j7r2ur` → PR [pgoogol/archon#15](https://github.com/pgoogol/archon/pull/15). Zbudowany na `claude/spring-boot-4.1`, bo potrzebuje Boota 4.1, więc do merge'a PR #14 diff #15 zawiera też commity etapu 0. Po merge PR #14 wciągnij `main` merge'em (bez rebase'u).
+- Etap 1, od 1.1.2: `claude/data-diagnostics-1.1` od `main` po merge PR #15.
 
 ### Środowisko (kontener bez Dockera)
 
@@ -36,8 +37,9 @@ Od 1.4 testy integracyjne potrzebują PostgreSQL. Bez Dockera: `service postgres
 | 0.1 Boot 4.1.1 | zrobione | `Podbij Spring Boot do 4.1.1`; springdoc 3.1.0 już na Boot 4.1 |
 | 0.2 JDK 21 i 25 w CI | zrobione | `Testuj build Javy na JDK 21 i 25` |
 | 1.1.1 Moduł | zrobione | moduł w reaktorze, pakiety `core`, `core.store`, `core.analysis`, `core.report` z `package-info.java`; zielono na JDK 21 i 25 |
-| 1.1.2 Test architektury | następny | |
-| 1.1.3 – 1.9.4 | do zrobienia | |
+| 1.1.2 Test architektury | zrobione | `ArchitectureTest`: wszystkie klasy pod `com.pgoogol.diagnostics`, `core` bez Springa, JPA, datasource-proxy i Hibernate. Import z `target/classes`, nie po pakiecie, bo tylko tak widać klasę spoza `com.pgoogol`. Zielono na JDK 21, JDK 25 niesprawdzony (brak na maszynie) |
+| 1.1.3 Model zdarzenia | następny | |
+| 1.1.4 – 1.9.4 | do zrobienia | |
 | Etapy 2–5+ | do zrobienia | |
 
 ## Decyzje (2026-10-03)
