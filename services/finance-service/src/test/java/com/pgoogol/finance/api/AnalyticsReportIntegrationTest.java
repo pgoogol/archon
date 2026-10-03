@@ -2,7 +2,6 @@ package com.pgoogol.finance.api;
 
 import com.pgoogol.finance.TestcontainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -31,7 +30,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Etap 5: raporty analityczne i pulpit. Daty liczone są od dzisiaj, bo prognoza
  * i terminarz z natury odnoszą się do bieżącej chwili — test na sztywnych
- * datach przestałby cokolwiek sprawdzać po pierwszym miesiącu.
+ * datach przestałby cokolwiek sprawdzać po pierwszym miesiącu. Operacje
+ * z bieżącego miesiąca nie leżą nigdy po dzisiejszym dniu, patrz
+ * {@link #thisMonthUpToToday(int)}.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -74,8 +75,8 @@ class AnalyticsReportIntegrationTest {
         housing = createCategory("Mieszkanie", "EXPENSE");
 
         expense(LAST_MONTH.atDay(5), 10_000L, food, "Biedronka");
-        expense(THIS_MONTH.atDay(4), 15_000L, food, "Biedronka");
-        expense(THIS_MONTH.atDay(6), 40_000L, housing, "Wspólnota");
+        expense(thisMonthUpToToday(4), 15_000L, food, "Biedronka");
+        expense(thisMonthUpToToday(6), 40_000L, housing, "Wspólnota");
     }
 
     @Test
@@ -180,9 +181,6 @@ class AnalyticsReportIntegrationTest {
     }
 
     @Test
-    @Disabled("""
-        pada do 6. dnia miesiąca: wydatki z 4. i 6. dnia bieżącego miesiąca leżą wtedy \
-        w przyszłości i nie wchodzą do dzisiejszego salda""")
     @DisplayName("prognoza zaczyna od dzisiejszego salda i odejmuje zaplanowane płatności")
     void forecast_startsFromTodayBalanceAndSubtractsScheduledPayments() throws Exception {
 
@@ -226,14 +224,11 @@ class AnalyticsReportIntegrationTest {
     }
 
     @Test
-    @Disabled("""
-        pada do 10. dnia miesiąca: przelew z 10. dnia bieżącego miesiąca leży wtedy \
-        w przyszłości i nie wchodzi do salda""")
     @DisplayName("ekspozycja walutowa pokazuje saldo bez kursu z pustą wyceną")
     void currencyExposure_showsBalanceWithoutRateAsUnvalued() throws Exception {
 
         // given: nikt nie pobrał kursu EUR
-        transfer(THIS_MONTH.atDay(10), 20_000L, 5_000L);
+        transfer(thisMonthUpToToday(10), 20_000L, 5_000L);
 
         // when
         JsonNode report = objectMapper.readTree(body("/finance/api/v1/reports/currency-exposure"));
@@ -262,6 +257,18 @@ class AnalyticsReportIntegrationTest {
             .andExpect(jsonPath("$.monthIncomeMinor").value(0))
             .andExpect(jsonPath("$.monthNetMinor").value(-55_000))
             .andExpect(jsonPath("$.accountBalances.length()").value(2));
+    }
+
+    /**
+     * Dzień bieżącego miesiąca, ale nie późniejszy niż dziś. Saldo „na dziś” liczy
+     * tylko operacje zaksięgowane najpóźniej dzisiaj. Gdyby dane testowe wpadały
+     * wprost na 6. dzień, test prognozy padałby przez pierwsze pięć dni każdego
+     * miesiąca.
+     */
+    private static LocalDate thisMonthUpToToday(int dayOfMonth) {
+
+        int day = Math.min(dayOfMonth, TODAY.getDayOfMonth());
+        return THIS_MONTH.atDay(day);
     }
 
     private String body(String url) throws Exception {
