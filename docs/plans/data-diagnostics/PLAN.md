@@ -49,8 +49,8 @@ Od 1.4 testy integracyjne potrzebują PostgreSQL. Bez Dockera: `service postgres
 | 1.2.4 N+1 | zrobione | `NPlusOneAnalyzer` z `defaults(settings)` (próg 5/10) na pakietowej `RepeatedShapeSession`, którą użyje też 1.2.5; kubełek `other` nie daje wniosku, wnioski od najczęstszego kształtu. W testach pomocnik `AnalyzerRuns`. Zielono na JDK 21 |
 | 1.2.5 Brak batcha | zrobione | `MissingBatchAnalyzer` (próg 5 w obu trybach) na `RepeatedShapeSession`: liczy tylko `WRITE` z rozmiarem batcha 0. Zielono na JDK 21 |
 | 1.2.6 Wolne operacje | zrobione | `SlowOperationAnalyzer`: próg domyślny 100/500 ms plus progi według nazwy magazynu (`thresholdFor(store)`), co najmniej 1 ms, bo pomiar wniosku to najdłuższe wykonanie w milisekundach. Jeden wniosek na kształt z liczbą wolnych wykonań, błędy osobno w `failures` i w tytule. Zielono na JDK 21 |
-| 1.2.7 Liczba operacji | następny | |
-| 1.2.8 Testy | do zrobienia | |
+| 1.2.7 Liczba operacji | zrobione | `OperationCountAnalyzer` (próg 50/100) z pięcioma najczęstszymi kształtami bez kubełka `other`. Odstępstwo: próg włącznie (`≥`), nie `>` jak w opisie 1.2.7, bo 1.2.8 wymaga `WARN` na progu i tak liczą pozostałe analizy. Zielono na JDK 21 |
+| 1.2.8 Testy | następny | testy progów każdej analizy weszły razem z nią (nowa logika = testy w tej samej zmianie); tu zostaje wspólny test kontraktu wszystkich analiz |
 | 1.3.1 – 1.9.4 | do zrobienia | |
 | Etapy 2–5+ | do zrobienia | |
 
