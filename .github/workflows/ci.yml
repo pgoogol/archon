@@ -19,16 +19,23 @@ env:
 
 jobs:
 
+  # Kod kompiluje się z release=21, a uruchamiany bywa na 21 i 25 —
+  # testy idą na obu JDK. fail-fast wyłączony, żeby wynik drugiej wersji
+  # był widoczny także wtedy, gdy pierwsza padnie.
   java:
-    name: Java — verify z testami integracyjnymi
+    name: Java ${{ matrix.java }} — verify z testami integracyjnymi
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        java: ['21', '25']
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: ${{ env.JAVA_VERSION }}
+          java-version: ${{ matrix.java }}
           cache: maven
 
       # Testcontainers startuje własnego Postgresa 16 — runner ma Dockera,
@@ -44,7 +51,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: jacoco
+          name: jacoco-java-${{ matrix.java }}
           path: services/*/target/site/jacoco/
           if-no-files-found: ignore
 
