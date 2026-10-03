@@ -18,11 +18,16 @@
   <description>Starter diagnostyki dostępu do danych — przechwytywanie operacji, analizy (N+1, wolne zapytania), raport wniosków</description>
 
   <dependencies>
-    <!-- rdzeń (com.pgoogol.diagnostics.core) zna tylko SLF4J; Spring dochodzi
-         jako opcjonalny razem z pierwszą strategią przechwytywania -->
+    <!-- rdzeń (com.pgoogol.diagnostics.core) zna tylko SLF4J i adnotacje JSpecify;
+         Spring dochodzi jako opcjonalny razem z pierwszą strategią przechwytywania -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <!-- @Nullable bez Springa: org.springframework.lang jest dla rdzenia zakazany -->
+    <dependency>
+      <groupId>org.jspecify</groupId>
+      <artifactId>jspecify</artifactId>
     </dependency>
 
     <dependency>
