@@ -14,7 +14,7 @@ Plan biblioteki diagnostyki dostępu do danych (`libs/java/data-diagnostics-star
 ### Branche
 
 - Etap 0: `claude/spring-boot-4.1` → PR [pgoogol/archon#14](https://github.com/pgoogol/archon/pull/14).
-- Etap 1: `claude/hopeful-darwin-j7r2ur`, zbudowany na `claude/spring-boot-4.1`, bo potrzebuje Boota 4.1. Po merge PR #14 wciągnij `main` merge'em (bez rebase'u).
+- Etap 1: `claude/hopeful-darwin-j7r2ur` → PR [pgoogol/archon#15](https://github.com/pgoogol/archon/pull/15). Zbudowany na `claude/spring-boot-4.1`, bo potrzebuje Boota 4.1, więc do merge'a PR #14 diff #15 zawiera też commity etapu 0. Po merge PR #14 wciągnij `main` merge'em (bez rebase'u).
 
 ### Środowisko (kontener bez Dockera)
 
