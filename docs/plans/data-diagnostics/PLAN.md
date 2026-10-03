@@ -39,8 +39,9 @@ Od 1.4 testy integracyjne potrzebują PostgreSQL. Bez Dockera: `service postgres
 | 1.1.1 Moduł | zrobione | moduł w reaktorze, pakiety `core`, `core.store`, `core.analysis`, `core.report` z `package-info.java`; zielono na JDK 21 i 25 |
 | 1.1.2 Test architektury | zrobione | `ArchitectureTest`: wszystkie klasy pod `com.pgoogol.diagnostics`, `core` bez Springa, JPA, datasource-proxy i Hibernate. Import z `target/classes`, nie po pakiecie, bo tylko tak widać klasę spoza `com.pgoogol`. Zielono na JDK 21, JDK 25 niesprawdzony (brak na maszynie) |
 | 1.1.3 Model zdarzenia | zrobione | `DataStore` (nazwa tylko `[a-z0-9-]`, bo trafia do kluczy ustawień i tagów), `OperationKind`, `CallSite`, `DataAccessEvent`; walidacja w konstruktorach. Doszła zależność `jspecify` (wersja z BOM-u Boota), bo `@Nullable` ze Springa jest w `core` zakazany. Zielono na JDK 21, JDK 25 niesprawdzony |
-| 1.1.4 Strategia bazy | następny | |
-| 1.1.5 – 1.9.4 | do zrobienia | |
+| 1.1.4 Strategia bazy | zrobione | `DataStoreSupport`, `PostgreSqlSupport` na pakietowych `PostgreSqlLexer` (tokeny, literały → `?`, komentarze, też zagnieżdżone), `RepeatedListCollapser` (lista zwija się tylko, gdy wszystkie elementy mają ten sam kształt) i `PostgreSqlStatementClassifier` (na tokenach; CTE z `DELETE … RETURNING` pod `SELECT` → `WRITE`). Ponad plan: przedrostki `B'`/`X'`/`N'`, test „ucięty tekst nie rzuca”. Do etapu 4: `shape` i `classify` tokenizują zapytanie osobno. Zielono na JDK 21, JDK 25 niesprawdzony |
+| 1.1.5 Jednostka pracy | następny | |
+| 1.1.6 – 1.9.4 | do zrobienia | |
 | Etapy 2–5+ | do zrobienia | |
 
 ## Decyzje (2026-10-03)
