@@ -1,10 +1,10 @@
 # data-diagnostics: plan i stan prac
 
-Plan biblioteki diagnostyki dostępu do danych (`libs/java/data-diagnostics-starter`). Plik jest punktem wejścia dla każdej nowej sesji: najpierw stan, potem decyzje, potem szczegóły etapów. Pierwotny dokument przekazania pracy z czatu, razem ze szkicem kodu (normalizacja SQL, resolver miejsca wywołania), leży obok: [`handoff.md`](handoff.md). Tam, gdzie handoff mówi inaczej niż ten plan, obowiązuje plan.
+Plan biblioteki diagnostyki dostępu do danych (`libs/java/data-diagnostics-starter`). Plik jest punktem wejścia dla każdej nowej sesji: najpierw stan, potem decyzje, potem szczegóły etapów.
 
 ## Jak wznowić pracę w nowej sesji
 
-1. Przeczytaj ten plik w całości, potem `CLAUDE.md` i `.claude/rules/backend-*.md`. Reguły archona mają pierwszeństwo przed handoffem.
+1. Przeczytaj ten plik w całości, potem `CLAUDE.md` i `.claude/rules/backend-*.md`.
 2. Sprawdź tabelę „Stan” poniżej: weź pierwszy podpunkt bez znacznika „zrobione”.
 3. Pokaż Patrykowi krótki plan tego podpunktu i poczekaj na akceptację. Jeden podpunkt = jeden commit.
 4. Po podpunkcie: testy na JDK 21 i JDK 25, wynik w odpowiedzi, aktualizacja tabeli „Stan” w tym pliku w tym samym commicie.
