@@ -42,8 +42,9 @@ Od 1.4 testy integracyjne potrzebują PostgreSQL. Bez Dockera: `service postgres
 | 1.1.4 Strategia bazy | zrobione | `DataStoreSupport`, `PostgreSqlSupport` na pakietowych `PostgreSqlLexer` (tokeny, literały → `?`, komentarze, też zagnieżdżone), `RepeatedListCollapser` (lista zwija się tylko, gdy wszystkie elementy mają ten sam kształt) i `PostgreSqlStatementClassifier` (na tokenach; CTE z `DELETE … RETURNING` pod `SELECT` → `WRITE`). Ponad plan: przedrostki `B'`/`X'`/`N'`, test „ucięty tekst nie rzuca”. Do etapu 4: `shape` i `classify` tokenizują zapytanie osobno. Zielono na JDK 21, JDK 25 niesprawdzony |
 | 1.1.5 Jednostka pracy | zrobione | `UnitOfWork` (liczniki atomowe, lista zdarzeń w kolejce bez blokad, limit 0 wyłącza listę, zamknięta jednostka odrzuca zdarzenia), `UnitOfWorkType` jako otwarty zbiór ze stałymi, w tym `background` dla zdarzeń poza jednostką po starcie. Test współbieżności na wątkach wirtualnych. Zielono na JDK 21, JDK 25 niesprawdzony |
 | 1.1.7 Ustawienia | zrobione | przed 1.1.6, bo silnik czyta ustawienia. `DiagnosticsSettings` z `defaults(mode)` i metodami `with…`; tekst zapytania i `CallSiteCapture` wynikają z trybu. Parametry albo lista zdarzeń w prod to wyjątek przy starcie, nie cicha poprawka. Doszło `captureOutsideUnit` z 1.1.6. Zielono na JDK 21, JDK 25 niesprawdzony |
-| 1.1.6 Silnik | następny | |
-| 1.2.1 – 1.9.4 | do zrobienia | |
+| 1.1.6 Silnik | zrobione | `DiagnosticsEngine` (`open` → `UnitOfWorkScope` bez wyjątku sprawdzanego, licznik wejść, `ThreadLocal`, `flushOutsideUnit()` raportuje jednostkę `startup`, potem kolejne `background`) i pakietowa `RunningUnit` (sesje analiz pod `ReentrantLock`, bo `synchronized` przypina wątek wirtualny na JDK 21; sesja po wyjątku wypada z jednostki; łapane też `LinkageError`). Kontrakt `DiagnosticAnalyzer`/`AnalysisSession` z 1.2.1 wszedł tu, bo bez niego potoku zamknięcia nie da się przetestować; do tego `FindingReporter` i `Finding` w wersji minimalnej (kod, tytuł), resztę pól dokłada 1.3.1. Zielono na JDK 21, JDK 25 niesprawdzony |
+| 1.2.1 Kontrakt analiz | następny | interfejsy już są (1.1.6); zostaje włączanie, wyłączanie i progi po `id()` |
+| 1.2.2 – 1.9.4 | do zrobienia | |
 | Etapy 2–5+ | do zrobienia | |
 
 ## Decyzje (2026-10-03)
