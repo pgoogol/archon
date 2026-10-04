@@ -42,6 +42,8 @@ public class UnitOfWork {
 
     private final AtomicLong droppedEvents = new AtomicLong();
 
+    private final AtomicLong databaseNanos = new AtomicLong();
+
     private final Queue<DataAccessEvent> events = new ConcurrentLinkedQueue<>();
 
     private final AtomicReference<@Nullable Instant> end = new AtomicReference<>();
@@ -81,6 +83,8 @@ public class UnitOfWork {
             return false;
         }
         long ordinal = operations.incrementAndGet();
+        Duration duration = event.duration();
+        databaseNanos.addAndGet(duration.toNanos());
         keep(event, ordinal);
         return true;
     }
@@ -137,6 +141,24 @@ public class UnitOfWork {
     public long operationCount() {
 
         return operations.get();
+    }
+
+    /** Łączny czas operacji jednostki w magazynach danych. */
+    public Duration databaseTime() {
+
+        long nanos = databaseNanos.get();
+        return Duration.ofNanos(nanos);
+    }
+
+    /**
+     * Niezmienna migawka jednostki dla wyjść wniosków: nie trzyma listy zdarzeń, więc
+     * można ją przechować albo przekazać dalej bez trzymania całej jednostki.
+     */
+    public UnitOfWorkSummary summary() {
+
+        Instant closedAt = end.get();
+        Duration database = databaseTime();
+        return new UnitOfWorkSummary(id, name, type, traceId, operationCount(), database, start, closedAt);
     }
 
     /** Operacje policzone, ale nietrzymane na liście, bo przekroczyły limit. */

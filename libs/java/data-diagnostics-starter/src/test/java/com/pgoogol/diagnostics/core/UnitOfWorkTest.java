@@ -133,6 +133,30 @@ class UnitOfWorkTest {
     }
 
     @Test
+    @DisplayName("migawka zamkniętej jednostki niesie liczbę operacji, czas w bazie i czas trwania")
+    void summary_whenClosed_carriesTotalsAndTimes() {
+
+        // given
+        UnitOfWork unit = new UnitOfWork("a1b2c3d4", "GET /orders", UnitOfWorkType.HTTP, START, "trace-1", 0);
+        IntStream.range(0, 3)
+            .mapToObj(index -> read("select 1"))
+            .forEach(unit::record);
+        unit.close(START.plusMillis(25));
+
+        // when
+        UnitOfWorkSummary summary = unit.summary();
+
+        // then
+        assertAll(
+            () -> assertThat(summary.name()).isEqualTo("GET /orders"),
+            () -> assertThat(summary.traceId()).isEqualTo("trace-1"),
+            () -> assertThat(summary.operationCount()).isEqualTo(3),
+            () -> assertThat(summary.databaseTime()).isEqualTo(Duration.ofMillis(6)),
+            () -> assertThat(summary.end()).isEqualTo(START.plusMillis(25)),
+            () -> assertThat(summary.duration()).contains(Duration.ofMillis(25)));
+    }
+
+    @Test
     @DisplayName("ujemny limit zdarzeń jest odrzucany")
     void constructor_whenEventLimitNegative_fails() {
 
