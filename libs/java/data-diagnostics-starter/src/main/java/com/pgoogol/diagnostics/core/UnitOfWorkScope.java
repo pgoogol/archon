@@ -10,6 +10,12 @@ public interface UnitOfWorkScope extends AutoCloseable {
     UnitOfWork unit();
 
     /**
+     * Czy ta granica otworzyła jednostkę, a nie dołączyła do już otwartej. Granica, która
+     * nadaje jednostce nazwę dopiero na końcu, robi to tylko wtedy, gdy ją otworzyła.
+     */
+    boolean opened();
+
+    /**
      * Bez wyjątku sprawdzanego, żeby try-with-resources nie wymagał {@code catch}.
      * Granicę zamyka się w wątku, który ją otworzył; drugie zamknięcie nic nie robi.
      */

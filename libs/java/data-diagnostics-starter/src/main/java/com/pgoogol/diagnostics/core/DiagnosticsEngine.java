@@ -90,11 +90,11 @@ public class DiagnosticsEngine {
         if (Objects.nonNull(running) && running.unit().isOpen()) {
 
             running.enter();
-            return new Scope(running);
+            return new Scope(running, false);
         }
         RunningUnit started = startUnit(name, type, traceId);
         current.set(started);
-        return new Scope(started);
+        return new Scope(started, true);
     }
 
     /** Dolicza operację do jednostki bieżącego wątku. */
@@ -198,17 +198,26 @@ public class DiagnosticsEngine {
 
         private final RunningUnit running;
 
+        private final boolean opened;
+
         private final AtomicBoolean closed = new AtomicBoolean();
 
-        private Scope(RunningUnit running) {
+        private Scope(RunningUnit running, boolean opened) {
 
             this.running = running;
+            this.opened = opened;
         }
 
         @Override
         public UnitOfWork unit() {
 
             return running.unit();
+        }
+
+        @Override
+        public boolean opened() {
+
+            return opened;
         }
 
         @Override

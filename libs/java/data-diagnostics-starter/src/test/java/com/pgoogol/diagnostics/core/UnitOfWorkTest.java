@@ -157,6 +157,35 @@ class UnitOfWorkTest {
     }
 
     @Test
+    @DisplayName("trwającą jednostkę da się przemianować, gdy granica pozna wzorzec trasy")
+    void rename_whenOpen_changesName() {
+
+        // given
+        UnitOfWork unit = unit(10);
+
+        // when
+        unit.rename("GET /orders/{id}");
+
+        // then
+        assertThat(unit.name()).isEqualTo("GET /orders/{id}");
+    }
+
+    @Test
+    @DisplayName("zamknięta jednostka zachowuje nazwę, pod którą trafiła do raportu")
+    void rename_whenClosed_keepsReportedName() {
+
+        // given
+        UnitOfWork unit = unit(10);
+        unit.close(START.plusMillis(5));
+
+        // when
+        unit.rename("GET /other");
+
+        // then
+        assertThat(unit.name()).isEqualTo("GET /orders");
+    }
+
+    @Test
     @DisplayName("ujemny limit zdarzeń jest odrzucany")
     void constructor_whenEventLimitNegative_fails() {
 

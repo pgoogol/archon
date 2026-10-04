@@ -28,7 +28,7 @@ public class UnitOfWork {
 
     private final String id;
 
-    private final String name;
+    private volatile String name;
 
     private final UnitOfWorkType type;
 
@@ -87,6 +87,20 @@ public class UnitOfWork {
         databaseNanos.addAndGet(duration.toNanos());
         keep(event, ordinal);
         return true;
+    }
+
+    /**
+     * Zmienia nazwę trwającej jednostki. Granica HTTP zna wzorzec trasy dopiero po
+     * dopasowaniu handlera, a jednostkę musi otworzyć wcześniej, więc nadaje nazwę na końcu.
+     * Zamknięta jednostka zachowuje nazwę, pod którą trafiła do raportu.
+     */
+    public void rename(String newName) {
+
+        String checked = requireNotBlank(newName, "nazwa jednostki jest wymagana");
+        if (isOpen()) {
+
+            name = checked;
+        }
     }
 
     /** Zamyka jednostkę; kolejne zamknięcie nie zmienia już czasu końca. */
