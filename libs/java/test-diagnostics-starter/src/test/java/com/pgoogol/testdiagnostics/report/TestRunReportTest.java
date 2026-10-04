@@ -1,6 +1,7 @@
 package com.pgoogol.testdiagnostics.report;
 
 import com.pgoogol.testdiagnostics.core.ClassRecord;
+import com.pgoogol.testdiagnostics.core.EnvironmentCause;
 import com.pgoogol.testdiagnostics.core.EnvironmentStart;
 import com.pgoogol.testdiagnostics.core.FailureRecord;
 import com.pgoogol.testdiagnostics.core.TestRunSnapshot;
@@ -152,7 +153,7 @@ class TestRunReportTest {
         // given
         TestRunSnapshot snapshot = snapshot()
             .passingClass(ORDERS, 9_000, 4_000, 3)
-            .withEnvironment(EnvironmentStart.started(ORDERS, 3_000, List.of("test"), 300))
+            .withEnvironment(EnvironmentStart.started(ORDERS, 3_000, List.of("test"), 300, EnvironmentCause.first()))
             .build();
 
         // when
@@ -187,7 +188,7 @@ class TestRunReportTest {
         // given
         TestRunSnapshot snapshot = snapshot()
             .withClass(new ClassRecord(ORDERS, 9_000, 4_000, 3_500, 3, 1, 1))
-            .withEnvironment(EnvironmentStart.started(ORDERS, 3_000, List.of("test"), 300))
+            .withEnvironment(EnvironmentStart.started(ORDERS, 3_000, List.of("test"), 300, EnvironmentCause.first()))
             .withResumes(2, 500)
             .build();
 
@@ -198,7 +199,7 @@ class TestRunReportTest {
         assertThat(lines.subList(lines.size() - 2, lines.size())).containsExactly(
             P + """
                 DATA label=nightly_run tests=3 failed=1 skipped=1 class_failures=0 classes=1 wall_s=10 \
-                env_count=1 env_s=3 env_resumed=2 env_resume_s=0 test_s=4 other_s=2 \
+                env_count=1 env_s=3 env_reloaded=0 env_resumed=2 env_resume_s=0 test_s=4 other_s=2 \
                 heap_max_mb=1024 heap_peak_mb=400 heap_live_mb=200 nonheap_mb=120 gc_s=0 full_gc=0""",
             P + "=".repeat(78));
     }

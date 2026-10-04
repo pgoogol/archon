@@ -69,8 +69,19 @@ final class ReportLines {
     void rowValue(String labelKey, String value) {
 
         String label = messages.text(labelKey);
+        labeledRow(label, value);
+    }
+
+    /** Wiersz z etykietą już przetłumaczoną, np. nazwą atrybutu konfiguracji. */
+    void labeledRow(String label, String value) {
+
         String leader = leader(label);
         indented(leader + " " + value);
+    }
+
+    String attributeLabel(String attribute) {
+
+        return messages.attributeLabel(attribute);
     }
 
     void indented(String text) {

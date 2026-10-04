@@ -84,7 +84,18 @@ public final class ReportMessages {
     /** Nazwa przebiegu do nagłówka: {@code unit} → „unit tests”; nieznany identyfikator zostaje bez zmian. */
     public String runLabel(String id) {
 
-        String key = "label." + id;
+        return labelOrId("label.", id);
+    }
+
+    /** Nazwa atrybutu konfiguracji kontekstu, np. {@code profiles} → „profiles”; nieznany zostaje bez zmian. */
+    public String attributeLabel(String attribute) {
+
+        return labelOrId("attribute.", attribute);
+    }
+
+    private String labelOrId(String prefix, String id) {
+
+        String key = prefix + id;
         if (bundle.containsKey(key)) {
 
             return bundle.getString(key);

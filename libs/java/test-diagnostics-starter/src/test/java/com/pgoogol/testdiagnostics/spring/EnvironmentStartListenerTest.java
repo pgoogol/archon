@@ -1,6 +1,8 @@
 package com.pgoogol.testdiagnostics.spring;
 
+import com.pgoogol.testdiagnostics.core.AttributeDifference;
 import com.pgoogol.testdiagnostics.core.ClassRecord;
+import com.pgoogol.testdiagnostics.core.EnvironmentCause;
 import com.pgoogol.testdiagnostics.core.EnvironmentStart;
 import com.pgoogol.testdiagnostics.core.MemorySnapshotFixtures;
 import com.pgoogol.testdiagnostics.core.TestRunRecorder;
@@ -8,6 +10,10 @@ import com.pgoogol.testdiagnostics.core.TestRunSnapshot;
 import com.pgoogol.testdiagnostics.junit.NestedLauncher;
 import com.pgoogol.testdiagnostics.junit.TestDiagnosticsExecutionListener;
 import com.pgoogol.testdiagnostics.spring.fixture.BrokenContextCases;
+import com.pgoogol.testdiagnostics.spring.fixture.DirtiesAFirstCases;
+import com.pgoogol.testdiagnostics.spring.fixture.DirtiesBSecondCases;
+import com.pgoogol.testdiagnostics.spring.fixture.OverrideAPlainCases;
+import com.pgoogol.testdiagnostics.spring.fixture.OverrideBMockCases;
 import com.pgoogol.testdiagnostics.spring.fixture.ResumeAFirstCases;
 import com.pgoogol.testdiagnostics.spring.fixture.ResumeBSecondCases;
 import com.pgoogol.testdiagnostics.spring.fixture.ResumeCThirdCases;
@@ -86,6 +92,36 @@ class EnvironmentStartListenerTest {
             () -> assertThat(snapshot.environments()).hasSize(2),
             () -> assertThat(snapshot.resumeCount()).isEqualTo(1),
             () -> assertThat(snapshot.resumeMillis()).isGreaterThanOrEqualTo(SlowLifecycle.START_MILLIS));
+    }
+
+    @Test
+    @DisplayName("ta sama konfiguracja plus @MockitoBean: nowe środowisko z różnicą w nadpisanych beanach")
+    void beforeTestClass_whenMockAdded_reportsBeanOverrideDifference() {
+
+        // when
+        TestRunSnapshot snapshot = run(CLASSES_BY_NAME, OverrideAPlainCases.class, OverrideBMockCases.class);
+
+        // then
+        AttributeDifference mockAdded = new AttributeDifference(
+            ContextDescription.BEAN_OVERRIDES, List.of("@MockitoBean Greeter greeter"), List.of());
+        assertThat(snapshot.environments())
+            .extracting(EnvironmentStart::cause)
+            .containsExactly(EnvironmentCause.first(), new EnvironmentCause.Differs(1, List.of(mockAdded)));
+    }
+
+    @Test
+    @DisplayName("@DirtiesContext i ta sama konfiguracja w kolejnej klasie: powód wskazuje klasę, która zamknęła środowisko")
+    void beforeTestClass_whenDirtiedConfigurationReturns_pointsAtClosingClass() {
+
+        // when
+        TestRunSnapshot snapshot = run(CLASSES_BY_NAME, DirtiesAFirstCases.class, DirtiesBSecondCases.class);
+
+        // then
+        assertThat(snapshot.environments())
+            .extracting(EnvironmentStart::cause)
+            .containsExactly(
+                EnvironmentCause.first(),
+                new EnvironmentCause.Reloaded(1, DirtiesAFirstCases.class.getName()));
     }
 
     /** Klasy z tym rejestratorem jako aktywnym; słuchacz Springa przychodzi z {@code spring.factories}. */

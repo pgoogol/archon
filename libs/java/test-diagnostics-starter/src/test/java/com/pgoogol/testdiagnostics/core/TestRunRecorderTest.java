@@ -166,7 +166,7 @@ class TestRunRecorderTest {
 
         // given
         recorder.classStarted(ORDERS);
-        EnvironmentStart start = EnvironmentStart.started(ORDERS + "$WhenEmpty", 4_000, List.of("test"), 412);
+        EnvironmentStart start = EnvironmentStart.started(ORDERS + "$WhenEmpty", 4_000, List.of("test"), 412, EnvironmentCause.first());
 
         // when
         recorder.environmentStarted(start);
@@ -222,7 +222,7 @@ class TestRunRecorderTest {
         // given
         recorder.classStarted(ORDERS);
         clock.advanceMillis(100);
-        recorder.environmentStarted(EnvironmentStart.started(ORDERS, 3_000, List.of(), 300));
+        recorder.environmentStarted(EnvironmentStart.started(ORDERS, 3_000, List.of(), 300, EnvironmentCause.first()));
         recorder.testStarted("t1");
         clock.advanceMillis(500);
         recorder.testFinished("t1", TestResult.passed(ORDERS, "lists orders"));
@@ -306,6 +306,24 @@ class TestRunRecorderTest {
         assertAll(
             () -> assertThat(snapshot.tests()).isEqualTo(tests),
             () -> assertThat(snapshot.testTimings()).hasSize(tests));
+    }
+
+    @Test
+    @DisplayName("stan słuchacza przypięty do przebiegu powstaje raz i należy tylko do tego przebiegu")
+    void attachment_isCreatedOncePerRun() {
+
+        // given
+        TestRunRecorder other = new TestRunRecorder(clock);
+
+        // when
+        StringBuilder first = recorder.attachment(StringBuilder.class, StringBuilder::new);
+        StringBuilder again = recorder.attachment(StringBuilder.class, StringBuilder::new);
+        StringBuilder foreign = other.attachment(StringBuilder.class, StringBuilder::new);
+
+        // then
+        assertAll(
+            () -> assertThat(again).isSameAs(first),
+            () -> assertThat(foreign).isNotSameAs(first));
     }
 
     private void runTest(String uniqueId) {

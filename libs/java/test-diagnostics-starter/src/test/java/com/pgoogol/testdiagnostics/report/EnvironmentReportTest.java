@@ -1,5 +1,6 @@
 package com.pgoogol.testdiagnostics.report;
 
+import com.pgoogol.testdiagnostics.core.EnvironmentCause;
 import com.pgoogol.testdiagnostics.core.EnvironmentStart;
 import com.pgoogol.testdiagnostics.core.TestRunSnapshot;
 import org.junit.jupiter.api.DisplayName;
@@ -48,8 +49,8 @@ class EnvironmentReportTest {
         TestRunSnapshot snapshot = snapshot()
             .passingClass(ORDERS, 20_000, 4_000, 3)
             .passingClass(PAYMENTS, 3_000, 0, 1)
-            .withEnvironment(EnvironmentStart.started(ORDERS, 14_100, List.of("test", "local"), 412))
-            .withEnvironment(EnvironmentStart.failed(PAYMENTS + "$WhenDeclined", 2_300))
+            .withEnvironment(EnvironmentStart.started(ORDERS, 14_100, List.of("test", "local"), 412, EnvironmentCause.first()))
+            .withEnvironment(EnvironmentStart.failed(PAYMENTS + "$WhenDeclined", 2_300, EnvironmentCause.first()))
             .build();
 
         // when
@@ -71,7 +72,7 @@ class EnvironmentReportTest {
         // given
         SnapshotBuilder builder = snapshot().passingClass(ORDERS, 90_000, 4_000, 3);
         IntStream.rangeClosed(1, 32)
-            .mapToObj(index -> EnvironmentStart.started(ORDERS, 1_000, List.of(), 100))
+            .mapToObj(index -> EnvironmentStart.started(ORDERS, 1_000, List.of(), 100, EnvironmentCause.first()))
             .forEach(builder::withEnvironment);
 
         // when
@@ -107,7 +108,7 @@ class EnvironmentReportTest {
         // given
         TestRunSnapshot snapshot = snapshot()
             .passingClass(ORDERS, 20_000, 4_000, 3)
-            .withEnvironment(EnvironmentStart.failed(ORDERS, 2_300))
+            .withEnvironment(EnvironmentStart.failed(ORDERS, 2_300, EnvironmentCause.first()))
             .build();
 
         // when

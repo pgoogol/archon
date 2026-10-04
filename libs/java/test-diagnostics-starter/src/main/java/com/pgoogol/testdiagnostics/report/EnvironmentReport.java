@@ -9,13 +9,18 @@ import java.util.stream.IntStream;
 
 /**
  * Sekcja środowisk testowych: każdy nowy kontekst Springa z czasem startu, klasą,
- * profilami i liczbą beanów, a pod tabelą wznowienia wstrzymanych kontekstów.
+ * profilami, liczbą beanów i powodem, a pod tabelą wznowienia wstrzymanych kontekstów.
  */
 final class EnvironmentReport {
 
     private static final int MAX_ENVIRONMENTS = 30;
 
     private static final String ROW = "%3s  %10s  %-44s %-18s %6s";
+
+    /** Powód pod wierszem, wcięty pod kolumnę czasu startu. */
+    private static final String CAUSE_INDENT = "       ";
+
+    private final CauseText causeText = new CauseText();
 
     void write(TestRunSnapshot snapshot, ReportFormat format, ReportLines lines) {
 
@@ -45,14 +50,20 @@ final class EnvironmentReport {
         String header = header(format, lines);
         lines.indented(header);
         int shown = Math.min(environments.size(), MAX_ENVIRONMENTS);
-        IntStream.range(0, shown)
-            .mapToObj(index -> row(index + 1, environments.get(index), format, lines))
-            .forEach(lines::indented);
+        IntStream.range(0, shown).forEach(index -> environment(index + 1, environments.get(index), format, lines));
         if (environments.size() > MAX_ENVIRONMENTS) {
 
             lines.text("more", environments.size() - MAX_ENVIRONMENTS);
         }
         lines.note("environments.note");
+    }
+
+    private void environment(int number, EnvironmentStart environment, ReportFormat format, ReportLines lines) {
+
+        String row = row(number, environment, format, lines);
+        lines.indented(row);
+        List<String> causeLines = causeText.lines(environment.cause(), format, lines);
+        causeLines.forEach(cause -> lines.indented(CAUSE_INDENT + cause));
     }
 
     private String header(ReportFormat format, ReportLines lines) {

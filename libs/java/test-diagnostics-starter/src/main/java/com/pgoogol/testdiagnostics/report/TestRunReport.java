@@ -1,6 +1,7 @@
 package com.pgoogol.testdiagnostics.report;
 
 import com.pgoogol.testdiagnostics.core.ClassRecord;
+import com.pgoogol.testdiagnostics.core.EnvironmentCause;
 import com.pgoogol.testdiagnostics.core.EnvironmentStart;
 import com.pgoogol.testdiagnostics.core.FailureRecord;
 import com.pgoogol.testdiagnostics.core.MemorySnapshot;
@@ -42,7 +43,7 @@ public final class TestRunReport {
 
     private static final String DATA_PATTERN = """
         DATA label=%s tests=%d failed=%d skipped=%d class_failures=%d classes=%d wall_s=%d \
-        env_count=%d env_s=%d env_resumed=%d env_resume_s=%d test_s=%d other_s=%d \
+        env_count=%d env_s=%d env_reloaded=%d env_resumed=%d env_resume_s=%d test_s=%d other_s=%d \
         heap_max_mb=%d heap_peak_mb=%d heap_live_mb=%d nonheap_mb=%d gc_s=%d full_gc=%d""";
 
     private final ReportMessages messages;
@@ -50,6 +51,8 @@ public final class TestRunReport {
     private final EnvironmentReport environmentReport = new EnvironmentReport();
 
     private final ClassReport classReport = new ClassReport();
+
+    private final CauseSummaryReport causeSummaryReport = new CauseSummaryReport();
 
     private final MemoryReport memoryReport = new MemoryReport();
 
@@ -80,6 +83,7 @@ public final class TestRunReport {
         result(snapshot, format, lines);
         time(snapshot, format, lines);
         environmentReport.write(snapshot, format, lines);
+        causeSummaryReport.write(snapshot, lines);
         classReport.write(snapshot, format, lines);
         slowestTests(snapshot, format, lines);
         failures(snapshot, format, lines);
@@ -213,13 +217,21 @@ public final class TestRunReport {
         String data = String.format(Locale.ROOT, DATA_PATTERN,
             dataLabel, snapshot.tests(), snapshot.failed(), snapshot.skipped(), snapshot.classFailures(),
             classes.size(), seconds(snapshot.wallMillis()),
-            environments.size(), seconds(snapshot.environmentStartMillis()),
+            environments.size(), seconds(snapshot.environmentStartMillis()), reloaded(environments),
             snapshot.resumeCount(), seconds(snapshot.resumeMillis()),
             seconds(snapshot.testMillis()), seconds(snapshot.otherMillis()),
             memory.maxHeapMb(), memory.heapPeakMb(), keptAfterGc,
             memory.nonHeapMb(), seconds(memory.gcMillis()), memory.fullGcCount());
         lines.raw(data);
         lines.raw(RULE);
+    }
+
+    /** Środowiska, które wystartowały ponownie z tą samą konfiguracją. */
+    private static long reloaded(List<EnvironmentStart> environments) {
+
+        return environments.stream()
+            .filter(environment -> environment.cause() instanceof EnvironmentCause.Reloaded)
+            .count();
     }
 
     private static long seconds(long millis) {

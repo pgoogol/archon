@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.LongSupplier;
@@ -58,6 +59,8 @@ public final class TestRunRecorder {
 
     private volatile @Nullable RunSettings settings;
 
+    private final Map<Class<?>, Object> attachments = new ConcurrentHashMap<>();
+
     /** @param nanoClock zegar monotoniczny w nanosekundach; przebieg zaczyna się w chwili utworzenia */
     public TestRunRecorder(LongSupplier nanoClock) {
 
@@ -99,6 +102,17 @@ public final class TestRunRecorder {
 
         RunSettings current = settings;
         return Optional.ofNullable(current);
+    }
+
+    /**
+     * Stan słuchacza przypięty do przebiegu, np. rejestr środowisk Springa. Słuchacze
+     * Springa powstają osobno dla każdej klasy testów, a stan musi trwać cały przebieg
+     * i nie może przeciekać do zagnieżdżonego uruchomienia z innym przebiegiem.
+     */
+    public <T> T attachment(Class<T> type, Supplier<T> factory) {
+
+        Object value = attachments.computeIfAbsent(type, key -> factory.get());
+        return type.cast(value);
     }
 
     public void classStarted(String className) {
