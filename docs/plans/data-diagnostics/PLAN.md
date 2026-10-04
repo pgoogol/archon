@@ -15,7 +15,7 @@ Plan biblioteki diagnostyki dostępu do danych (`libs/java/data-diagnostics-star
 
 - Etap 0: `claude/spring-boot-4.1` → PR [pgoogol/archon#14](https://github.com/pgoogol/archon/pull/14).
 - Etap 1: `claude/hopeful-darwin-j7r2ur` → PR [pgoogol/archon#15](https://github.com/pgoogol/archon/pull/15). Zbudowany na `claude/spring-boot-4.1`, bo potrzebuje Boota 4.1, więc do merge'a PR #14 diff #15 zawiera też commity etapu 0. Po merge PR #14 wciągnij `main` merge'em (bez rebase'u).
-- Etap 1, od 1.1.2: `claude/data-diagnostics-1.1` od `main` po merge PR #15 → PR [pgoogol/archon#16](https://github.com/pgoogol/archon/pull/16) (1.1 i 1.2). W CI padały dwa testy `finance-service` zależne od dnia miesiąca (ten sam błąd jest na `main`); PR naprawia ich dane testowe.
+- Etap 1, od 1.1.2: `claude/data-diagnostics-1.1` od `main` po merge PR #15 → PR [pgoogol/archon#16](https://github.com/pgoogol/archon/pull/16) (1.1–1.4; kolejne podetapy też na tym branchu). W CI padały dwa testy `finance-service` zależne od dnia miesiąca (ten sam błąd jest na `main`); PR naprawia ich dane testowe.
 
 ### Środowisko (kontener bez Dockera)
 
