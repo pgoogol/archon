@@ -1,5 +1,7 @@
 package com.pgoogol.testdiagnostics.core;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -54,6 +56,8 @@ public final class TestRunRecorder {
 
     private long resumeMillis;
 
+    private volatile @Nullable RunSettings settings;
+
     /** @param nanoClock zegar monotoniczny w nanosekundach; przebieg zaczyna się w chwili utworzenia */
     public TestRunRecorder(LongSupplier nanoClock) {
 
@@ -78,6 +82,23 @@ public final class TestRunRecorder {
 
         TestRunRecorder previous = ACTIVE.getAndSet(this);
         return () -> ACTIVE.compareAndSet(this, previous);
+    }
+
+    /**
+     * Zapisuje ustawienia z planu testów. Wołane na starcie wykonania, więc przebieg
+     * z ustawieniami to przebieg, który coś wykonał; sesja, która tylko wykrywała testy
+     * (np. w IDE), zostaje bez ustawień i bez raportu.
+     */
+    public void configure(RunSettings runSettings) {
+
+        settings = Objects.requireNonNull(runSettings, "ustawienia przebiegu są wymagane");
+    }
+
+    /** Ustawienia z ostatniego wykonania; puste, gdy sesja niczego nie wykonała. */
+    public Optional<RunSettings> settings() {
+
+        RunSettings current = settings;
+        return Optional.ofNullable(current);
     }
 
     public void classStarted(String className) {

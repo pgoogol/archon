@@ -18,8 +18,18 @@
   <description>Starter diagnostyki przebiegu testów — raport czasu, środowisk testowych Springa i pamięci po każdym forku</description>
 
   <dependencies>
-    <!-- rdzeń (com.pgoogol.testdiagnostics.core) zna tylko JDK;
+    <!-- rdzeń (com.pgoogol.testdiagnostics.core) zna tylko JDK i adnotacje JSpecify;
          JUnit i Spring dochodzą razem ze słuchaczami, które się do nich podpinają -->
+    <dependency>
+      <groupId>org.jspecify</groupId>
+      <artifactId>jspecify</artifactId>
+    </dependency>
+    <!-- słuchacz sesji JUnit to główne zadanie startera, więc nie jest opcjonalny;
+         konsument i tak bierze starter w zasięgu test -->
+    <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-launcher</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.springframework.boot</groupId>

@@ -60,4 +60,18 @@ class ArchitectureTest {
         // when & then
         rule.check(moduleClasses);
     }
+
+    @Test
+    @DisplayName("słuchacze JUnit nie znają Springa")
+    void junitAdapter_staysFreeOfSpring() {
+
+        // given: spring-test jest opcjonalny, a słuchacze JUnit ładują się w każdym module
+        ArchRule rule = noClasses()
+            .that().resideInAPackage(BASE + ".junit..")
+            .should().dependOnClassesThat().resideInAPackage("org.springframework..")
+            .because("moduł bez Springa też ma dostać raport");
+
+        // when & then
+        rule.check(moduleClasses);
+    }
 }

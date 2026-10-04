@@ -289,6 +289,10 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <excludedGroups>integration</excludedGroups>
+          <!-- etykieta raportu test-diagnostics-starter; moduły bez startera jej nie czytają -->
+          <systemPropertyVariables>
+            <test.diagnostics.label>unit</test.diagnostics.label>
+          </systemPropertyVariables>
           <!-- @{argLine} przepuszcza agenta JaCoCo; nadpisanie zgubiłoby pokrycie.
                Komunikaty testów są po polsku — bez wymuszenia UTF-8 wychodzą jako "?" -->
           <argLine>@{surefireArgLine} -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8</argLine>
@@ -299,6 +303,9 @@
         <artifactId>maven-failsafe-plugin</artifactId>
         <configuration>
           <groups>integration</groups>
+          <systemPropertyVariables>
+            <test.diagnostics.label>integration</test.diagnostics.label>
+          </systemPropertyVariables>
           <includes>
             <include>**/*Test.java</include>
             <include>**/*Tests.java</include>
