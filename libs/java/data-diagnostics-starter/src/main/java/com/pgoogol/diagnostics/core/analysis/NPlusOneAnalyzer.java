@@ -1,6 +1,7 @@
 package com.pgoogol.diagnostics.core.analysis;
 
 import com.pgoogol.diagnostics.core.DataAccessEvent;
+import com.pgoogol.diagnostics.core.DiagnosticsMode;
 import com.pgoogol.diagnostics.core.DiagnosticsSettings;
 import com.pgoogol.diagnostics.core.OperationKind;
 import com.pgoogol.diagnostics.core.UnitOfWork;
@@ -43,13 +44,25 @@ public class NPlusOneAnalyzer implements DiagnosticAnalyzer {
     /** Próg domyślny trybu i limit kształtów z ustawień. */
     public static NPlusOneAnalyzer defaults(DiagnosticsSettings settings) {
 
-        long threshold = switch (settings.mode()) {
+        long threshold = defaultThreshold(settings.mode());
+        SeverityScale scale = SeverityScale.of(threshold);
+        return new NPlusOneAnalyzer(scale, settings.unitShapeLimit());
+    }
+
+    /** Próg domyślny: 5 wykonań w dev, 10 w prod. */
+    public static long defaultThreshold(DiagnosticsMode mode) {
+
+        return switch (mode) {
 
             case DEV -> DEV_THRESHOLD;
             case PROD -> PROD_THRESHOLD;
         };
-        SeverityScale scale = SeverityScale.of(threshold);
-        return new NPlusOneAnalyzer(scale, settings.unitShapeLimit());
+    }
+
+    /** Liczba wykonań kształtu, od której powstaje wniosek. */
+    public long threshold() {
+
+        return scale.threshold();
     }
 
     @Override

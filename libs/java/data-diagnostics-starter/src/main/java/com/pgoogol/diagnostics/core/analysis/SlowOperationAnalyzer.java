@@ -2,6 +2,7 @@ package com.pgoogol.diagnostics.core.analysis;
 
 import com.pgoogol.diagnostics.core.DataAccessEvent;
 import com.pgoogol.diagnostics.core.DataStore;
+import com.pgoogol.diagnostics.core.DiagnosticsMode;
 import com.pgoogol.diagnostics.core.DiagnosticsSettings;
 import com.pgoogol.diagnostics.core.UnitOfWork;
 import com.pgoogol.diagnostics.core.report.Finding;
@@ -65,13 +66,19 @@ public class SlowOperationAnalyzer implements DiagnosticAnalyzer {
     /** Próg domyślny trybu, bez progów magazynów, i limit kształtów z ustawień. */
     public static SlowOperationAnalyzer defaults(DiagnosticsSettings settings) {
 
-        Duration threshold = switch (settings.mode()) {
+        Duration threshold = defaultThreshold(settings.mode());
+        return new SlowOperationAnalyzer(threshold, Map.of(), SeverityScale.DEFAULT_CRITICAL_MULTIPLIER,
+            settings.unitShapeLimit());
+    }
+
+    /** Próg domyślny: 100 ms w dev, 500 ms w prod. */
+    public static Duration defaultThreshold(DiagnosticsMode mode) {
+
+        return switch (mode) {
 
             case DEV -> DEV_THRESHOLD;
             case PROD -> PROD_THRESHOLD;
         };
-        return new SlowOperationAnalyzer(threshold, Map.of(), SeverityScale.DEFAULT_CRITICAL_MULTIPLIER,
-            settings.unitShapeLimit());
     }
 
     @Override

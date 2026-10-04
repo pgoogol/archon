@@ -47,6 +47,12 @@ public class MissingBatchAnalyzer implements DiagnosticAnalyzer {
         return new MissingBatchAnalyzer(scale, settings.unitShapeLimit());
     }
 
+    /** Liczba wykonań kształtu poza batchem, od której powstaje wniosek. */
+    public long threshold() {
+
+        return scale.threshold();
+    }
+
     @Override
     public String id() {
 
