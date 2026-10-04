@@ -40,6 +40,12 @@
       <artifactId>archunit-junit5</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- tylko do sprawdzenia, że własny zapis JSON parsuje się prawdziwym parserem -->
+    <dependency>
+      <groupId>tools.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
 </project>
