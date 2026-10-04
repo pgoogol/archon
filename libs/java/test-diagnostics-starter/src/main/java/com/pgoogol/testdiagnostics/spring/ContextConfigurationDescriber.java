@@ -88,8 +88,11 @@ final class ContextConfigurationDescriber {
 
     private static List<String> propertySources(MergedContextConfiguration merged) {
 
+        // @TestPropertySource z samymi właściwościami daje źródło bez plików; właściwości
+        // opisuje osobny atrybut, a puste źródło dawałoby w raporcie samą kreskę
         return merged.getPropertySourceDescriptors().stream()
             .map(PropertySourceDescriptor::locations)
+            .filter(locations -> !locations.isEmpty())
             .map(locations -> String.join(",", locations))
             .toList();
     }

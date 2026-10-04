@@ -40,8 +40,8 @@ class PropertyMaskerTest {
     }
 
     @Test
-    @DisplayName("za długa właściwość jest przycięta, z odciskiem całej wartości")
-    void mask_whenTooLong_cutsWithFingerprint() {
+    @DisplayName("długa właściwość zostaje cała, bo przycina ją dopiero raport")
+    void mask_whenLong_keepsIt() {
 
         // given
         String property = "app.allowed-origins=" + "x".repeat(100);
@@ -50,6 +50,6 @@ class PropertyMaskerTest {
         String masked = masker.mask(property);
 
         // then
-        assertThat(masked).hasSize(60 + "... #".length() + 6).contains("... #");
+        assertThat(masked).isEqualTo(property);
     }
 }

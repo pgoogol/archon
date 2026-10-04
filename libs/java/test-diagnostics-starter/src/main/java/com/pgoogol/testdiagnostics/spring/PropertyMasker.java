@@ -7,35 +7,29 @@ import java.util.HexFormat;
 import java.util.regex.Pattern;
 
 /**
- * Właściwość z testu ({@code key=value}) w postaci do raportu. Wartość pod kluczem
- * z {@code password}, {@code secret}, {@code token} albo {@code key} znika, a za długa
- * zostaje przycięta. W obu przypadkach dochodzi krótki odcisk całej właściwości, bo
- * opis służy też do porównania konfiguracji: dwie różne wartości nie mogą wyglądać
- * na równe.
+ * Właściwość z testu ({@code key=value}) w postaci do raportu: wartość pod kluczem
+ * z {@code password}, {@code secret}, {@code token} albo {@code key} znika. Zamiast niej
+ * dochodzi krótki odcisk całej właściwości, bo opis służy też do porównania
+ * konfiguracji, a dwie różne wartości nie mogą wyglądać na równe. Długość przycina
+ * dopiero raport.
  */
 final class PropertyMasker {
 
     private static final Pattern SECRET_KEY = Pattern.compile("(?i)password|secret|token|key");
-
-    private static final int MAX_LENGTH = 60;
 
     private static final int FINGERPRINT_LENGTH = 6;
 
     String mask(String property) {
 
         int separator = separatorIndex(property);
-        String key = property;
-        if (separator >= 0) {
+        if (separator < 0) {
 
-            key = property.substring(0, separator).strip();
+            return property;
         }
-        if (separator >= 0 && SECRET_KEY.matcher(key).find()) {
+        String key = property.substring(0, separator).strip();
+        if (SECRET_KEY.matcher(key).find()) {
 
             return key + "=*** #" + fingerprint(property);
-        }
-        if (property.length() > MAX_LENGTH) {
-
-            return property.substring(0, MAX_LENGTH) + "... #" + fingerprint(property);
         }
         return property;
     }
