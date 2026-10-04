@@ -24,6 +24,7 @@
   <modules>
     <module>libs/java/logging-starter</module>
     <module>libs/java/data-diagnostics-starter</module>
+    <module>libs/java/test-diagnostics-starter</module>
     <module>services/music-service</module>
     <module>services/finance-service</module>
   </modules>
@@ -91,6 +92,14 @@
         <groupId>com.pgoogol</groupId>
         <artifactId>data-diagnostics-starter</artifactId>
         <version>${project.version}</version>
+      </dependency>
+      <!-- zasięg test w zarządzaniu: moduł, który doda starter bez <scope>,
+           i tak nie wciągnie słuchaczy testów do kodu produkcyjnego -->
+      <dependency>
+        <groupId>com.pgoogol</groupId>
+        <artifactId>test-diagnostics-starter</artifactId>
+        <version>${project.version}</version>
+        <scope>test</scope>
       </dependency>
 
       <!-- zależności spoza BOM-u Springa -->
