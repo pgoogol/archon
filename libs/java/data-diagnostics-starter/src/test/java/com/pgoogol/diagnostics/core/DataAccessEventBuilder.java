@@ -4,6 +4,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 
 /**
  * Builder zdarzeń do testów analiz. Domyślnie udana operacja PostgreSQL poza batchem,
@@ -83,6 +84,7 @@ public final class DataAccessEventBuilder {
     public DataAccessEvent build() {
 
         Instant timestamp = DataAccessEventFixtures.TIMESTAMP;
-        return new DataAccessEvent(store, kind, text, shape, duration, success, batchSize, callSite, timestamp);
+        return new DataAccessEvent(store, kind, text, List.of(), shape, duration, success, batchSize, callSite,
+            timestamp);
     }
 }

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
@@ -43,6 +44,7 @@ class DataAccessEventTest {
     private static DataAccessEvent event(Duration duration, int batchSize) {
 
         Instant timestamp = Instant.parse("2026-10-03T12:00:00Z");
-        return new DataAccessEvent(POSTGRESQL, OperationKind.READ, SHAPE, SHAPE, duration, true, batchSize, null, timestamp);
+        return new DataAccessEvent(POSTGRESQL, OperationKind.READ, SHAPE, List.of(), SHAPE, duration, true, batchSize,
+            null, timestamp);
     }
 }

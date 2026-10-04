@@ -4,6 +4,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -15,7 +16,9 @@ import java.util.Objects;
  *
  * @param store     magazyn, na którym wykonano operację
  * @param kind      odczyt, zapis albo inna
- * @param text      pełny tekst operacji; {@code null} w trybie prod, gdzie zostaje sam kształt
+ * @param text       pełny tekst operacji; {@code null} w trybie prod, gdzie zostaje sam kształt
+ * @param parameters wartości parametrów jako tekst, każda przycięta; pusta lista, gdy
+ *                   parametrów nie zapisujemy (zawsze w prod, w dev domyślnie)
  * @param shape     tekst po normalizacji: literały i parametry zastąpione {@code ?}
  * @param duration  czas wykonania
  * @param success   czy operacja zakończyła się bez błędu
@@ -28,6 +31,7 @@ public record DataAccessEvent(
     DataStore store,
     OperationKind kind,
     @Nullable String text,
+    List<String> parameters,
     String shape,
     Duration duration,
     boolean success,
@@ -50,5 +54,6 @@ public record DataAccessEvent(
 
             throw new IllegalArgumentException("rozmiar batcha nie może być ujemny: " + batchSize);
         }
+        parameters = List.copyOf(parameters);
     }
 }

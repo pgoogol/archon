@@ -2,6 +2,7 @@ package com.pgoogol.diagnostics.core;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 
 /**
  * Zdarzenia do testów rdzenia: test podaje to, co sprawdza, resztę wypełniają sensowne
@@ -31,6 +32,6 @@ public final class DataAccessEventFixtures {
     private static DataAccessEvent event(OperationKind kind, String shape) {
 
         Duration duration = Duration.ofMillis(2);
-        return new DataAccessEvent(POSTGRESQL, kind, shape, shape, duration, true, 0, null, TIMESTAMP);
+        return new DataAccessEvent(POSTGRESQL, kind, shape, List.of(), shape, duration, true, 0, null, TIMESTAMP);
     }
 }
