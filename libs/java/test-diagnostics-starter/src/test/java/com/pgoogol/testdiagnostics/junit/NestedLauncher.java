@@ -18,13 +18,13 @@ import java.util.stream.Stream;
  * słuchaczy jest wyłączona, więc działają tylko te podane w teście, a zewnętrzny
  * przebieg Surefire niczego z tego uruchomienia nie widzi.
  */
-final class NestedLauncher {
+public final class NestedLauncher {
 
     private NestedLauncher() {
     }
 
     /** Konfiguracja bez słuchaczy z {@code META-INF/services}. */
-    static LauncherConfig.Builder isolated() {
+    public static LauncherConfig.Builder isolated() {
 
         return LauncherConfig.builder()
             .enableTestExecutionListenerAutoRegistration(false)
@@ -33,7 +33,7 @@ final class NestedLauncher {
             .enablePostDiscoveryFilterAutoRegistration(false);
     }
 
-    static void execute(LauncherConfig config, Map<String, String> parameters, Class<?>... classes) {
+    public static void execute(LauncherConfig config, Map<String, String> parameters, Class<?>... classes) {
 
         LauncherDiscoveryRequest request = request(parameters, classes);
         try (LauncherSession session = LauncherFactory.openSession(config)) {
@@ -42,7 +42,7 @@ final class NestedLauncher {
         }
     }
 
-    static void discoverOnly(LauncherConfig config, Class<?>... classes) {
+    public static void discoverOnly(LauncherConfig config, Class<?>... classes) {
 
         LauncherDiscoveryRequest request = request(Map.of(), classes);
         try (LauncherSession session = LauncherFactory.openSession(config)) {

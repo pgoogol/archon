@@ -31,6 +31,18 @@
       <artifactId>junit-platform-launcher</artifactId>
     </dependency>
 
+    <!-- opcjonalne: słuchacz Springa działa tylko w module, który sam ma spring-test -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context</artifactId>
+      <optional>true</optional>
+    </dependency>
+
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
