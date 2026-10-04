@@ -54,8 +54,9 @@ Od 1.4 testy integracyjne potrzebują PostgreSQL. Bez Dockera: `service postgres
 | 1.3.1 Model wniosku | zrobione | `Finding` ma wagę, pomiar, próg i kształty od 1.2.3. Tu `UnitOfWorkSummary` (id, nazwa, typ, `traceId`, operacje, czas w bazie, początek, koniec) i `UnitOfWork.summary()`/`databaseTime()`. `detectedAt` to koniec jednostki z migawki, nie osobne pole wniosku: analizy oceniają jednostkę dopiero po zamknięciu. Zielono na JDK 21 |
 | 1.3.2 Odcisk | zrobione | `FindingFingerprint.of(finding, unit)`: wniosek o jednym kształcie jak w planie (`kod|magazyn|kształt|klasa.metoda`, bez linii). Dodane: wniosek o całej jednostce (`OPERATION_COUNT`, kilka kształtów) liczy odcisk z `kod|typ|nazwa jednostki`, bo jego najczęstszy kształt zmienia się między wywołaniami. Zielono na JDK 21 |
 | 1.3.3 Zapis JSON | zrobione | `FindingJsonWriter` na pakietowym `JsonObjectWriter` (escaping RFC 8259 plus U+2028/2029, pola bez wartości pomijane). Dane jedynego kształtu na najwyższym poziomie jak w przykładzie, kilka kształtów w tablicy `shapes`; `unit` z `id`, `operations`, `databaseMs`, `durationMs`; `class` w `callers` to pełna nazwa klasy. Jackson 3 tylko w zasięgu `test`. Zielono na JDK 21 |
-| 1.3.4 Log | następny | |
-| 1.3.5 – 1.9.4 | do zrobienia | |
+| 1.3.4 Log | zrobione | `LogFindingReporter`: logger `com.pgoogol.diagnostics.findings`, jedno zdarzenie na wniosek (`KOD: tytuł | jednostka`, kształt z liczbami, `z Klasa.metoda:linia -> repozytorium`, `[WAGA fp=… trace=…]`), kształt skracany do 300 znaków. Pola `dd.*` z planu plus `dd.unitId`; wniosek o kilku kształtach ma w `dd.count` swój pomiar. Odstępstwo od przykładu: zamiast etykiety „N+1: 37×” kod i tytuł analizy, żeby nie trzymać osobnej mapy etykiet. `CRITICAL` na poziomie WARN. Zielono na JDK 21 |
+| 1.3.5 JSONL | następny | |
+| 1.3.6 – 1.9.4 | do zrobienia | |
 | Etapy 2–5+ | do zrobienia | |
 
 ## Decyzje (2026-10-03)
