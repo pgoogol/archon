@@ -83,6 +83,12 @@
       <artifactId>jackson-databind</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- owinięty HikariDataSource musi dalej wstrzykiwać się po typie -->
+    <dependency>
+      <groupId>com.zaxxer</groupId>
+      <artifactId>HikariCP</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

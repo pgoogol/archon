@@ -59,8 +59,9 @@ Od 1.4 testy integracyjne potrzebują PostgreSQL. Bez Dockera: `service postgres
 | 1.3.6 Testy wyjść | zrobione | `ListAppender` z polami `dd.*`, JSONL w `@TempDir` i rotacja weszły razem z reporterami (1.3.4, 1.3.5). Tu `FindingOutputsTest` na prawdziwym silniku: zepsuty zapis JSONL nie zabiera wniosku logowi, a log i plik podają ten sam odcisk. 204 testy, zielono na JDK 21 |
 | 1.4.1 Zależności | zrobione | `datasource-proxy` 1.11.0 w root POM i jako zwykła zależność modułu (przechwytywanie JDBC to główne zadanie startera). Opcjonalne: `spring-boot-autoconfigure`, `spring-jdbc`, `spring-webmvc`, `jakarta.servlet-api`, `micrometer-tracing` (ślad w 1.4.5), `spring-boot-configuration-processor`. Procesor dopisany do `annotationProcessorPaths` modułu przez `annotationProcessorPathsUseDepMgmt`, bo root ustawia jawne ścieżki i z samego classpath by nie ruszył (w `logging-starter` metadane nie powstają z tego powodu). Zielono na JDK 21 |
 | 1.4.2 Przechwytywanie JDBC | zrobione | `JdbcCaptureStrategy` (pakiet `jdbc`) jako `QueryExecutionListener`: czas własny z `nanoTime` w `beforeQuery`/`afterQuery` (datasource-proxy mierzy w ms), kilka zapytań w jednym wykonaniu dzieli czas po równo, bez otwartej jednostki nic nie liczy, błąd na DEBUG zamiast do aplikacji. `DataAccessEvent` dostał `parameters` (pierwszy zestaw, każdy do 100 znaków, `setNull` jako `null`). Interfejs `CallSiteResolver` w `core` z `NONE`; implementacja w 1.4.4. Zielono na JDK 21 |
-| 1.4.3 Opakowanie DataSource | następny | |
-| 1.4.4 – 1.9.4 | do zrobienia | |
+| 1.4.3 Opakowanie DataSource | zrobione | `DataSourceCapturePostProcessor`: `ProxyFactory` z `proxyTargetClass=true` (dla klasy finalnej proxy po interfejsach) przechwytuje tylko `getConnection` i oddaje połączenie z wewnętrznego `ProxyDataSource`. Znacznik `CapturedDataSource` chroni przed podwójnym owinięciem; `DelegatingDataSource` pomijany, bo zapytania liczyłyby się dwa razy. Strategia pobierana leniwie przy pierwszym zapytaniu (`DeferredQueryListener`). Test: `HikariDataSource` 7.0.2 wstrzykuje się po typie (bez metod `final`, więc proxy obejmuje całe API), zapytanie z atrapy połączenia trafia do strategii. Zielono na JDK 21 |
+| 1.4.4 Miejsce wywołania | następny | |
+| 1.4.5 – 1.9.4 | do zrobienia | |
 | Etapy 2–5+ | do zrobienia | |
 
 ## Decyzje (2026-10-03)
