@@ -10,6 +10,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -74,21 +75,16 @@ class DiagnosticsEngineTest {
 
         // given
         DiagnosticsEngine engine = engine(DEV, new CountingAnalyzer());
-        UnitOfWork outerUnit;
-        UnitOfWork innerUnit;
-        boolean outerOpened;
-        boolean innerOpened;
+        List<UnitOfWorkScope> scopes = new ArrayList<>();
 
         // when
         try (UnitOfWorkScope outer = engine.open("GET /orders", UnitOfWorkType.HTTP)) {
 
-            outerUnit = outer.unit();
-            outerOpened = outer.opened();
+            scopes.add(outer);
             engine.record(read("select 1"));
             try (UnitOfWorkScope inner = engine.open("ReportJob.run", UnitOfWorkType.SCHEDULED)) {
 
-                innerUnit = inner.unit();
-                innerOpened = inner.opened();
+                scopes.add(inner);
                 engine.record(read("select 2"));
             }
             engine.record(read("select 3"));
@@ -97,9 +93,8 @@ class DiagnosticsEngineTest {
         // then
         CapturingReporter.Report report = reporter.single();
         assertAll(
-            () -> assertThat(innerUnit).isSameAs(outerUnit),
-            () -> assertThat(outerOpened).isTrue(),
-            () -> assertThat(innerOpened).isFalse(),
+            () -> assertThat(scopes.get(1).unit()).isSameAs(scopes.get(0).unit()),
+            () -> assertThat(scopes).extracting(UnitOfWorkScope::opened).containsExactly(true, false),
             () -> assertThat(report.unit().name()).isEqualTo("GET /orders"),
             () -> assertThat(report.unit().operationCount()).isEqualTo(3));
     }
