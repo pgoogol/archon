@@ -52,8 +52,9 @@ Od 1.4 testy integracyjne potrzebują PostgreSQL. Bez Dockera: `service postgres
 | 1.2.7 Liczba operacji | zrobione | `OperationCountAnalyzer` (próg 50/100) z pięcioma najczęstszymi kształtami bez kubełka `other`. Odstępstwo: próg włącznie (`≥`), nie `>` jak w opisie 1.2.7, bo 1.2.8 wymaga `WARN` na progu i tak liczą pozostałe analizy. Zielono na JDK 21 |
 | 1.2.8 Testy | zrobione | testy progów każdej analizy weszły razem z nią (nowa logika = testy w tej samej zmianie). Tu `AnalyzerContractTest`: każda z czterech analiz przez te same scenariusze (pusta jednostka, poniżej progu, na progu `WARN`, 5× `CRITICAL`, wyłączona w ustawieniach przez silnik, limit kształtów bez wniosku o `other`); scenariusz podaje tylko, jak zbudować pomiar. 177 testów, zielono na JDK 21 |
 | 1.3.1 Model wniosku | zrobione | `Finding` ma wagę, pomiar, próg i kształty od 1.2.3. Tu `UnitOfWorkSummary` (id, nazwa, typ, `traceId`, operacje, czas w bazie, początek, koniec) i `UnitOfWork.summary()`/`databaseTime()`. `detectedAt` to koniec jednostki z migawki, nie osobne pole wniosku: analizy oceniają jednostkę dopiero po zamknięciu. Zielono na JDK 21 |
-| 1.3.2 Odcisk | następny | |
-| 1.3.3 – 1.9.4 | do zrobienia | |
+| 1.3.2 Odcisk | zrobione | `FindingFingerprint.of(finding, unit)`: wniosek o jednym kształcie jak w planie (`kod|magazyn|kształt|klasa.metoda`, bez linii). Dodane: wniosek o całej jednostce (`OPERATION_COUNT`, kilka kształtów) liczy odcisk z `kod|typ|nazwa jednostki`, bo jego najczęstszy kształt zmienia się między wywołaniami. Zielono na JDK 21 |
+| 1.3.3 Zapis JSON | następny | |
+| 1.3.4 – 1.9.4 | do zrobienia | |
 | Etapy 2–5+ | do zrobienia | |
 
 ## Decyzje (2026-10-03)
