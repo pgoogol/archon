@@ -1,0 +1,3 @@
+# Słuchacz Spring TestContext: start i wznowienie środowisk testowych dla raportu test-diagnostics
+org.springframework.test.context.TestExecutionListener=\
+com.pgoogol.testdiagnostics.spring.EnvironmentStartListener
