@@ -147,7 +147,7 @@
     <plugins>
       <!-- root POM ustawia jawne annotationProcessorPaths, a wtedy kompilator nie szuka
            procesorów na classpath: bez tego wpisu metadane diagnostics.* by nie powstały.
-           Wersja przychodzi z dependencyManagement, więc moduł nie ma własnego <version> -->
+           Wersja przychodzi z dependencyManagement, więc moduł nie podaje żadnej własnej -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
