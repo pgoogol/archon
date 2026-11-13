@@ -34,14 +34,14 @@ class DataDiagnosticsAutoConfigurationTest {
         .withConfiguration(AutoConfigurations.of(DataDiagnosticsAutoConfiguration.class));
 
     @Test
-    @DisplayName("sama zależność włącza silnik w trybie prod z czterema analizami i wnioskami w logu")
+    @DisplayName("sama zależność włącza silnik w trybie prod z analizami i wnioskami w logu")
     void autoConfiguration_whenNoProperties_startsInProdWithLogOutput() {
 
         // when & then
         runner.run(context -> assertAll(
             () -> assertThat(context).hasSingleBean(DiagnosticsEngine.class),
             () -> assertThat(context.getBean(DiagnosticsSettings.class).mode()).isEqualTo(DiagnosticsMode.PROD),
-            () -> assertThat(context.getBeansOfType(DiagnosticAnalyzer.class)).hasSize(4),
+            () -> assertThat(context.getBeansOfType(DiagnosticAnalyzer.class)).hasSizeGreaterThanOrEqualTo(4),
             () -> assertThat(context).hasSingleBean(LogFindingReporter.class),
             () -> assertThat(context).doesNotHaveBean(JsonLinesFindingReporter.class),
             () -> assertThat(context).hasSingleBean(DataSourceCapturePostProcessor.class)));

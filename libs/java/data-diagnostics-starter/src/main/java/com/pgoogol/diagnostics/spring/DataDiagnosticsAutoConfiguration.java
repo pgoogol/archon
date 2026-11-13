@@ -43,7 +43,11 @@ import java.util.stream.LongStream;
 @AutoConfiguration
 @EnableConfigurationProperties(DataDiagnosticsProperties.class)
 @ConditionalOnProperty(prefix = "diagnostics", name = "enabled", havingValue = "true", matchIfMissing = true)
-@Import({DiagnosticsAnalyzersConfiguration.class, DiagnosticsJdbcConfiguration.class, DiagnosticsWebConfiguration.class})
+@Import({
+    DiagnosticsAnalyzersConfiguration.class,
+    DiagnosticsJdbcConfiguration.class,
+    DiagnosticsTransactionConfiguration.class,
+    DiagnosticsWebConfiguration.class})
 public class DataDiagnosticsAutoConfiguration {
 
     @Bean
