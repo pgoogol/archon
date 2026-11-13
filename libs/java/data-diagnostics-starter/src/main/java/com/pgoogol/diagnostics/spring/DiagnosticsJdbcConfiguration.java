@@ -3,6 +3,9 @@ package com.pgoogol.diagnostics.spring;
 import com.pgoogol.diagnostics.core.CallSiteResolver;
 import com.pgoogol.diagnostics.core.DiagnosticsEngine;
 import com.pgoogol.diagnostics.core.DiagnosticsSettings;
+import com.pgoogol.diagnostics.core.analysis.ConnectionHoldAnalyzer;
+import com.pgoogol.diagnostics.core.analysis.ConnectionWaitAnalyzer;
+import com.pgoogol.diagnostics.core.analysis.SeverityScale;
 import com.pgoogol.diagnostics.core.store.DataStoreSupport;
 import com.pgoogol.diagnostics.jdbc.DataSourceCapturePostProcessor;
 import com.pgoogol.diagnostics.jdbc.JdbcCaptureStrategy;
@@ -15,7 +18,10 @@ import org.springframework.jdbc.datasource.DelegatingDataSource;
 
 import java.time.Clock;
 
-/** Przechwytywanie JDBC: strategia i owijanie każdego beana {@code DataSource}. */
+/**
+ * Przechwytywanie JDBC: strategia zapytań, owijanie każdego beana {@code DataSource},
+ * analizy puli połączeń (progi w milisekundach) i sprawdzenie open-in-view.
+ */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(DelegatingDataSource.class)
 class DiagnosticsJdbcConfiguration {
@@ -27,9 +33,34 @@ class DiagnosticsJdbcConfiguration {
     @Bean
     @ConditionalOnMissingBean
     static DataSourceCapturePostProcessor dataSourceCapturePostProcessor(
-        ObjectProvider<JdbcCaptureStrategy> strategy) {
+        ObjectProvider<JdbcCaptureStrategy> strategy, ObjectProvider<DiagnosticsEngine> engine) {
 
-        return new DataSourceCapturePostProcessor(strategy);
+        return new DataSourceCapturePostProcessor(strategy, engine::getIfAvailable);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    ConnectionWaitAnalyzer connectionWaitAnalyzer(DataDiagnosticsProperties properties, DiagnosticsSettings settings) {
+
+        long defaultThreshold = ConnectionWaitAnalyzer.defaultThreshold(settings.mode());
+        SeverityScale scale = properties.analyzer(ConnectionWaitAnalyzer.ID).scale(defaultThreshold);
+        return new ConnectionWaitAnalyzer(scale);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    ConnectionHoldAnalyzer connectionHoldAnalyzer(DataDiagnosticsProperties properties, DiagnosticsSettings settings) {
+
+        long defaultThreshold = ConnectionHoldAnalyzer.defaultThreshold(settings.mode());
+        SeverityScale scale = properties.analyzer(ConnectionHoldAnalyzer.ID).scale(defaultThreshold);
+        return new ConnectionHoldAnalyzer(scale, ConnectionHoldAnalyzer.DEFAULT_IDLE_FLOOR);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    OpenInViewCheck openInViewCheck(ObjectProvider<DiagnosticsEngine> engine, DiagnosticsSettings settings) {
+
+        return new OpenInViewCheck(engine::getObject, settings);
     }
 
     @Bean

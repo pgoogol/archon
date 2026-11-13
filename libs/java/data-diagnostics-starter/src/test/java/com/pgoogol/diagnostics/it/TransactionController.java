@@ -24,6 +24,7 @@ public class TransactionController {
             case "programmatic" -> scenarios.programmaticWrite();
             case "rollback" -> rollbackQuietly();
             case "requires-new" -> scenarios.outerWithRequiresNew();
+            case "hold" -> scenarios.holdConnectionWhileWaiting();
             default -> throw new IllegalArgumentException("nieznany scenariusz: " + way);
         }
         return way;
