@@ -101,6 +101,10 @@ public class LogFindingReporter implements FindingReporter {
     /** Pola jedynego kształtu; wniosek o całej jednostce niesie w {@code dd.count} swój pomiar. */
     private void addShapeFields(LoggingEventBuilder event, Finding finding) {
 
+        if (Objects.nonNull(finding.subject())) {
+
+            event.addKeyValue("dd.subject", finding.subject());
+        }
         if (finding.shapes().size() != 1) {
 
             event.addKeyValue("dd.count", finding.measured());

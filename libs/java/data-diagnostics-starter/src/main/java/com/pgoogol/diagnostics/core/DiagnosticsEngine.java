@@ -52,6 +52,8 @@ public class DiagnosticsEngine {
 
     private final AtomicReference<RunningUnit> outside = new AtomicReference<>();
 
+    private final OpenTransactions transactions = new OpenTransactions();
+
     public DiagnosticsEngine(DiagnosticsSettings settings, List<DiagnosticAnalyzer> analyzers,
                              List<FindingReporter> reporters, Clock clock) {
 
@@ -101,12 +103,45 @@ public class DiagnosticsEngine {
     public void record(DataAccessEvent event) {
 
         Objects.requireNonNull(event, "zdarzenie jest wymagane");
+        transactions.count(event.kind());
         RunningUnit running = current.get();
         if (Objects.nonNull(running) && running.record(event)) {
 
             return;
         }
         recordOutsideUnit(event);
+    }
+
+    /**
+     * Przekazuje analizom zdarzenie inne niż operacja. Bez otwartej jednostki trafia do
+     * wspólnej jednostki spoza granic albo przepada, tak jak operacja.
+     */
+    public void recordActivity(ActivityEvent event) {
+
+        Objects.requireNonNull(event, "zdarzenie jest wymagane");
+        RunningUnit running = current.get();
+        if (Objects.nonNull(running) && running.recordActivity(event)) {
+
+            return;
+        }
+        RunningUnit shared = outside.get();
+        if (Objects.nonNull(shared)) {
+
+            shared.recordActivity(event);
+        }
+    }
+
+    /** Początek transakcji bieżącego wątku; od teraz jego operacje liczą się do niej. */
+    public void beginTransaction(String name, boolean readOnly) {
+
+        Instant start = clock.instant();
+        transactions.begin(name, readOnly, start);
+    }
+
+    /** Koniec ostatnio rozpoczętej transakcji bieżącego wątku; analizy dostają jej zdarzenie. */
+    public void endTransaction(TransactionOutcome outcome) {
+
+        transactions.end(outcome).ifPresent(this::recordActivity);
     }
 
     /** Jednostka otwarta w bieżącym wątku. */

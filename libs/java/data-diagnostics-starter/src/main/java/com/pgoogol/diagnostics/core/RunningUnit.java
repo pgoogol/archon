@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
@@ -71,7 +72,25 @@ final class RunningUnit {
 
                 return false;
             }
-            sessions.removeIf(session -> !dispatch(session, event));
+            sessions.removeIf(session -> !dispatch(session, analysis -> analysis.onEvent(event)));
+            return true;
+        } finally {
+
+            lock.unlock();
+        }
+    }
+
+    /** @return {@code false}, gdy jednostka jest już zamknięta i zdarzenie do niej nie trafiło */
+    boolean recordActivity(ActivityEvent event) {
+
+        lock.lock();
+        try {
+
+            if (!unit.isOpen()) {
+
+                return false;
+            }
+            sessions.removeIf(session -> !dispatch(session, analysis -> analysis.onActivity(event)));
             return true;
         } finally {
 
@@ -111,11 +130,11 @@ final class RunningUnit {
     }
 
     /** @return {@code false}, gdy sesja rzuciła wyjątek i trzeba ją odłączyć */
-    private boolean dispatch(Session session, DataAccessEvent event) {
+    private boolean dispatch(Session session, Consumer<AnalysisSession> delivery) {
 
         try {
 
-            session.analysis().onEvent(event);
+            delivery.accept(session.analysis());
             return true;
         } catch (RuntimeException | LinkageError error) {
 

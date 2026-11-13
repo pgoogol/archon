@@ -8,6 +8,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Odcisk wniosku: ten sam problem w tym samym miejscu ma zawsze ten sam odcisk, więc
@@ -17,7 +18,8 @@ import java.util.List;
  * pierwszego miejsca wywołania. Numer linii nie wchodzi do odcisku, żeby dopisanie linii
  * w pliku go nie zmieniało. Wniosek o całej jednostce (żaden albo kilka kształtów) liczy
  * go z {@code kod|typ jednostki|nazwa jednostki}, bo jego najczęstszy kształt potrafi się
- * zmieniać między wywołaniami. Wynik to pierwsze 12 znaków szesnastkowych SHA-256.</p>
+ * zmieniać między wywołaniami. Wniosek o nazwanym przedmiocie (transakcji, metodzie
+ * repozytorium) liczy go z {@code kod|przedmiot}. Wynik to pierwsze 12 znaków szesnastkowych SHA-256.</p>
  */
 public class FindingFingerprint {
 
@@ -35,6 +37,10 @@ public class FindingFingerprint {
 
     private String source(Finding finding, UnitOfWorkSummary unit) {
 
+        if (Objects.nonNull(finding.subject())) {
+
+            return String.join(SEPARATOR, finding.code(), finding.subject());
+        }
         List<ShapeSummary> shapes = finding.shapes();
         if (shapes.size() != 1) {
 

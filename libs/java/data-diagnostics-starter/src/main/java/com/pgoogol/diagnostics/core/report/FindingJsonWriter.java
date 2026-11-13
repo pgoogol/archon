@@ -42,6 +42,7 @@ public class FindingJsonWriter {
             .string("fingerprint", fingerprintValue)
             .string("severity", finding.severity().name())
             .string("title", finding.title())
+            .string("subject", finding.subject())
             .string("detectedAt", detectedAt)
             .object("unit", unitJson)
             .number("measured", finding.measured())

@@ -1,5 +1,6 @@
 package com.pgoogol.diagnostics.core.analysis;
 
+import com.pgoogol.diagnostics.core.ActivityEvent;
 import com.pgoogol.diagnostics.core.DataAccessEvent;
 import com.pgoogol.diagnostics.core.report.Finding;
 
@@ -16,6 +17,13 @@ public interface AnalysisSession {
 
     /** Kolejna operacja jednostki. W prod to jedyna okazja, żeby ją policzyć. */
     void onEvent(DataAccessEvent event);
+
+    /**
+     * Zdarzenie inne niż operacja: zakończona transakcja, oddane połączenie i podobne.
+     * Analiza wybiera typy, które ją obchodzą; domyślnie nic nie robi.
+     */
+    default void onActivity(ActivityEvent event) {
+    }
 
     /** Wnioski po zamknięciu jednostki; pusta lista, gdy problemu nie ma. */
     List<Finding> findings();

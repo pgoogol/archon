@@ -267,6 +267,51 @@ class DiagnosticsEngineTest {
             () -> assertThat(report.findings()).containsExactly(CountingAnalyzer.findingFor(3)));
     }
 
+    @Test
+    @DisplayName("operacje liczą się do transakcji z wierzchu stosu, a jej koniec trafia do analiz")
+    void endTransaction_whenNestedTransactions_countsOperationsInInnermost() {
+
+        // given
+        List<ActivityEvent> activities = new ArrayList<>();
+        DiagnosticsEngine engine = engine(DEV, new ActivityCollector(activities));
+
+        // when
+        try (UnitOfWorkScope ignored = engine.open("GET /orders", UnitOfWorkType.HTTP)) {
+
+            engine.beginTransaction("outer", false);
+            engine.record(read("select 1"));
+            engine.beginTransaction("inner", true);
+            engine.record(read("select 2"));
+            engine.record(read("select 3"));
+            engine.endTransaction(TransactionOutcome.ROLLED_BACK);
+            engine.endTransaction(TransactionOutcome.COMMITTED);
+        }
+
+        // then
+        assertThat(activities)
+            .extracting(event -> ((TransactionEvent) event).name() + ":" + ((TransactionEvent) event).depth()
+                + ":" + ((TransactionEvent) event).reads() + ":" + ((TransactionEvent) event).outcome())
+            .containsExactly("inner:1:2:ROLLED_BACK", "outer:0:1:COMMITTED");
+    }
+
+    @Test
+    @DisplayName("koniec transakcji bez początku nie daje zdarzenia ani wyjątku")
+    void endTransaction_whenNothingBegan_isIgnored() {
+
+        // given
+        List<ActivityEvent> activities = new ArrayList<>();
+        DiagnosticsEngine engine = engine(DEV, new ActivityCollector(activities));
+
+        // when
+        try (UnitOfWorkScope ignored = engine.open("GET /orders", UnitOfWorkType.HTTP)) {
+
+            engine.endTransaction(TransactionOutcome.COMMITTED);
+        }
+
+        // then
+        assertThat(activities).isEmpty();
+    }
+
     /** Jedna jednostka HTTP z {@code count} odczytami. */
     private static void runUnit(DiagnosticsEngine engine, int count) {
 
