@@ -46,6 +46,7 @@ import java.util.stream.LongStream;
 @Import({
     DiagnosticsAnalyzersConfiguration.class,
     DiagnosticsBoundariesConfiguration.class,
+    DiagnosticsHibernateConfiguration.class,
     DiagnosticsJdbcConfiguration.class,
     DiagnosticsTransactionConfiguration.class,
     DiagnosticsWebConfiguration.class})

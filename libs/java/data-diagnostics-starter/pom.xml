@@ -66,6 +66,17 @@
       <artifactId>micrometer-tracing</artifactId>
       <optional>true</optional>
     </dependency>
+    <!-- wnętrze Hibernate: słuchacz sesji i licznik załadowanych encji -->
+    <dependency>
+      <groupId>org.hibernate.orm</groupId>
+      <artifactId>hibernate-core</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-hibernate</artifactId>
+      <optional>true</optional>
+    </dependency>
     <!-- granice jednostek pracy poza HTTP; każda działa tylko z własną biblioteką w aplikacji -->
     <dependency>
       <groupId>org.springframework.kafka</groupId>
@@ -102,6 +113,17 @@
     <dependency>
       <groupId>tools.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- cache drugiego poziomu w testowej aplikacji -->
+    <dependency>
+      <groupId>org.hibernate.orm</groupId>
+      <artifactId>hibernate-jcache</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.ben-manes.caffeine</groupId>
+      <artifactId>jcache</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
