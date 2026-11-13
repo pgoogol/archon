@@ -50,10 +50,31 @@ final class RunningUnit {
         return unit;
     }
 
-    /** Kolejna granica dołącza do jednostki zamiast otwierać własną. */
+    /** Kolejna granica tego samego wątku dołącza do jednostki zamiast otwierać własną. */
     void enter() {
 
         entries.incrementAndGet();
+    }
+
+    /**
+     * Dołączenie z innego wątku. Licznik, który spadł do zera, już nie rośnie: jednostka
+     * właśnie się zamyka i drugi raz zamknąć się nie może.
+     *
+     * @return {@code false}, gdy ostatnia granica zdążyła wyjść
+     */
+    boolean tryEnter() {
+
+        int updated = entries.updateAndGet(RunningUnit::incrementUnlessZero);
+        return updated > 0;
+    }
+
+    private static int incrementUnlessZero(int count) {
+
+        if (count == 0) {
+
+            return 0;
+        }
+        return count + 1;
     }
 
     /** @return {@code true}, gdy wyszła ostatnia granica i jednostkę trzeba zamknąć */

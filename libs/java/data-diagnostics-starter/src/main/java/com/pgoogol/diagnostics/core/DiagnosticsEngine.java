@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -92,11 +91,40 @@ public class DiagnosticsEngine {
         if (Objects.nonNull(running) && running.unit().isOpen()) {
 
             running.enter();
-            return new Scope(running, false);
+            return new EngineScope(running, false, this::closeUnit);
         }
         RunningUnit started = startUnit(name, type, traceId);
         current.set(started);
-        return new Scope(started, true);
+        return new EngineScope(started, true, this::closeUnit);
+    }
+
+    /**
+     * Jednostka bieżącego wątku do przekazania innemu wątkowi, np. zadaniu {@code @Async}.
+     * Pusta, gdy wątek nie ma otwartej jednostki.
+     */
+    public Optional<UnitOfWorkHandoff> handoff() {
+
+        return Optional.ofNullable(current.get())
+            .filter(running -> running.unit().isOpen())
+            .map(UnitOfWorkHandoff::new);
+    }
+
+    /**
+     * Dołącza bieżący wątek do przekazanej jednostki: jego zdarzenia trafiają do niej,
+     * a jednostka zamyka się dopiero, gdy wyjdzie także ta granica. Puste, gdy jednostka
+     * zdążyła się już zamknąć; wtedy wątek otwiera własną.
+     */
+    public Optional<UnitOfWorkScope> join(UnitOfWorkHandoff handoff) {
+
+        RunningUnit running = handoff.running();
+        if (!running.tryEnter()) {
+
+            return Optional.empty();
+        }
+        RunningUnit previous = current.get();
+        current.set(running);
+        UnitOfWorkScope scope = new EngineScope(running, false, this::closeUnit, () -> restore(previous));
+        return Optional.of(scope);
     }
 
     /** Dolicza operację do jednostki bieżącego wątku. */
@@ -208,6 +236,16 @@ public class DiagnosticsEngine {
         return new RunningUnit(unit, analyzers);
     }
 
+    private void restore(@Nullable RunningUnit previous) {
+
+        if (Objects.isNull(previous)) {
+
+            current.remove();
+            return;
+        }
+        current.set(previous);
+    }
+
     private void closeUnit(RunningUnit running) {
 
         if (Objects.equals(current.get(), running)) {
@@ -240,41 +278,5 @@ public class DiagnosticsEngine {
 
         int random = ThreadLocalRandom.current().nextInt();
         return "%08x".formatted(random);
-    }
-
-    private final class Scope implements UnitOfWorkScope {
-
-        private final RunningUnit running;
-
-        private final boolean opened;
-
-        private final AtomicBoolean closed = new AtomicBoolean();
-
-        private Scope(RunningUnit running, boolean opened) {
-
-            this.running = running;
-            this.opened = opened;
-        }
-
-        @Override
-        public UnitOfWork unit() {
-
-            return running.unit();
-        }
-
-        @Override
-        public boolean opened() {
-
-            return opened;
-        }
-
-        @Override
-        public void close() {
-
-            if (closed.compareAndSet(false, true) && running.exit()) {
-
-                closeUnit(running);
-            }
-        }
     }
 }
