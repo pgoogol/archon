@@ -172,6 +172,19 @@ public class DiagnosticsEngine {
         }
     }
 
+    /**
+     * Raportuje wnioski, które nie wynikają z żadnej jednostki pracy, np. ze sprawdzenia
+     * konfiguracji przy starcie. Reportery dostają pustą, od razu zamkniętą jednostkę.
+     */
+    public void reportStandalone(String name, UnitOfWorkType type, List<Finding> findings) {
+
+        Instant now = clock.instant();
+        UnitOfWork unit = new UnitOfWork(newId(), name, type, now, null, 0);
+        unit.close(now);
+        List<Finding> copy = List.copyOf(findings);
+        reporters.forEach(reporter -> report(reporter, unit, copy));
+    }
+
     private void recordOutsideUnit(DataAccessEvent event) {
 
         if (!settings.captureOutsideUnit()) {

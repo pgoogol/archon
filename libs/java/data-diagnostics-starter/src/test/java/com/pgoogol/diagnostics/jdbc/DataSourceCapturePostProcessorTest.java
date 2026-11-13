@@ -1,6 +1,9 @@
 package com.pgoogol.diagnostics.jdbc;
 
+import com.pgoogol.diagnostics.core.ActivityCollector;
+import com.pgoogol.diagnostics.core.ActivityEvent;
 import com.pgoogol.diagnostics.core.CallSiteResolver;
+import com.pgoogol.diagnostics.core.ConnectionEvent;
 import com.pgoogol.diagnostics.core.DataAccessEvent;
 import com.pgoogol.diagnostics.core.DiagnosticsEngine;
 import com.pgoogol.diagnostics.core.DiagnosticsMode;
@@ -28,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -73,6 +77,35 @@ class DataSourceCapturePostProcessorTest {
         assertThat(captured)
             .extracting(DataAccessEvent::shape)
             .containsExactly("select * from orders where id = ?");
+    }
+
+    @Test
+    @DisplayName("oddanie połączenia daje zdarzenie puli z czasem trzymania i liczbą zapytań")
+    void close_whenConnectionReturned_reportsConnectionEvent() throws SQLException {
+
+        // given
+        List<ActivityEvent> activities = new ArrayList<>();
+        List<DiagnosticAnalyzer> analyzers = List.of(new ActivityCollector(activities));
+        DiagnosticsEngine pooled = new DiagnosticsEngine(settings, analyzers, List.of());
+        DataSourceCapturePostProcessor processor = new DataSourceCapturePostProcessor(noStrategy(), () -> pooled);
+        DataSource wrapped = (DataSource) processor.postProcessAfterInitialization(stubDataSource(), "dataSource");
+
+        // when
+        try (UnitOfWorkScope ignored = pooled.open("GET /orders", UnitOfWorkType.HTTP)) {
+
+            try (Connection connection = wrapped.getConnection();
+                 PreparedStatement statement = connection.prepareStatement("select 1")) {
+
+                statement.executeQuery();
+            }
+        }
+
+        // then
+        ConnectionEvent event = (ConnectionEvent) activities.getFirst();
+        assertAll(
+            () -> assertThat(activities).hasSize(1),
+            () -> assertThat(event.operations()).isEqualTo(1),
+            () -> assertThat(event.holdTime()).isGreaterThanOrEqualTo(event.sqlTime()));
     }
 
     @Test

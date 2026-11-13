@@ -1,5 +1,6 @@
 package com.pgoogol.diagnostics.jdbc;
 
+import com.pgoogol.diagnostics.core.DiagnosticsEngine;
 import net.ttddyy.dsproxy.support.ProxyDataSource;
 import net.ttddyy.dsproxy.support.ProxyDataSourceBuilder;
 import org.aopalliance.intercept.MethodInterceptor;
@@ -13,6 +14,7 @@ import org.springframework.jdbc.datasource.DelegatingDataSource;
 import javax.sql.DataSource;
 import java.lang.reflect.Modifier;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
  * Owija każdy bean {@link DataSource} tak, żeby jego połączenia przechodziły przez
@@ -33,9 +35,24 @@ public class DataSourceCapturePostProcessor implements BeanPostProcessor {
 
     private final ObjectProvider<JdbcCaptureStrategy> strategyProvider;
 
+    private final Supplier<@Nullable DiagnosticsEngine> engine;
+
+    /** Samo przechwytywanie zapytań, bez pomiaru puli połączeń. */
     public DataSourceCapturePostProcessor(ObjectProvider<JdbcCaptureStrategy> strategyProvider) {
 
+        this(strategyProvider, () -> null);
+    }
+
+    /**
+     * @param strategyProvider strategia zapytań, pobierana przy pierwszym zapytaniu
+     * @param engine           silnik dla zdarzeń puli połączeń, pobierany przy oddaniu
+     *                         połączenia; {@code null}, dopóki go nie ma
+     */
+    public DataSourceCapturePostProcessor(ObjectProvider<JdbcCaptureStrategy> strategyProvider,
+                                          Supplier<@Nullable DiagnosticsEngine> engine) {
+
         this.strategyProvider = Objects.requireNonNull(strategyProvider, "dostawca strategii JDBC jest wymagany");
+        this.engine = Objects.requireNonNull(engine, "dostęp do silnika jest wymagany");
     }
 
     @Override
@@ -52,8 +69,11 @@ public class DataSourceCapturePostProcessor implements BeanPostProcessor {
     public DataSource wrap(DataSource original, String name) {
 
         DeferredQueryListener listener = new DeferredQueryListener(strategyProvider);
+        ConnectionCaptureStrategy connections = new ConnectionCaptureStrategy(engine);
         ProxyDataSource capturing = ProxyDataSourceBuilder.create(name, original)
             .listener(listener)
+            .listener(connections)
+            .methodListener(connections)
             .build();
         Class<?> type = original.getClass();
         ProxyFactory factory = new ProxyFactory(original);
