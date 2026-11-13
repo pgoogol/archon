@@ -30,6 +30,7 @@ import java.util.Objects;
  *                           klasy z {@code @SpringBootApplication}
  * @param analyzers          ustawienia analiz według ich identyfikatora, np. {@code n-plus-one}
  * @param output             wyjścia wniosków
+ * @param metrics            mierniki Micrometer
  */
 @ConfigurationProperties("diagnostics")
 public record DataDiagnosticsProperties(
@@ -41,7 +42,8 @@ public record DataDiagnosticsProperties(
     @Nullable Integer unitShapeLimit,
     @DefaultValue List<String> applicationPackages,
     @DefaultValue Map<String, Analyzer> analyzers,
-    @DefaultValue Output output) {
+    @DefaultValue Output output,
+    @DefaultValue Metrics metrics) {
 
     public DataDiagnosticsProperties {
 
@@ -117,6 +119,23 @@ public record DataDiagnosticsProperties(
      * @param jsonl wnioski w pliku JSONL
      */
     public record Output(@DefaultValue Log log, @DefaultValue Jsonl jsonl) {
+
+    }
+
+    /**
+     * Mierniki {@code data.diagnostics.*}. Biblioteka nie wybiera rejestru: z
+     * {@code micrometer-registry-prometheus} są pod {@code /actuator/prometheus}, a z
+     * {@code micrometer-registry-otlp} idą przez OTLP ({@code management.otlp.metrics.export.url}).
+     *
+     * @param enabled       {@code false} wyłącza mierniki diagnostyki
+     * @param unitNameTag   czy rozkład operacji na jednostkę ma tag {@code unit.name}
+     * @param unitNameLimit ile różnych nazw jednostek może trafić do tagu; kolejne mierniki
+     *                      z nową nazwą są odrzucane
+     */
+    public record Metrics(
+        @DefaultValue("true") boolean enabled,
+        boolean unitNameTag,
+        @DefaultValue("100") int unitNameLimit) {
 
     }
 

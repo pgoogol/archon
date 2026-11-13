@@ -66,6 +66,12 @@
       <artifactId>micrometer-tracing</artifactId>
       <optional>true</optional>
     </dependency>
+    <!-- mierniki; rejestr i eksport wybiera aplikacja -->
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-core</artifactId>
+      <optional>true</optional>
+    </dependency>
     <!-- wnętrze Hibernate: słuchacz sesji i licznik załadowanych encji -->
     <dependency>
       <groupId>org.hibernate.orm</groupId>
@@ -158,6 +164,17 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jdbc</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- mierniki pod /actuator/prometheus w testowej aplikacji -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-registry-prometheus</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

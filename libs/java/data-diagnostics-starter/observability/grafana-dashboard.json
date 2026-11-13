@@ -1,0 +1,89 @@
+{
+  "title": "Data diagnostics",
+  "uid": "data-diagnostics",
+  "schemaVersion": 39,
+  "tags": ["data-diagnostics"],
+  "time": { "from": "now-6h", "to": "now" },
+  "templating": {
+    "list": [
+      { "name": "datasource", "type": "datasource", "query": "prometheus" }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Wnioski na minutę według kodu",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "sum by (code) (rate(data_diagnostics_findings_total[5m])) * 60", "legendFormat": "{{code}}" }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Wnioski krytyczne na minutę",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "sum by (code) (rate(data_diagnostics_findings_total{severity=\"CRITICAL\"}[5m])) * 60", "legendFormat": "{{code}}" }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Średni czas operacji według rodzaju",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "targets": [
+        {
+          "expr": "sum by (kind) (rate(data_diagnostics_operations_seconds_sum[5m])) / sum by (kind) (rate(data_diagnostics_operations_seconds_count[5m]))",
+          "legendFormat": "{{kind}}"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Średnia liczba operacji na jednostkę pracy",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum by (unit_type) (rate(data_diagnostics_unit_operations_sum[5m])) / sum by (unit_type) (rate(data_diagnostics_unit_operations_count[5m]))",
+          "legendFormat": "{{unit_type}}"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Średni czas transakcji według wyniku",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "targets": [
+        {
+          "expr": "sum by (outcome) (rate(data_diagnostics_transactions_seconds_sum[5m])) / sum by (outcome) (rate(data_diagnostics_transactions_seconds_count[5m]))",
+          "legendFormat": "{{outcome}}"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Średnie czekanie na połączenie z puli",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "targets": [
+        {
+          "expr": "sum(rate(data_diagnostics_connection_wait_seconds_sum[5m])) / sum(rate(data_diagnostics_connection_wait_seconds_count[5m]))",
+          "legendFormat": "czekanie"
+        }
+      ]
+    }
+  ]
+}

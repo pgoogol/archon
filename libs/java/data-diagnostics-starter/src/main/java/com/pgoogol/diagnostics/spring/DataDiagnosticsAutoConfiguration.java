@@ -48,6 +48,7 @@ import java.util.stream.LongStream;
     DiagnosticsBoundariesConfiguration.class,
     DiagnosticsHibernateConfiguration.class,
     DiagnosticsJdbcConfiguration.class,
+    DiagnosticsMetricsConfiguration.class,
     DiagnosticsRepositoryConfiguration.class,
     DiagnosticsTransactionConfiguration.class,
     DiagnosticsWebConfiguration.class})

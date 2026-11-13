@@ -32,6 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
     "diagnostics.mode=dev",
     "diagnostics.output.jsonl.enabled=false",
     "diagnostics.analyzers.repository-hotspot.threshold=5",
+    "management.endpoints.web.exposure.include=prometheus",
     "spring.jpa.hibernate.ddl-auto=validate",
     "spring.jpa.open-in-view=false"})
 @AutoConfigureMockMvc
@@ -101,6 +102,27 @@ class DataDiagnosticsPostgresIntegrationTest {
         assertAll(
             () -> assertThat(findings).extracting(Finding::subject).containsExactly(method),
             () -> assertThat(findings.getFirst().measured()).isEqualTo(6));
+    }
+
+    @Test
+    @DisplayName("mierniki diagnostyki są pod /actuator/prometheus, bez kształtu zapytania w etykietach")
+    void prometheus_whenRequestServed_exposesDiagnosticsMeters() throws Exception {
+
+        // given
+        mockMvc.perform(get("/orders/items/{way}", "repository"))
+            .andExpect(status().isOk());
+
+        // when
+        String scrape = mockMvc.perform(get("/actuator/prometheus"))
+            .andExpect(status().isOk())
+            .andReturn().getResponse().getContentAsString();
+
+        // then
+        assertAll(
+            () -> assertThat(scrape).contains("data_diagnostics_findings_total{code=\"N_PLUS_ONE\""),
+            () -> assertThat(scrape).contains("data_diagnostics_operations_seconds_count{kind=\"READ\""),
+            () -> assertThat(scrape).contains("data_diagnostics_unit_operations_count{unit_type=\"http\""),
+            () -> assertThat(scrape).doesNotContain("order_item"));
     }
 
     @Test
