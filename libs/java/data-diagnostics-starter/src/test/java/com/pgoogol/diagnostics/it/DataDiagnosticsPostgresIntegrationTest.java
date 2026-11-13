@@ -31,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = DiagnosticsTestApplication.class, properties = {
     "diagnostics.mode=dev",
     "diagnostics.output.jsonl.enabled=false",
+    "diagnostics.analyzers.repository-hotspot.threshold=5",
     "spring.jpa.hibernate.ddl-auto=validate",
     "spring.jpa.open-in-view=false"})
 @AutoConfigureMockMvc
@@ -82,6 +83,24 @@ class DataDiagnosticsPostgresIntegrationTest {
             () -> assertThat(caller.method()).isEqualTo(method),
             () -> assertThat(caller.line()).isPositive(),
             () -> assertThat(caller.repositoryMethod()).isEqualTo(repositoryMethod));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @CsvSource({
+        "repository,      OrderItemRepository.findByOrderId",
+        "jdbc-repository, NoteRepository.findById"})
+    @DisplayName("ta sama metoda repozytorium JPA albo JDBC wołana w pętli daje wniosek o gorącej metodzie")
+    void request_whenRepositoryMethodCalledInLoop_reportsHotspot(String way, String method) throws Exception {
+
+        // when
+        mockMvc.perform(get("/orders/items/{way}", way))
+            .andExpect(status().isOk());
+
+        // then
+        List<Finding> findings = reporter.findings("REPOSITORY_HOTSPOT");
+        assertAll(
+            () -> assertThat(findings).extracting(Finding::subject).containsExactly(method),
+            () -> assertThat(findings.getFirst().measured()).isEqualTo(6));
     }
 
     @Test

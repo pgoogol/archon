@@ -32,9 +32,12 @@ public class OrderService {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public OrderService(OrderRepository orders, OrderItemRepository items, EntityManager entityManager,
-                        JdbcTemplate jdbcTemplate) {
+    private final NoteRepository notes;
 
+    public OrderService(OrderRepository orders, OrderItemRepository items, EntityManager entityManager,
+                        JdbcTemplate jdbcTemplate, NoteRepository notes) {
+
+        this.notes = notes;
         this.orders = orders;
         this.items = items;
         this.entityManager = entityManager;
@@ -88,6 +91,14 @@ public class OrderService {
 
         return allOrders().stream()
             .mapToInt(order -> order.getItems().size())
+            .sum();
+    }
+
+    /** To samo wywołanie repozytorium Spring Data JDBC dla każdego zamówienia. */
+    public int byJdbcRepository() {
+
+        return allOrders().stream()
+            .mapToInt(order -> notes.findById(1L).map(note -> 1).orElse(0))
             .sum();
     }
 

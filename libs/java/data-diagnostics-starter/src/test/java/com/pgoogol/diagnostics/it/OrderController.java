@@ -26,6 +26,7 @@ public class OrderController {
             case "native" -> service.byNativeQuery();
             case "jdbc-template" -> service.byJdbcTemplate();
             case "lazy" -> service.byLazyLoading();
+            case "jdbc-repository" -> service.byJdbcRepository();
             default -> throw new IllegalArgumentException("nieznany sposób: " + way);
         };
     }
