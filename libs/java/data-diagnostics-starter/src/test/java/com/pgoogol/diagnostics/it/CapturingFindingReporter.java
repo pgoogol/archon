@@ -1,8 +1,11 @@
 package com.pgoogol.diagnostics.it;
 
+import com.pgoogol.diagnostics.core.ActivityCollector;
+import com.pgoogol.diagnostics.core.ActivityEvent;
 import com.pgoogol.diagnostics.core.UnitOfWork;
 import com.pgoogol.diagnostics.core.UnitOfWorkSummary;
 import com.pgoogol.diagnostics.core.UnitOfWorkType;
+import com.pgoogol.diagnostics.core.analysis.DiagnosticAnalyzer;
 import com.pgoogol.diagnostics.core.report.Finding;
 import com.pgoogol.diagnostics.core.report.FindingReporter;
 
@@ -24,6 +27,8 @@ public class CapturingFindingReporter implements FindingReporter {
 
     private final List<UnitOfWorkSummary> outsideUnits = new CopyOnWriteArrayList<>();
 
+    private final List<ActivityEvent> activities = new CopyOnWriteArrayList<>();
+
     @Override
     public void report(UnitOfWork unit, List<Finding> findings) {
 
@@ -40,6 +45,22 @@ public class CapturingFindingReporter implements FindingReporter {
     public void clear() {
 
         reports.clear();
+        activities.clear();
+    }
+
+    /** Analiza, która dopisuje tu zdarzenia inne niż operacje; test rejestruje ją jako bean. */
+    public DiagnosticAnalyzer activityCollector() {
+
+        return new ActivityCollector(activities);
+    }
+
+    /** Zdarzenia podanego typu od ostatniego {@link #clear()}, w kolejności nadejścia. */
+    public <T extends ActivityEvent> List<T> activities(Class<T> type) {
+
+        return activities.stream()
+            .filter(type::isInstance)
+            .map(type::cast)
+            .toList();
     }
 
     public List<Report> reports() {

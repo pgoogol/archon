@@ -1,5 +1,6 @@
 package com.pgoogol.diagnostics.it;
 
+import com.pgoogol.diagnostics.core.analysis.DiagnosticAnalyzer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
@@ -28,5 +29,11 @@ public class TestcontainersConfiguration {
     CapturingFindingReporter capturingFindingReporter() {
 
         return new CapturingFindingReporter();
+    }
+
+    @Bean
+    DiagnosticAnalyzer activityCollector(CapturingFindingReporter reporter) {
+
+        return reporter.activityCollector();
     }
 }
