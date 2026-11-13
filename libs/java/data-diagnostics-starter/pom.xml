@@ -66,6 +66,22 @@
       <artifactId>micrometer-tracing</artifactId>
       <optional>true</optional>
     </dependency>
+    <!-- granice jednostek pracy poza HTTP; każda działa tylko z własną biblioteką w aplikacji -->
+    <dependency>
+      <groupId>org.springframework.kafka</groupId>
+      <artifactId>spring-kafka</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.amqp</groupId>
+      <artifactId>spring-rabbit</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.batch</groupId>
+      <artifactId>spring-batch-core</artifactId>
+      <optional>true</optional>
+    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-configuration-processor</artifactId>
@@ -86,6 +102,11 @@
     <dependency>
       <groupId>tools.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
       <scope>test</scope>
     </dependency>
     <!-- owinięty HikariDataSource musi dalej wstrzykiwać się po typie -->

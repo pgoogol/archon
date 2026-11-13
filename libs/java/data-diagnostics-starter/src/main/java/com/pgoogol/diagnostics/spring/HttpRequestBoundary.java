@@ -1,6 +1,7 @@
 package com.pgoogol.diagnostics.spring;
 
 import com.pgoogol.diagnostics.core.DiagnosticsEngine;
+import com.pgoogol.diagnostics.core.UnitOfWorkBoundary;
 import com.pgoogol.diagnostics.core.UnitOfWorkScope;
 import com.pgoogol.diagnostics.core.UnitOfWorkType;
 import jakarta.servlet.FilterChain;
@@ -28,7 +29,7 @@ import java.util.Objects;
  * <p>Asynchroniczne dokończenie żądania ({@code DeferredResult}) leży poza jednostką:
  * zamyka się ona, gdy wątek żądania oddaje odpowiedź kontenerowi.</p>
  */
-public class HttpRequestBoundary extends OncePerRequestFilter {
+public class HttpRequestBoundary extends OncePerRequestFilter implements UnitOfWorkBoundary {
 
     /** Przed Spring Security ({@code -100}), za obserwacją żądań ({@code HIGHEST_PRECEDENCE + 1}). */
     public static final int ORDER = Ordered.HIGHEST_PRECEDENCE + 10;
@@ -46,12 +47,18 @@ public class HttpRequestBoundary extends OncePerRequestFilter {
     }
 
     @Override
+    public UnitOfWorkType type() {
+
+        return UnitOfWorkType.HTTP;
+    }
+
+    @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
                                     @NonNull FilterChain chain) throws ServletException, IOException {
 
         String traceId = traceIds.currentTraceId().orElse(null);
         String provisionalName = unitName(request);
-        try (UnitOfWorkScope scope = engine.open(provisionalName, UnitOfWorkType.HTTP, traceId)) {
+        try (UnitOfWorkScope scope = engine.open(provisionalName, type(), traceId)) {
 
             try {
 
