@@ -44,6 +44,7 @@
     <archunit.version>1.4.1</archunit.version>
     <mapstruct.version>1.6.3</mapstruct.version>
     <lombok.version>1.18.38</lombok.version>
+    <datasource-proxy.version>1.11.0</datasource-proxy.version>
 
     <!-- ==== wersje wtyczek ==== -->
     <!-- także wtyczki cyklu domyślnego: bez tego wchodzą wersje wbudowane
@@ -135,6 +136,12 @@
         <groupId>org.mapstruct</groupId>
         <artifactId>mapstruct</artifactId>
         <version>${mapstruct.version}</version>
+      </dependency>
+      <!-- przechwytywanie zapytań JDBC w data-diagnostics-starter -->
+      <dependency>
+        <groupId>net.ttddyy</groupId>
+        <artifactId>datasource-proxy</artifactId>
+        <version>${datasource-proxy.version}</version>
       </dependency>
       <!-- wyłącznie na czas kompilacji: adnotacje Lomboka nie trafiają do jara
            aplikacji ani do classpathu w runtime -->

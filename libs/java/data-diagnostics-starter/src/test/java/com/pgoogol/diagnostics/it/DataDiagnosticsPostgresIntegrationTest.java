@@ -1,0 +1,188 @@
+package com.pgoogol.diagnostics.it;
+
+import com.pgoogol.diagnostics.core.CallSite;
+import com.pgoogol.diagnostics.core.report.Finding;
+import com.pgoogol.diagnostics.jdbc.CapturedDataSource;
+import com.zaxxer.hikari.HikariDataSource;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
+
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+/**
+ * Starter w prawdziwej aplikacji na PostgreSQL: owinięty {@code DataSource}, granica HTTP,
+ * analiza N+1 i miejsce wywołania, dla każdego sposobu, w jaki aplikacja dociąga dane.
+ */
+@SpringBootTest(classes = DiagnosticsTestApplication.class, properties = {
+    "diagnostics.mode=dev",
+    "diagnostics.output.jsonl.enabled=false",
+    "diagnostics.analyzers.repository-hotspot.threshold=5",
+    "management.endpoints.web.exposure.include=prometheus,datadiagnostics",
+    "spring.jpa.hibernate.ddl-auto=validate",
+    "spring.jpa.open-in-view=false"})
+@AutoConfigureMockMvc
+@Import(TestcontainersConfiguration.class)
+@Tag("integration")
+@Sql("/test-data/orders.sql")
+class DataDiagnosticsPostgresIntegrationTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private CapturingFindingReporter reporter;
+
+    @Autowired
+    private HikariDataSource hikariDataSource;
+
+    @BeforeEach
+    void clearReports() {
+
+        reporter.clear();
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @CsvSource({
+        "repository,    byRepository,     OrderItemRepository.findByOrderId",
+        "jpql,          byJpql,",
+        "criteria,      itemsByCriteria,",
+        "native,        byNativeQuery,",
+        "jdbc-template, byJdbcTemplate,",
+        "lazy,          byLazyLoading,"})
+    @DisplayName("pozycje dociągane w pętli dają wniosek N+1 wskazujący metodę serwisu")
+    void request_whenItemsLoadedPerOrder_reportsNPlusOneAtServiceMethod(String way, String method,
+                                                                         String repositoryMethod) throws Exception {
+
+        // when
+        mockMvc.perform(get("/orders/items/{way}", way))
+            .andExpect(status().isOk());
+
+        // then
+        List<Finding> findings = reporter.findings("N_PLUS_ONE");
+        Finding finding = findings.getFirst();
+        CallSite caller = finding.shapes().getFirst().callers().getFirst();
+        assertAll(
+            () -> assertThat(findings).hasSize(1),
+            () -> assertThat(finding.measured()).isEqualTo(6),
+            () -> assertThat(finding.shapes().getFirst().shape()).contains("order_item"),
+            () -> assertThat(caller.className()).isEqualTo(OrderService.class.getName()),
+            () -> assertThat(caller.method()).isEqualTo(method),
+            () -> assertThat(caller.line()).isPositive(),
+            () -> assertThat(caller.repositoryMethod()).isEqualTo(repositoryMethod));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @CsvSource({
+        "repository,      OrderItemRepository.findByOrderId",
+        "jdbc-repository, NoteRepository.findById"})
+    @DisplayName("ta sama metoda repozytorium JPA albo JDBC wołana w pętli daje wniosek o gorącej metodzie")
+    void request_whenRepositoryMethodCalledInLoop_reportsHotspot(String way, String method) throws Exception {
+
+        // when
+        mockMvc.perform(get("/orders/items/{way}", way))
+            .andExpect(status().isOk());
+
+        // then
+        List<Finding> findings = reporter.findings("REPOSITORY_HOTSPOT");
+        assertAll(
+            () -> assertThat(findings).extracting(Finding::subject).containsExactly(method),
+            () -> assertThat(findings.getFirst().measured()).isEqualTo(6));
+    }
+
+    @Test
+    @DisplayName("mierniki diagnostyki są pod /actuator/prometheus, bez kształtu zapytania w etykietach")
+    void prometheus_whenRequestServed_exposesDiagnosticsMeters() throws Exception {
+
+        // given
+        mockMvc.perform(get("/orders/items/{way}", "repository"))
+            .andExpect(status().isOk());
+
+        // when
+        String scrape = mockMvc.perform(get("/actuator/prometheus"))
+            .andExpect(status().isOk())
+            .andReturn().getResponse().getContentAsString();
+
+        // then
+        assertAll(
+            () -> assertThat(scrape).contains("data_diagnostics_findings_total{code=\"N_PLUS_ONE\""),
+            () -> assertThat(scrape).contains("data_diagnostics_operations_seconds_count{kind=\"READ\""),
+            () -> assertThat(scrape).contains("data_diagnostics_unit_operations_count{unit_type=\"http\""),
+            () -> assertThat(scrape).doesNotContain("order_item"));
+    }
+
+    @Test
+    @DisplayName("endpoint actuatora oddaje ostatnie wnioski jako JSON i jako tekst do czatu, z filtrem po kodzie")
+    void endpoint_whenRequestServed_returnsFindingsAsJsonAndChatText() throws Exception {
+
+        // given
+        mockMvc.perform(get("/orders/items/{way}", "jpql"))
+            .andExpect(status().isOk());
+
+        // when
+        String json = mockMvc.perform(get("/actuator/datadiagnostics").param("code", "N_PLUS_ONE"))
+            .andExpect(status().isOk())
+            .andReturn().getResponse().getContentAsString();
+        String chat = mockMvc.perform(get("/actuator/datadiagnostics/chat").param("code", "N_PLUS_ONE"))
+            .andExpect(status().isOk())
+            .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+        // then
+        JsonNode first = JsonMapper.builder().build().readTree(json).get(0);
+        assertAll(
+            () -> assertThat(first.get("schema").asString()).isEqualTo("data-diagnostics.finding/v1"),
+            () -> assertThat(first.get("code").asString()).isEqualTo("N_PLUS_ONE"),
+            () -> assertThat(first.get("callers").get(0).get("method").asString()).isEqualTo("byJpql"),
+            () -> assertThat(chat).contains("## N_PLUS_ONE", "OrderService.byJpql", "typowa poprawka"),
+            () -> assertThat(mockMvc.perform(get("/actuator/datadiagnostics/xml")).andReturn().getResponse()
+                .getStatus()).isEqualTo(404));
+    }
+
+    @Test
+    @DisplayName("jednostka żądania nosi wzorzec trasy i liczy wszystkie zapytania")
+    void request_whenServed_reportsUnitNamedAfterRoute() throws Exception {
+
+        // when
+        mockMvc.perform(get("/orders/items/{way}", "repository"))
+            .andExpect(status().isOk());
+
+        // then
+        CapturingFindingReporter.Report report = reporter.reports().getFirst();
+        assertAll(
+            () -> assertThat(report.unit().name()).isEqualTo("GET /orders/items/{way}"),
+            () -> assertThat(report.unit().operationCount()).isEqualTo(7));
+    }
+
+    @Test
+    @DisplayName("owinięty HikariDataSource dalej wstrzykuje się po swoim typie")
+    void dataSource_whenInjectedByType_isCapturingHikariDataSource() {
+
+        // then
+        assertThat(hikariDataSource).isInstanceOf(CapturedDataSource.class);
+    }
+
+    @Test
+    @DisplayName("zapytania Flyway przy starcie nie dają raportu, bo leżą poza jednostką pracy")
+    void startup_whenFlywayMigrated_reportsNothing() {
+
+        // then
+        assertThat(reporter.outsideUnits()).isEmpty();
+    }
+}

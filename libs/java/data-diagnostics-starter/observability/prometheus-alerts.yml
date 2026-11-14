@@ -1,0 +1,44 @@
+# Przykładowe reguły alertów Prometheusa dla mierników data.diagnostics.*.
+# Progi są punktem wyjścia: dopasuj je do ruchu aplikacji, zanim podepniesz powiadomienia.
+groups:
+  - name: data-diagnostics
+    rules:
+      # Wnioski krytyczne nie powinny pojawiać się w spokojnym systemie wcale.
+      - alert: DataDiagnosticsCriticalFindings
+        expr: sum by (code) (increase(data_diagnostics_findings_total{severity="CRITICAL"}[10m])) > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Krytyczne wnioski diagnostyki danych: {{ $labels.code }}"
+          description: "Wyszukaj kod w logach loggera com.pgoogol.diagnostics.findings i przejdź po odcisku (fp=…)."
+
+      # N+1 wraca zwykle po wdrożeniu: liczymy tempo, nie pojedyncze wystąpienia.
+      - alert: DataDiagnosticsNPlusOneRate
+        expr: sum(rate(data_diagnostics_findings_total{code="N_PLUS_ONE"}[15m])) > 0.1
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "N+1 w więcej niż 6 jednostkach pracy na minutę"
+
+      # Czekanie na połączenie: pula jest za mała albo ktoś trzyma połączenia.
+      - alert: DataDiagnosticsConnectionWait
+        expr: histogram_quantile(0.95, sum by (le) (rate(data_diagnostics_connection_wait_seconds_bucket[5m]))) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "95. percentyl czekania na połączenie z puli powyżej 100 ms"
+          description: "Wymaga histogramu: management.metrics.distribution.percentiles-histogram.data.diagnostics.connection.wait=true"
+
+      # Średnia liczba operacji na jednostkę rośnie: ktoś dołożył pętlę z zapytaniami.
+      - alert: DataDiagnosticsOperationsPerUnit
+        expr: >
+          sum by (unit_type) (rate(data_diagnostics_unit_operations_sum[15m]))
+          / sum by (unit_type) (rate(data_diagnostics_unit_operations_count[15m])) > 30
+        for: 30m
+        labels:
+          severity: info
+        annotations:
+          summary: "Średnio ponad 30 operacji na jednostkę typu {{ $labels.unit_type }}"
