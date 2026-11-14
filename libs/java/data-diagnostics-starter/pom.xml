@@ -66,6 +66,17 @@
       <artifactId>micrometer-tracing</artifactId>
       <optional>true</optional>
     </dependency>
+    <!-- endpoint actuatora z ostatnimi wnioskami -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-actuator</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-actuator-autoconfigure</artifactId>
+      <optional>true</optional>
+    </dependency>
     <!-- mierniki; rejestr i eksport wybiera aplikacja -->
     <dependency>
       <groupId>io.micrometer</groupId>

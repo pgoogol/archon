@@ -16,7 +16,10 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
     "diagnostics.mode=dev",
     "diagnostics.output.jsonl.enabled=false",
     "diagnostics.analyzers.repository-hotspot.threshold=5",
-    "management.endpoints.web.exposure.include=prometheus",
+    "management.endpoints.web.exposure.include=prometheus,datadiagnostics",
     "spring.jpa.hibernate.ddl-auto=validate",
     "spring.jpa.open-in-view=false"})
 @AutoConfigureMockMvc
@@ -123,6 +126,33 @@ class DataDiagnosticsPostgresIntegrationTest {
             () -> assertThat(scrape).contains("data_diagnostics_operations_seconds_count{kind=\"READ\""),
             () -> assertThat(scrape).contains("data_diagnostics_unit_operations_count{unit_type=\"http\""),
             () -> assertThat(scrape).doesNotContain("order_item"));
+    }
+
+    @Test
+    @DisplayName("endpoint actuatora oddaje ostatnie wnioski jako JSON i jako tekst do czatu, z filtrem po kodzie")
+    void endpoint_whenRequestServed_returnsFindingsAsJsonAndChatText() throws Exception {
+
+        // given
+        mockMvc.perform(get("/orders/items/{way}", "jpql"))
+            .andExpect(status().isOk());
+
+        // when
+        String json = mockMvc.perform(get("/actuator/datadiagnostics").param("code", "N_PLUS_ONE"))
+            .andExpect(status().isOk())
+            .andReturn().getResponse().getContentAsString();
+        String chat = mockMvc.perform(get("/actuator/datadiagnostics/chat").param("code", "N_PLUS_ONE"))
+            .andExpect(status().isOk())
+            .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+        // then
+        JsonNode first = JsonMapper.builder().build().readTree(json).get(0);
+        assertAll(
+            () -> assertThat(first.get("schema").asString()).isEqualTo("data-diagnostics.finding/v1"),
+            () -> assertThat(first.get("code").asString()).isEqualTo("N_PLUS_ONE"),
+            () -> assertThat(first.get("callers").get(0).get("method").asString()).isEqualTo("byJpql"),
+            () -> assertThat(chat).contains("## N_PLUS_ONE", "OrderService.byJpql", "typowa poprawka"),
+            () -> assertThat(mockMvc.perform(get("/actuator/datadiagnostics/xml")).andReturn().getResponse()
+                .getStatus()).isEqualTo(404));
     }
 
     @Test

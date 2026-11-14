@@ -31,6 +31,7 @@ import java.util.Objects;
  * @param analyzers          ustawienia analiz według ich identyfikatora, np. {@code n-plus-one}
  * @param output             wyjścia wniosków
  * @param metrics            mierniki Micrometer
+ * @param recentFindingsLimit ile ostatnich wniosków trzyma w pamięci endpoint actuatora
  */
 @ConfigurationProperties("diagnostics")
 public record DataDiagnosticsProperties(
@@ -43,7 +44,8 @@ public record DataDiagnosticsProperties(
     @DefaultValue List<String> applicationPackages,
     @DefaultValue Map<String, Analyzer> analyzers,
     @DefaultValue Output output,
-    @DefaultValue Metrics metrics) {
+    @DefaultValue Metrics metrics,
+    @DefaultValue("200") int recentFindingsLimit) {
 
     public DataDiagnosticsProperties {
 
