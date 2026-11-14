@@ -49,6 +49,18 @@ public class PostgreSqlSupport implements DataStoreSupport {
         return classifier.classify(tokens);
     }
 
+    /** Jedna tokenizacja na operację zamiast dwóch. */
+    @Override
+    public StatementDescription describe(String statement) {
+
+        Objects.requireNonNull(statement, "tekst zapytania jest wymagany");
+        List<SqlToken> tokens = lexer.tokenize(statement);
+        OperationKind kind = classifier.classify(tokens);
+        List<SqlToken> collapsed = collapser.collapse(tokens);
+        String shape = render(collapsed);
+        return new StatementDescription(shape, kind);
+    }
+
     private String render(List<SqlToken> tokens) {
 
         StringBuilder shape = new StringBuilder();

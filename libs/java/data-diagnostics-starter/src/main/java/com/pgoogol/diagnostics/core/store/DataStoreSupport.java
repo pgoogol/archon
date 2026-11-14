@@ -24,4 +24,15 @@ public interface DataStoreSupport {
 
     /** Rodzaj operacji: odczyt, zapis albo inna. */
     OperationKind classify(String statement);
+
+    /**
+     * Kształt i rodzaj naraz. Strategia przechwytywania potrzebuje obu przy każdej operacji,
+     * więc implementacja, która do obu parsuje tekst, powinna tu parsować go raz.
+     */
+    default StatementDescription describe(String statement) {
+
+        String shape = shape(statement);
+        OperationKind kind = classify(statement);
+        return new StatementDescription(shape, kind);
+    }
 }

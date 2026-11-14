@@ -8,6 +8,7 @@ import com.pgoogol.diagnostics.core.DiagnosticsEngine;
 import com.pgoogol.diagnostics.core.DiagnosticsSettings;
 import com.pgoogol.diagnostics.core.OperationKind;
 import com.pgoogol.diagnostics.core.store.DataStoreSupport;
+import com.pgoogol.diagnostics.core.store.StatementDescription;
 import net.ttddyy.dsproxy.ExecutionInfo;
 import net.ttddyy.dsproxy.QueryInfo;
 import net.ttddyy.dsproxy.listener.QueryExecutionListener;
@@ -108,8 +109,9 @@ public class JdbcCaptureStrategy implements QueryExecutionListener {
 
         String sql = query.getQuery();
         DataStore store = storeSupport.store();
-        String shape = storeSupport.shape(sql);
-        OperationKind kind = storeSupport.classify(sql);
+        StatementDescription description = storeSupport.describe(sql);
+        String shape = description.shape();
+        OperationKind kind = description.kind();
         String text = textOf(sql);
         List<String> parameters = parametersOf(query);
         int batchSize = batchSizeOf(execution);

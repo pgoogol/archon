@@ -44,6 +44,21 @@ class PostgreSqlSupportClassifyTest {
     }
 
     @Test
+    @DisplayName("opis policzony jedną tokenizacją daje ten sam kształt i rodzaj co osobne wywołania")
+    void describe_whenStatementGiven_matchesShapeAndClassify() {
+
+        // given
+        String statement = "with gone as (delete from orders where id in (1, 2, 3) returning *) select * from gone";
+
+        // when
+        StatementDescription description = support.describe(statement);
+
+        // then
+        assertThat(description.shape()).isEqualTo(support.shape(statement));
+        assertThat(description.kind()).isEqualTo(support.classify(statement));
+    }
+
+    @Test
     @DisplayName("pusty tekst to operacja innego rodzaju, nie błąd")
     void classify_whenBlank_returnsOther() {
 

@@ -11,6 +11,7 @@ import com.pgoogol.diagnostics.core.analysis.NPlusOneAnalyzer;
 import com.pgoogol.diagnostics.core.analysis.SlowOperationAnalyzer;
 import com.pgoogol.diagnostics.core.report.FindingFingerprint;
 import com.pgoogol.diagnostics.core.report.FindingJsonWriter;
+import com.pgoogol.diagnostics.core.report.FindingRateLimiter;
 import com.pgoogol.diagnostics.core.report.FindingReporter;
 import com.pgoogol.diagnostics.core.report.JsonLinesFindingReporter;
 import com.pgoogol.diagnostics.core.report.LogFindingReporter;
@@ -28,6 +29,7 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Import;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.util.List;
 import java.util.stream.LongStream;
 
@@ -87,9 +89,11 @@ public class DataDiagnosticsAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "diagnostics.output.log", name = "enabled", havingValue = "true",
         matchIfMissing = true)
-    public LogFindingReporter logFindingReporter(DiagnosticsSettings settings, FindingFingerprint fingerprint) {
+    public LogFindingReporter logFindingReporter(DiagnosticsSettings settings, FindingFingerprint fingerprint,
+                                                 DataDiagnosticsProperties properties) {
 
-        return new LogFindingReporter(settings.mode(), fingerprint);
+        Duration window = properties.output().log().rateLimitFor(settings.mode());
+        return new LogFindingReporter(settings.mode(), fingerprint, new FindingRateLimiter(window));
     }
 
     @Bean

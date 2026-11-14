@@ -12,6 +12,7 @@ import org.slf4j.spi.LoggingEventBuilder;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
+import java.util.OptionalLong;
 
 /**
  * Wnioski w logu aplikacji, pod stałym loggerem {@value #LOGGER_NAME}, żeby jednym
@@ -27,6 +28,9 @@ import java.util.Objects;
  * <p>W dev przed wnioskami idzie linia podsumowania jednostki: na INFO, a bez wniosków na
  * DEBUG. W prod log dostaje same wnioski. Waga {@code CRITICAL} trafia na poziom WARN:
  * to wniosek o wydajności, nie błąd aplikacji, a pełną wagę niesie {@code dd.severity}.</p>
+ *
+ * <p>Z limitem częstości ten sam odcisk trafia do logu najwyżej raz na okno; następne
+ * wypisanie podaje, ile wystąpień pominięto ({@code dd.skipped}).</p>
  */
 public class LogFindingReporter implements FindingReporter {
 
@@ -43,10 +47,23 @@ public class LogFindingReporter implements FindingReporter {
 
     private final FindingFingerprint fingerprint;
 
+    private final FindingRateLimiter rateLimiter;
+
+    /** Bez limitu częstości: każdy wniosek trafia do logu. */
     public LogFindingReporter(DiagnosticsMode mode, FindingFingerprint fingerprint) {
+
+        this(mode, fingerprint, new FindingRateLimiter(Duration.ZERO));
+    }
+
+    /**
+     * @param rateLimiter limit częstości według odcisku; pominięte wystąpienia dolicza się
+     *                    do następnego wypisanego wniosku
+     */
+    public LogFindingReporter(DiagnosticsMode mode, FindingFingerprint fingerprint, FindingRateLimiter rateLimiter) {
 
         this.mode = Objects.requireNonNull(mode, "tryb diagnostyki jest wymagany");
         this.fingerprint = Objects.requireNonNull(fingerprint, "odcisk wniosku jest wymagany");
+        this.rateLimiter = Objects.requireNonNull(rateLimiter, "limit częstości jest wymagany");
     }
 
     @Override
@@ -86,15 +103,21 @@ public class LogFindingReporter implements FindingReporter {
     private void logFinding(UnitOfWorkSummary unit, Finding finding) {
 
         String fingerprintValue = fingerprint.of(finding, unit);
+        OptionalLong skipped = rateLimiter.tryAcquire(fingerprintValue);
+        if (skipped.isEmpty()) {
+
+            return;
+        }
         Level level = levelOf(finding.severity());
         LoggingEventBuilder event = log.atLevel(level)
+            .addKeyValue("dd.skipped", skipped.getAsLong())
             .addKeyValue("dd.code", finding.code())
             .addKeyValue("dd.fingerprint", fingerprintValue)
             .addKeyValue("dd.severity", finding.severity().name())
             .addKeyValue("dd.unit", unit.name())
             .addKeyValue("dd.unitId", unit.id());
         addShapeFields(event, finding);
-        event.setMessage(() -> message(unit, finding, fingerprintValue))
+        event.setMessage(() -> message(unit, finding, fingerprintValue, skipped.getAsLong()))
             .log();
     }
 
@@ -116,7 +139,7 @@ public class LogFindingReporter implements FindingReporter {
             .addKeyValue("dd.totalMs", shape.totalTime().toMillis());
     }
 
-    private String message(UnitOfWorkSummary unit, Finding finding, String fingerprintValue) {
+    private String message(UnitOfWorkSummary unit, Finding finding, String fingerprintValue, long skipped) {
 
         StringBuilder message = new StringBuilder()
             .append(finding.code()).append(": ").append(finding.title())
@@ -126,6 +149,10 @@ public class LogFindingReporter implements FindingReporter {
             .append(" fp=").append(fingerprintValue)
             .append(" trace=").append(Objects.toString(unit.traceId(), "-"))
             .append(']');
+        if (skipped > 0) {
+
+            message.append(" (+").append(skipped).append(" takich samych pominiętych w logu)");
+        }
         return message.toString();
     }
 

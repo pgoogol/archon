@@ -14,9 +14,11 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.KeyValuePair;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import static com.pgoogol.diagnostics.core.report.FindingFixtures.END;
@@ -165,6 +167,31 @@ class LogFindingReporterTest {
         assertAll(
             () -> assertThat(event.getLevel()).isEqualTo(Level.WARN),
             () -> assertThat(keyValues(event)).containsEntry("dd.severity", "CRITICAL"));
+    }
+
+    @Test
+    @DisplayName("z limitem częstości powtórka wniosku znika z logu, a następne wypisanie podaje, ile pominięto")
+    void report_whenRateLimited_logsOnceAndCountsSkipped() {
+
+        // given
+        AtomicLong now = new AtomicLong();
+        FindingRateLimiter limiter = new FindingRateLimiter(Duration.ofMinutes(1), now::get);
+        LogFindingReporter reporter = new LogFindingReporter(DiagnosticsMode.PROD, fingerprint, limiter);
+        Finding finding = shapeFinding("N_PLUS_ONE", shape(ITEMS, caller("list", 42)));
+
+        // when
+        reporter.report(unit, List.of(finding));
+        reporter.report(unit, List.of(finding));
+        reporter.report(unit, List.of(finding));
+        now.addAndGet(Duration.ofMinutes(1).toNanos());
+        reporter.report(unit, List.of(finding));
+
+        // then
+        assertAll(
+            () -> assertThat(appender.list).hasSize(2),
+            () -> assertThat(appender.list.getLast().getFormattedMessage())
+                .contains("(+2 takich samych pominiętych w logu)"),
+            () -> assertThat(keyValues(appender.list.getLast())).containsEntry("dd.skipped", 2L));
     }
 
     @Test

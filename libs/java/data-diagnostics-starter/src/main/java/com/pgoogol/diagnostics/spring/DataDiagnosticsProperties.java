@@ -9,6 +9,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.util.unit.DataSize;
 
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -141,9 +142,30 @@ public record DataDiagnosticsProperties(
 
     }
 
-    /** @param enabled {@code false} wyłącza wnioski w logu */
-    public record Log(@DefaultValue("true") boolean enabled) {
+    /**
+     * @param enabled   {@code false} wyłącza wnioski w logu
+     * @param rateLimit okno, w którym ten sam wniosek (ten sam odcisk) trafia do logu
+     *                  najwyżej raz; puste oznacza wartość trybu: bez limitu w dev,
+     *                  minutę w prod; {@code 0s} wyłącza limit
+     */
+    public record Log(@DefaultValue("true") boolean enabled, @Nullable Duration rateLimit) {
 
+        /** Domyślne okno limitu w prod. */
+        public static final Duration PROD_RATE_LIMIT = Duration.ofMinutes(1);
+
+        /** Okno limitu: ustawione jawnie albo domyślne dla trybu. */
+        public Duration rateLimitFor(DiagnosticsMode mode) {
+
+            if (Objects.nonNull(rateLimit)) {
+
+                return rateLimit;
+            }
+            return switch (mode) {
+
+                case DEV -> Duration.ZERO;
+                case PROD -> PROD_RATE_LIMIT;
+            };
+        }
     }
 
     /**
